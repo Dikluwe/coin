@@ -1,95 +1,62 @@
-# P01 / F03 — contrato de clipping CoinRender
+# CoinRender clipping contract (P01/F03)
 
-Implementado em 2026-09-28. Perfil: até oito planos ativos por estado/draw,
-triângulos, linhas e pontos capturados pela action. BGFX/OpenGL, BGFX/Vulkan e
-Rust/wgpu executam o mesmo contrato; o protótipo Dawn/native rejeita triângulos
-com clipping antes da submissão.
+Implemented on 2026-09-28: up to eight active planes per captured state/draw,
+for triangles, lines and points. BGFX/OpenGL, BGFX/Vulkan and Rust/wgpu execute
+the common contract. The Dawn/native prototype rejects clipped triangles before
+submission. Implementation support is separate from device qualification.
 
-## Contrato Coin e referência GL estudada
+`SoClipPlane::doAction` adds the plane when `on` is active or ignored; its callback
+uses that path during capture. `SoClipPlaneElement::add` uses the model matrix
+at the plane node. `get(i, TRUE)` returns a world-space plane; later shape
+transforms do not redefine it. Planes accumulate in state; Separator pop restores
+them. CoinGL sends `(normal.xyz, -distance)` and keeps the side
+`normal.dot(position) - distance >= 0`. Sources are `src/nodes/SoClipPlane.cpp`,
+`src/elements/SoClipPlaneElement.cpp`, and `src/elements/GL/SoGLClipPlaneElement.cpp`.
 
-- `SoClipPlane::doAction` acrescenta o plano quando `on` está ativo ou ignorado.
-  `SoClipPlane::callback` usa esse caminho na action de captura.
-- `SoClipPlaneElement::add` usa o model matrix vigente no nó do plano.
-  `get(i, TRUE)` fornece o plano em mundo. A transformação posterior do shape
-  não redefine esse plano.
-- Os planos são acumulados por estado; push/pop de SoSeparator restaura o conjunto.
-- `SoGLClipPlaneElement::addToElt` envia `(normal.xyz, -distance)` a glClipPlane
-  e habilita seu índice; pop desabilita os planos acrescentados naquele escopo.
-  Mantém-se o lado com `normal.dot(position) - distance >= 0`.
+Wiring captures `clipPlanesWorld` per state. Deduplication/payload comparison
+include plane contents; changes invalidate camera reuse. Recording logs all four
+equation components. `CoinRenderClipCore.h` converts world planes into camera
+space without reading actions/state or commanding a GPU. It clips line segments
+and tests point centers before quad expansion, interpolating clipped endpoint
+attributes. Expanded states do not clip strokes again. State equality includes
+plane semantics.
 
-Arquivos: `src/nodes/SoClipPlane.cpp`, `src/elements/SoClipPlaneElement.cpp` e
-`src/elements/GL/SoGLClipPlaneElement.cpp`. Nenhuma alteração em libCoin foi necessária.
+BGFX applies the equations in the shared surface shader for object, weighted OIT
+and sorted-layer passes, including lighting, texture and auxiliary opaque depth.
+Triangles retain vertices and lighting/texture interpolation. Camera patch with
+active planes rebuilds because BGFX vertices also contain camera-space positions.
 
-## Responsabilidades e execução
+The private wgpu transport introduced clipping in revision **22** (state **1088
+bytes**). Historical revision **26** had **2280 bytes** after multitexture/combine
+and original-depth bias fields, with clipping offsets unchanged and draw **56
+bytes**. `clip_plane_count` is at **956**, `clip_planes` at **960**. The C++ packer
+uses the same Core; Rust validates transport and supplies WGSL uniforms shared by
+standard/line/point shaders. Rust does not rediscover Coin planes or spaces.
+These are historical layouts; rebuild the checked-in C++/Rust pair together.
 
-**Wiring:** o builder captura `clipPlanesWorld` do elemento Coin em cada estado.
-A deduplicação e a comparação de payload incluem o conteúdo dos planos;
-modificações invalidam o reuso de câmera. O diagnóstico Recording mostra as
-quatro componentes de cada equação quando há planos ativos.
+Nine or more planes return `UNSUPPORTED`, without truncation, pixel replacement
+or serial advance. A later valid request can render. Nonfinite planes, zero
+normals or singular view matrices are invalid. `COIN_RENDER_FEATURE_CLIP_PLANES`
+describes implementation, not universal platform support.
 
-**Core:** `CoinRenderClipCore.h` transforma SbPlane de mundo para espaço da câmera,
-produzindo equações uniformes para os executores. Não recebe action/SoState nem
-comanda a GPU. O mesmo Core calcula o intervalo visível de segmentos e testa o
-centro de pontos, antes da expansão em quads; os atributos dos extremos recortados
-são interpolados. Os estados expandidos não repetem o recorte dos strokes.
-`CoinRenderStateCore.h` compara estados semanticamente, incluindo os planos.
+`CoinRenderClipPlaneTest` covers transformed capture, disabled planes, Separator
+restore, copy/reuse, camera equations, pre-expansion segment/point clipping,
+opaque/transparent pixels, eight planes, camera movement, mirrored shapes,
+perspective, lighting/textures, depth, limits and recovery with indexed fast path
+on/off. BGFX fixtures distinguish OpenGL/Vulkan × object/weighted_oit/sorted_layers.
+Rust checks excess payload, zero normals, NaN and shader validity.
 
-**Infra BGFX:** recebe equações resolvidas por draw e aplica descarte no shader
-comum de superfície, usado nos passes object, weighted OIT e sorted layers,
-inclusive iluminação, textura e profundidade opaca auxiliar. Triângulos conservam
-os vértices e a interpolação de iluminação/textura. Camera patch com planos ativos
-faz reconstrução: os vértices BGFX contêm posições de câmera, que também precisam
-ser atualizadas. Isso evita reutilizar posições antigas com uma nova câmera.
+Historical closure: **41 CTests** (18 wgpu, 23 BGFX), **8 Rust unit tests and 1
+shader integration** passed; Debug/wgpu and Release/BGFX builds completed.
+Optional CoinGL offscreen references were unavailable even under Xvfb and were
+reported as internal skips, so this does not claim full CoinGL image parity.
+Local GPU profiles were NVIDIA RTX 3060 Laptop Vulkan and BGFX/OpenGL under
+Xvfb, RGBA8 offscreen, tolerance six byte levels at sampled points. Receipts and
+original narration are in the [companion archive](coin-render-evidence.md).
 
-**Infra wgpu:** clipping introduzido na ABI privada **22**, estado de **1088 bytes**.
-A revisão atual **26** tem **2280 bytes**, incluindo o tail de multitextura/combine
-de P08 e o bias de inclinação/máximo de depth original; offsets de
-clipping conservados, draw ainda com 56 bytes.
-`clip_plane_count` fica no offset 956, `clip_planes` no 960. O packer C++ usa o
-mesmo Core; Rust valida o transporte e entrega uniformes ao WGSL. Os shaders
-standard/line/point usam a mesma estrutura de uniformes. Rust não descobre planos
-Coin nem decide novamente os espaços de coordenadas. C++ e Rust precisam ser
-recompilados juntos.
-
-**Publicação:** nove ou mais planos ativos na captura retornam UNSUPPORTED,
-sem truncamento e sem alterar a imagem ou serial anterior. Um pedido válido
-posterior pode renderizar normalmente. Planos não finitos, normais nulas ou
-view matrix singular são inválidos. `COIN_RENDER_FEATURE_CLIP_PLANES` descreve
-esse perfil implementado; não certifica outras plataformas/dispositivos.
-
-## Evidências de fechamento
-
-`CoinRenderClipPlaneTest` cobre captura transformada com escala/translação,
-`on=FALSE`, restauração por Separator, cópia/reuso, equações em espaço da câmera,
-segmentos/pontos antes da expansão, pixels opacos/transparentes, múltiplos planos
-(incluindo o oitavo), câmera transladada/rotacionada, shape espelhado, perspectiva,
-iluminação/textura com transparência, fundo/depth e limite/recovery. Exercita a
-action com fast path indexed ligado e desligado.
-
-No BGFX a mesma fixture tem células explícitas para OpenGL/Vulkan ×
-object/weighted_oit/sorted_layers. No Rust há validação de payload excessivo,
-normal nula e NaN, além da validação de shader existente. Regressões de composição,
-anotações, depth, materiais, texturas, iluminação, RTT, readback e reuso acompanham
-a entrega. Rodada final: **41 casos CTest passaram** (18 Rust/wgpu, 23 BGFX),
-sem skip de caso CTest; **8 testes unitários Rust e 1 integração de shader passaram**,
-offline. Compilações completas Debug/wgpu e Release/BGFX passaram. Comparações
-opcionais Coin/GL indisponíveis continuam registradas como skips internos.
-
-A comparação opcional Coin/GL não criou contexto offscreen neste ambiente,
-inclusive sob Xvfb. Seu skip é registrado na saída; não alegamos paridade visual
-GL completa. Ensaios GPU locais: wgpu/Vulkan em NVIDIA GeForce RTX 3060 Laptop GPU;
-BGFX/Vulkan no mesmo dispositivo e BGFX/OpenGL sob Xvfb. Cor offscreen RGBA8,
-tolerância de 6 níveis por canal nos pontos amostrados. Nenhum caso CTest de
-clipping depende apenas da referência CPU quando há adaptador GPU disponível.
-
-## Limites que permanecem abertos
-
-- Qualificação visual GL de bordas, strokes/padrões, MSAA e cenas FreeCAD reais.
-- Matriz de outras GPUs, plataformas e superfícies; RTT com clipping ainda exige
-  a qualificação de dependências/publicação prevista em F14.
-- Suporte além de oito planos e transforms projetivos arbitrários não faz parte
-  deste perfil; testar range/clamp/precisão continua em F12.
-- Clipping não cria tampas de seção, nem implementa SoDrawStyle ou SoText2.
-
-P01 fica fechado nesse perfil de implementação e ensaio GPU. F03 conserva as
-pendências de qualificação acima; próxima implementação: P02 / SoDrawStyle.
+Open qualification includes GL boundaries, patterned strokes, MSAA and real host
+scenes; additional devices/platforms/surfaces and RTT dependency/publication
+combinations. More than eight planes and arbitrary projective transforms are
+outside this profile. Clipping creates no section caps and does not itself
+implement draw styles or text. P01 implementation closure does not close F03's
+entire qualification matrix.

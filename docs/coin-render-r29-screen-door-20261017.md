@@ -1,7 +1,0 @@
-# R29 — SCREEN_DOOR estéreo e revisão de frame
-
-O ANAGLYPH do manager admite transparência de material `SCREEN_DOOR`. Ela mantém depth por fragmento, permitindo aplicar máscara R/A ao olho esquerdo e G/B/A ao direito no mesmo frame. [BLEND imediato](coin-render-r29-blend-20261017.md) foi qualificado depois; passes diferidos, raster com blend forçado e texturas com alpha permanecem recusados antes da publicação.
-
-O teste `CoinRenderStereoEyeTest` captura cada olho com material branco a 50% e SCREEN_DOOR, compara os canais do ANAGLYPH ao respectivo olho direto e confronta os três canais de cada olho com CoinGL. [Sete células GPU](validation/coin-render-r29-screen-door-20261017/verification.json) passaram; erro RGB máximo zero contra CoinGL, cobertura combinada de 1.400 pixels. O controle de DELAYED_BLEND exige rejeição, imagem anterior intacta e recuperação.
-
-A primeira execução wgpu revelou um pânico Rust em `composition::passes`: a ordem cacheada tinha dois draws, mas a captura seguinte tinha um. O FramePlan combinado havia usado `max(left.revision, right.revision)+1`, ocupando sem reserva o próximo valor do contador global. Agora solicita `CoinRenderFramePlanBuilder::nextRevision()`, assim como uma captura normal. A ponte Rust também recusa ordem cacheada cujo tamanho ou índice não corresponde aos draws recebidos, revalidando o frame. Após a correção, as três células wgpu e quatro BGFX passaram. A [janela X11](coin-render-r29-window-anaglyph-20261017.md) também passou 28/28 frames incluindo SCREEN_DOOR.

@@ -1,121 +1,75 @@
-# P08 — Multitextura e strokes
+# Multitexture and strokes (P08)
 
-P08 fecha o perfil abaixo em CoinRender, CoinBgfx e CoinWgpu. A qualificação
-usa as mesmas cenas, expectativas numéricas e referência Coin/GL para os três
-executores CPU, BGFX e wgpu. Não fecha integralmente P02, P05, P07 ou P09.
+This profile shares scenes, numeric expectations and CoinGL controls across CPU,
+BGFX and wgpu. It does not close all draw-style, binding, procedural-UV or
+transparency combinations. [Projective UV](coin-render-projective-uv-contract.md)
+extends its original transport with STRQ and per-fragment division, distinguishing
+four-stage native CoinGL references from eight-stage analytic controls.
 
-A revisão posterior de [UV projetivo](coin-render-projective-uv-contract.md)
-conserva ST/R/Q, aplica divisão no fragmento e distingue o shader nativo de
-sombras. Ela também registra os layouts atuais da ABI privada 45 e separa o
-oracle analítico de oito estágios da referência CoinGL limitada a quatro.
+Wiring enables `SoTextureCombineElement` and uses `SoTextureCombine::doAction()`
+field interpretation without querying GL hardware during capture. Capture includes
+per-unit image/sampler/matrix/coordinates/combine. SoLineSet endpoint details
+advance with vertices, including callback/picking semantics.
+`CoinRenderTextureCombineCore.h` validates/compiles four vectors per unit,
+normalizes operations/arguments, supplies CPU execution and a conservative alpha
+proof. It alone interprets Coin enums; BGFX/wgpu execute the program with their
+own shaders/resources. `CoinRenderStrokeCore.h` owns expansion.
 
-## Responsabilidades
+## Semantic profile
 
-Wiring habilita `SoTextureCombineElement` e usa a interpretação de campos do
-próprio `SoTextureCombine::doAction()`, sem consultar hardware GL em uma action
-de captura. Captura imagens, samplers, matrizes, coordenadas e combine por
-unidade. Os índices dos extremos de `SoLineSet` avançam junto dos vértices;
-isso corrige o detalhe Coin usado por callbacks e picking.
+- Eight units **0–7**, including sparse units and disabled unit zero, with
+  independent image/sampler/matrix/explicit UV.
+- RGB operations: REPLACE, MODULATE, ADD, ADD_SIGNED, SUBTRACT, INTERPOLATE,
+  DOT3_RGB and DOT3_RGBA. Alpha supports the first six. Independent scales
+  **1/2/4**, clamp after each stage and constant RGBA clamped to `[0,1]`.
+- Sources: PRIMARY_COLOR (pre-cascade color), TEXTURE, CONSTANT and PREVIOUS.
+  RGB operands support color/alpha and complements; alpha supports SRC_ALPHA/
+  ONE_MINUS_SRC_ALPHA. Disabled units leave PREVIOUS unchanged. DOT3_RGBA
+  replaces alpha, ignores the alpha operation and retains its scale.
+- FILLED, polygon LINES/POINTS and native lines/points use the same program.
+  UV, color/alpha, W and fog distance survive expansion. UV/color perspective
+  interpolation remains; points keep vertex UV without point-sprite semantics.
+- Solid/patterned lines share unit-fragment assembly. Rounded width replicates
+  coverage on the minor axis. Rounded integer point size has minimum one and
+  different even/odd center placement. An isolated line/point blends once per
+  covered fragment.
+- Native line phase continues per polyline and resets at qualified Coin resets.
+  After clipping, Core starts at first visible coverage; GL permits an
+  indeterminate initial phase on clipped lines.
+- Invalid operations/scales, extra UV indices or excess units fail before
+  publication, retaining pixels/serial and allowing a corrected scene. Separator
+  pop restores combine state.
 
-`CoinRenderTextureCombineCore.h` valida e compila o estado em quatro vetores
-por unidade, com operações e argumentos normalizados. Também fornece o
-executor CPU e a prova conservadora de alpha para composição. Core é o único
-dono da interpretação dos enums Coin. Infra BGFX e wgpu executam esse programa,
-com seus próprios shaders, recursos, bindings e submissão. A expansão de
-strokes continua em `CoinRenderStrokeCore.h`.
+Aliased raster assembly follows OpenGL 2.1 §§3.3/3.4/3.8.13 and Coin source. Line
+comparisons admit the specified one-coordinate/unit-fragment alternatives rather
+than bitwise identity; matrix points are compared pixel-by-pixel.
 
-## Contrato implementado
+Historical private wgpu revision **26**: vertex **100 bytes**, state **2280**, unit
+**96**, draw **56**; extra UV offset **44**, extra units **1096**, combine programs
+**1768**. Both sides assert sizes/offsets and reject malformed programs/nonfinite
+values. These are historical layouts; rebuild the current C++/Rust pair. Stable
+Coin ABI is unaffected.
 
-- Oito unidades, numeradas 0–7, incluindo unidades esparsas e unidade zero
-  desligada. Cada unidade conserva imagem, sampler, matriz e UV explícito.
-- RGB: REPLACE, MODULATE, ADD, ADD_SIGNED, SUBTRACT, INTERPOLATE, DOT3_RGB
-  e DOT3_RGBA. Alpha: as seis primeiras operações. Escalas independentes 1, 2
-  e 4; clamp ao fim de cada estágio; constante RGBA limitada a [0,1].
-- Fontes PRIMARY_COLOR, TEXTURE, CONSTANT e PREVIOUS. Operandos RGB de cor,
-  alpha e seus complementos; alpha aceita SRC_ALPHA e ONE_MINUS_SRC_ALPHA.
-  PRIMARY_COLOR é a cor antes da cascata. Unidade desligada não altera PREVIOUS.
-  DOT3_RGBA substitui alpha, ignora a operação alpha e conserva sua escala.
-- Combine vale para polígonos preenchidos, contornos LINES/POINTS e linhas e
-  pontos nativos. Coordenadas, cor/alpha, W e distância de fog atravessam a
-  expansão comum; UV e cor interpolam em perspectiva. Pontos conservam o UV
-  do vértice, sem semântica de point sprite.
-- Linhas sólidas e com padrão usam a mesma montagem de fragmentos unitários.
-  Largura arredondada replica cobertura no eixo menor. Pontos usam tamanho
-  inteiro arredondado, mínimo um, e centro diferente para tamanhos pares e
-  ímpares. Uma linha ou ponto isolado compõe alpha uma única vez por fragmento.
-- A fase de linhas nativas continua por polilinha e reinicia nos resets Coin
-  já qualificados. Após clipping, Core inicia na primeira cobertura visível;
-  o GL deixa a fase inicial de uma linha recortada indeterminada.
-- Operações/escalas inválidas, índice UV adicional inválido e excesso de
-  unidades falham antes da publicação: pixels e serial anteriores permanecem
-  disponíveis. Corrigir a cena permite a próxima submissão. Separators
-  restauram o estado de combine.
+## Tests and limitations
 
-A montagem de raster aliased e a cascata seguem os contratos das seções 3.3,
-3.4 e 3.8.13 da [especificação OpenGL 2.1](https://registry.khronos.org/OpenGL/specs/gl/glspec21.pdf),
-confrontados com a implementação Coin. Para linhas, a comparação admite a
-alternativa permitida de uma coordenada por eixo e um fragmento unitário;
-não afirma igualdade bit a bit. Pontos da matriz são comparados pixel a pixel.
+`CoinRenderMultitextureTest` covers operations/sources/operands/scales against
+independent tables with fast paths on/off and five geometry forms; eight active
+units, varying UV/matrices, sparse units, LineSet details, state restore and
+rejection/recovery. Raster controls cover seven line directions/positions, widths
+**0.75/1/2/3/4/6.6**, masks **0/ffff/000f/aaaa**, alpha **0.5**, fractional point
+centers, clipping and empty publication. Draw-style controls also cover unit-seven
+UV with W **1–4**, matrices, models, fog, bindings and contours.
 
-## ABI privada wgpu
+Combine fixtures use RGBA, explicit UV and linear sampling. Native tests use
+canonical order TextureUnit → TextureCombine → Texture2 → shape. Formats, legacy
+models, quality and procedural/default UV retain their own contracts. Shared
+surface shaders do not qualify every object/OIT/peeling combination, driver,
+MSAA, external viewport or host integration.
 
-Revisão **26**: vértice de **100 bytes**, estado de **2280 bytes**, unidade de
-textura de **96 bytes** e draw de **56 bytes**. Os campos anteriores conservam
-seus offsets; UVs adicionais começam em 44, unidades extras em 1096 e programas
-de combine em 1768. C++ e Rust verificam tamanhos e offsets. A ponte rejeita
-programas normalizados inválidos e valores não finitos. A API/ABI pública
-estável de libCoin não muda.
-
-## Matriz e limites
-
-`CoinRenderMultitextureTest` executa operações, fontes, operandos e escalas
-contra tabelas numéricas independentes, fast path ligado/desligado e cinco
-formas de geometria. Exercita oito unidades simultâneas, UVs variáveis,
-matrizes independentes, unidade esparsa, avanço dos detalhes de LineSet,
-isolamento de estado, rejeição e recuperação.
-
-A matriz de raster cobre sete direções/posições de linha, larguras
-0,75/1/2/3/4/6,6, máscaras 0/ffff/000f/aaaa, alpha 0,5, centros fracionários
-de ponto, clipping e publicação de quadro vazio. A matriz de
-`CoinRenderDrawStyleTest` também qualifica UVs da unidade sete com W de 1 a 4,
-clipping, matrizes, modelos e fog, além de bindings, alpha/cor
-interpolados, W variável, textura/fog, contornos e continuidade nativa.
-
-O ensaio de combine usa imagens RGBA e UVs explícitos, com sampling linear;
-os limites já declarados de formatos, modelos legados, qualidade e UV
-procedural/default continuam em P07. A qualificação de todos os bindings e
-shapes é P05; onze modalidades de transparência são P09, e OIT/peeling ampliado
-é P10. Drivers físicos, MSAA, viewports externos e integração FreeCAD seguem
-as pendências correspondentes. Os ensaios GL usam a ordem canônica Coin:
-TextureUnit, TextureCombine, Texture2 e shape.
-
-Os shaders BGFX de object blend, weighted OIT e peeling compartilham o executor
-de superfície. Isso não substitui a qualificação de todas as combinações de
-transparência em P09/P10. wgpu segue as modalidades que já oferece.
-
-## Evidência de fechamento — 2026-09-28
-
-- wgpu Debug/C++20: 21 CTests aprovados; a matriz P08 e SoDrawStyle rodaram
-  com `COIN_RENDER_REQUIRE_GL_REFERENCE=1`. O caso adicional de DOT3_RGBA com
-  escalas independentes foi confirmado na execução final do target P08.
-- BGFX Release/C++11: 38 dos 44 CTests passaram na rodada geral, incluindo
-  estilo, multitextura, iluminação, clipping, composição, readback e falhas.
-  Os seis testes de superfície falharam porque o oráculo CPU solicitava
-  SORTED_LAYERS_BLEND sem executor CPU. Após corrigir a fixture para source-over
-  nas amostras de um único primitivo, os seis passaram com GL obrigatório e
-  um novo caso numérico de combine em object/OIT/peeling, Vulkan e OpenGL.
-  Assim, os 44 testes distintos ficaram aprovados; não se omite a primeira falha.
-- Rust: 10 testes unitários e dois testes de validação WGSL aprovados, incluindo
-  rejeição de programas normalizados e dados extras inválidos.
-- `git diff --check` passou. A ABI pública estável de libCoin permanece intacta.
-
-Logs desta sessão: `/tmp/coin-p08-wgpu-tests.log`,
-`/tmp/coin-p08-bgfx-tests.log`, `/tmp/coin-p08-bgfx-surface-tests.log`,
-`/tmp/coin-p08-rust-test.log`, `/tmp/coin-p08-wgpu-final.log` e
-`/tmp/coin-p08-bgfx-final.log`. Os logs em `/tmp` são evidência local temporária;
-as fixtures e expectativas ficam versionadas no repositório.
-
-Para reproduzir P08 em um build wgpu ou BGFX, com Mesa/GLX e Xvfb disponíveis:
+Historical 2026-09-28 evidence: wgpu Debug/C++20 **21** CTests; BGFX Release/C++11
+**44** distinct CTests after correcting six surface fixture expectations; Rust
+**10** unit and **2** WGSL tests. Earlier failures stay recorded. Reproduce with
+an appropriate build and valid Mesa/GLX reference:
 
 ```sh
 env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
@@ -123,8 +77,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   xvfb-run -a ctest --test-dir <build> -R '^CoinRenderMultitexture' --output-on-failure
 ```
 
-Os testes BGFX com sufixos `_vulkan`/`_opengl` fixam o renderer e o mecanismo
-object. Para a superfície compartilhada pelos três passes, executar
-`CoinBgfxSurface_.*` com `COIN_WGPU_REQUIRE_GL_REFERENCE=1`, nome histórico da
-variável desse teste. A matriz passou com Mesa/llvmpipe; hardware físico segue
-a qualificação de produto, sem promessa de paridade bit a bit entre drivers.
+BGFX `_vulkan`/`_opengl` fixtures fix renderer/object mechanism. Shared surface
+`CoinBgfxSurface_.*` controls use their historical
+`COIN_WGPU_REQUIRE_GL_REFERENCE=1` variable. Mesa/llvmpipe success is not physical
+hardware certification. Original receipts are in the [archive](coin-render-evidence.md).

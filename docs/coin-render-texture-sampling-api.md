@@ -1,14 +1,8 @@
-# Política pública de sampling de texturas — primeira implementação
+# Public texture-sampling policy
 
-Implementação na branch de estudo `codex/coin-portable-sampling-study`, em 2026-10-08.
-A política é uma opção imutável de cada alvo. `NATIVE` é o padrão; `PORTABLE`
-reconstrói somente o filtro isotrópico `NEAREST_MIPMAP_LINEAR`. As demais
-modalidades conservam a semântica nativa. O driver instalado não foi alterado.
-
-## Uso
-
-Com Coin e `CoinRenderAction` já inicializados, consulte o renderer que será
-explicitamente usado pelo alvo:
+Introduced on 2026-10-08. Each target has an immutable policy. NATIVE is default;
+PORTABLE reconstructs only isotropic `NEAREST_MIPMAP_LINEAR`. Other filters retain
+native semantics. It does not alter the installed driver.
 
 ```cpp
 CoinRenderOptions options;
@@ -17,123 +11,74 @@ options.textureSamplingPolicy = COIN_RENDER_SAMPLING_PORTABLE;
 CoinRenderCapabilities caps{};
 if (coin_render_query_capabilities_for_renderer(
       COIN_RENDER_EXPERIMENTAL_OFFSCREEN, options.renderer,
-      &caps, sizeof(caps)) != 0) { throw std::runtime_error("consulta inválida"); }
+      &caps, sizeof(caps)) != 0) { throw std::runtime_error("invalid query"); }
 auto selection = coin_render_select_sampling_policy(
     &caps, options.textureSamplingPolicy, 1);
 if (selection.reason != COIN_RENDER_SELECTION_SUPPORTED) {
-  throw std::runtime_error("política indisponível ou não qualificada");
+  throw std::runtime_error("policy unavailable or unqualified");
 }
 auto target = std::unique_ptr<CoinRenderTarget>(
     CoinRenderTarget::createOffscreen(SbVec2i32(640, 480), options));
 CoinRenderAction action(SbViewportRegion(640, 480));
 action.setRenderTarget(target.get());
 action.apply(scene);
-// Verificar status/diagnóstico e publicação pela API existente.
+// Check action/target status and publication before consuming output.
 action.setRenderTarget(nullptr);
 ```
 
-Os overloads sem opções continuam nativos. Scene manager e adapter também
-aceitam `CoinRenderOptions` na construção, tanto para offscreen quanto Xlib;
-as opções são encaminhadas ao alvo. Trocar a política de um viewport exige
-recriar seu adapter/alvo, preservando a imutabilidade de cada alvo. A seleção é pura: não inicializa
-runtime, não lê ambiente e não aplica fallback. `require_qualified_profile=1`
-exige evidência delimitada para a política; native permanece disponível com esse
-argumento igual a zero. Não confundir os valores de política 0/1 com seus bits 1/2.
-`COIN_SAMPLING_STUDY` deixou de selecionar shaders nesta revisão.
+Initialize Coin/action first and query the renderer actually requested. Overloads
+without options stay native. Scene manager/adapter accept options for offscreen/
+Xlib and forward them; changing policy requires recreating adapter/target. Selection
+is pure, without runtime initialization/environment/fallback. Qualified-profile
+requirement **1** asks for bounded evidence; native remains available with **0**.
+Policy enum values **0/1** differ from mask bits **1/2**. `COIN_SAMPLING_STUDY` no
+longer selects shaders.
 
-## Contrato e limites
+LOD uses derivatives of original UV before repeat/clamp/centering. POT uses the
+active finer-mip texel center with hardware inter-mip blend; NPOT computes two
+centers and blends two samples. Magnification stays linear. Dimensions come from
+bound GPU resources, including DIRECT RTT. Producers inherit policy; target/plan/
+producer mismatch rejects before submission.
 
-O LOD usa derivadas das UV originais, antes de repeat/clamp ou centralização.
-POT usa uma amostra no centro do texel do mip fino ativo, com mistura entre mips
-pelo hardware; NPOT calcula os dois centros separadamente e mistura duas amostras.
-Magnificação continua linear. Dimensões vêm do recurso GPU efetivamente ligado,
-inclusive RTT direto. Produtores RTT herdam a política; misturas de políticas entre
-alvo, plano e produtor são rejeitadas antes da submissão.
+The reconstructed filter is bit **1<<2**, maximum anisotropy **1**. Active higher-
+anisotropy samplers reject without publishing, replacing read pointers or advancing
+serial; later valid submission recovers. Mip-chain budget **128 MiB**, eight units;
+other resource/device limits remain. Compiled formats: RGBA8, SRGB8, RGBA16F, BC3,
+BC3 SRGB; this mask does not prove adapter format support. Alpha remains linear
+in sRGB. CPU uses analytic derivatives, wgpu Vulkan fine derivatives, wgpu OpenGL
+and BGFX Vulkan/OpenGL ordinary derivatives. LOD/raster boundaries may differ;
+no universal GPU/CoinGL identity is promised.
 
-- O filtro reconstruído é o bit `1 << 2`; a anisotropia máxima nesse filtro é 1.
-  Samplers ativos com anisotropia maior são recusados sem publicar imagem, trocar
-  ponteiro de leitura ou avançar serial; uma próxima submissão válida recupera.
-- O orçamento por cadeia de mipmaps é 128 MiB e há oito unidades. Outros limites
-  de textura, formato, RTT e dispositivo continuam aplicáveis.
-- Formatos compilados: RGBA8, SRGB8, RGBA16F, BC3 e BC3 SRGB. Essa máscara não
-  certifica suporte do adaptador: a admissão de formato pelo dispositivo continua
-  obrigatória. Alpha permanece linear em SRGB.
-- CPU recording usa derivadas analíticas; wgpu Vulkan usa fine; wgpu OpenGL e
-  BGFX Vulkan/OpenGL usam derivadas comuns. Fronteiras de LOD e rasterização podem
-  diferir; não há promessa de identidade universal entre GPUs ou CoinGL.
+Native/portable shader profiles are separate. wgpu shares device/resource caches
+and lazily creates portable profile; untextured/instancing paths stay native.
+Initial semantic delivery makes no performance claim. Capability V4 separates
+`implemented_sampling_policies`, `available_sampling_policies`,
+`qualified_sampling_policies`; code/test evidence for bounded Linux offscreen/
+Xlib profiles does not certify current hardware automatically. Queries preserve
+exact V1/V2/V3 prefixes. Mechanism selector still accepts V3; sampling selector
+requires complete V4 and distinguishes invalid request, missing implementation,
+runtime not ready, hardware absent and unqualified profile.
 
-Perfis de shader nativo/portátil são separados. wgpu compartilha dispositivo e
-caches de recursos; o perfil portátil é criado sob demanda. Caminhos sem textura
-ou de instancing conservam o perfil nativo. Não há novo resultado de desempenho
-na primeira rodada; a continuação Linux mede esta API com drivers instalados.
-Medições anteriores de laboratório não certificam esta API.
+Adding the C++ options field requires rebuilding experimental consumers; binary
+compatibility with old unversioned objects is not promised. Stable libCoin ABI
+was not extended. Historical private revision **50→51** retained **456-byte** frame,
+using final reserved word for policy; native uniform prefix **3040 bytes**, instance
+payload **96 bytes**. Current paired declarations remain authoritative.
 
-## Capacidades e compatibilidade
+Historical Linux offscreen profiles were BGFX/wgpu × AMD Vulkan, NVIDIA Vulkan,
+AMD OpenGL. **170/170 process executions**, not unique tests, were qualified:
+CPU **2**, API **12**, portable-deep/direct-RTT/viewport/procedural **24**, native
+selection/publication/ownership/advanced/RTT **30**, portable projective/sampling/
+advanced/RTT **24**, native eight texture families **48**, resources/instancing/
+shadows **30**. Rust/Naga **46/46**, C11 API probe PASS (V4 **584 bytes**, V3 **536**).
+Broader AMD oracle cohorts used external Mesa reference; installed-driver native
+CoinGL sampling divergence remains. Earlier ICD-path skips were corrected and
+excluded from qualified totals. Final API/resource/shadow gates follow informative
+BGFX capability correction; sampling code was unchanged. Hashes are archived.
 
-`CoinRenderCapabilities` versão 4 separa `implemented_sampling_policies`,
-`available_sampling_policies` e `qualified_sampling_policies`. Implementação não
-implica adaptador disponível, e qualificação descreve evidência de um perfil de
-código/teste Linux offscreen/Xlib, não certificação automática do driver atual.
-A consulta conserva os prefixos exatos v1/v2/v3 sem escrever além do buffer.
-O seletor anterior de mecanismos continua aceitando v3. O novo seletor exige v4
-completo e informa pedido inválido, implementação ausente, runtime não pronto,
-hardware indisponível ou perfil não qualificado.
-
-`CoinRenderOptions` ganhou um campo C++: recompilar consumidores experimentais.
-Não se promete compatibilidade binária com objetos antigos dessa estrutura sem
-versionamento. A ABI pública de libCoin não foi ampliada. O protocolo privado
-C++/Rust passou de 50 para 51; tamanho do frame permanece 456 bytes, com a palavra
-reservada final usada para a política. Prefixo nativo de uniformes permanece
-3040 bytes e payload de instância permanece 96 bytes.
-
-## Validação Linux
-
-Perfis: wgpu/BGFX × AMD Vulkan, NVIDIA Vulkan e AMD OpenGL, offscreen.
-Gates e referências não foram relaxados. Os testes públicos passaram mesmo com
-`COIN_SAMPLING_STUDY=fetch`, provando que a opção explícita governa o resultado.
-
-| Coorte | Processos PASS | Condição |
-| --- | ---: | --- |
-| Contrato CPU final | 2/2 | recording nos dois builds |
-| API/capacidades e seleção finais | 12/12 | drivers instalados |
-| Portátil profundo, RTT direto, viewport e procedural | 24/24 | drivers instalados |
-| Native: seleção, publicação, ownership, avançadas e RTT | 30/30 | drivers instalados |
-| Portátil: comparações projetivas, sampling, avançadas e RTT | 24/24 | Mesa externo para referência AMD |
-| Native: oito famílias de texturas | 48/48 | Mesa externo para referência AMD |
-| Recursos, instancing e sombras native | 30/30 | drivers instalados |
-
-Total: 170/170 execuções de processo qualificadas; não são 170 casos únicos.
-Adicionalmente: Rust/Naga 46/46 e probe C11 da API exportada PASS (v4=584 bytes,
-prefixo v3=536). A API exercita alvos simultâneos native/portable, unidades 0/7,
-desligar/reativar, wrap, oracle independente de texels, resize, leitura assíncrona,
-rejeição sem publicação e recuperação. Os controles amplos cobrem perspectiva,
-NPOT, formatos avançados, compressão e mipmaps RTT.
-
-As coortes amplas foram executadas antes da última correção informativa das
-capacidades BGFX (derivadas comuns); o código de sampling permaneceu igual.
-API, seleção, recursos e sombras finais verificam o runtime com essa correção.
-Hashes das duas revisões estão preservados. Trials anteriores — incluindo dois
-SKIPs por caminho ICD incorreto, depois corrigido — permanecem no ledger e não
-entram no total qualificado.
-
-O workaround Mesa continua externo e opt-in. Native/CoinGL AMD ainda possui a
-divergência de sampling nos drivers instalados; esta API não a corrige no driver.
-As diferenças anteriores de recorte/iluminação CoinGL permanecem estudos abertos;
-ver [fechamento das 28 falhas e condições](coin-render-failure-closure-20261008.md).
-A continuação Linux qualifica Xlib, os overloads com opções de
-`CoinRenderSceneManager`/`CoinRenderManagerAdapter`, o consumidor FreeCAD aquecido e custo
-native/portable nos escopos registrados no
-[relatório Linux](coin-render-sampling-api-linux-20261008.md).
-A transição inicial da borda FreeCAD/NVIDIA/wgpu portable permanece estudo
-aberto; a qualificação aquecida não certifica cold start.
-Windows e Android desta API permanecem pendentes.
-
-## Reprodução e evidências
-
-Runner e receitas: [sampling-api](../testsuite/reproducers/sampling-api/README.md).
-Ledger versionado: [manifest](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-20261008/manifest.json>).
-Artefatos e baseline binário imutável estão em
-`/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api`.
-Os diretórios build são reutilizados e mutáveis; use os hashes e cópias de baseline,
-nunca trate um build atual como binário histórico. A API permanece na branch de
-estudo, sem publicação ou integração na master/coin-render nesta rodada.
+Linux Xlib/manager/adapter and warmed host observations have separate receipts;
+warmed evidence never certifies cold-start borders. The host integration itself
+is not included in this generic submission. Windows/Android and remaining driver
+studies retain their own status. See [evidence](coin-render-evidence.md); mutable
+build directories are not historical binaries. Preserve source/binary hashes and
+immutable baselines when reproducing; original campaign logs remain archived.

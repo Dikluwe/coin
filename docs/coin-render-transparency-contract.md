@@ -1,174 +1,102 @@
-# P09 — modalidades de transparência Coin
+# Coin transparency modalities (P09)
 
-O perfil funcional compartilha as onze modalidades entre CPU, CoinBgfx e o
-bridge Rust de CoinWgpu. A decisão fica em `CoinRenderComposition.h`: classifica
-alpha após a cascata de textura/combine, resolve ordem, adiamento, anotações,
-stipple e profundidade efetiva; `coin_render_composition_schedule` expande o
-sorting de triângulos em intervalos ordenados. Nenhum executor refaz a
-interpretação do Coin.
+Common composition classifies alpha after texture/combine, resolves order/defer,
+annotations/stipple/effective depth and expands triangle-sort ranges. CPU/BGFX/
+wgpu consume that schedule without another Coin interpretation. Wiring captures
+state, centers and layers; Core uses snapshots. Native sources include
+SoGLRenderAction handleTransparency/renderSingle/doPathSort, primitive-cache
+triangle sorting, SoGLLazyElement, SoAnnotation and SoDepthBuffer.
 
-## Referência e comportamento comum
+| Modality | Order and operation |
+| --- | --- |
+| NONE | Immediate traversal, no blend, preserve surface alpha |
+| SCREEN_DOOR | Immediate/no blend, material-alpha polygon stipple |
+| ADD | Immediate SRC_ALPHA, ONE |
+| BLEND | Immediate source-over |
+| DELAYED_ADD / DELAYED_BLEND | Opaque first, transparent traversal order |
+| SORTED_OBJECT_ADD / SORTED_OBJECT_BLEND | Back-to-front captured center |
+| SORTED_OBJECT_SORTED_TRIANGLE_ADD / BLEND | Object order then triangle mean-vertex depth, including materials sharing shape/instance |
+| SORTED_LAYERS_BLEND | Per-pixel depth layers, back-to-front composition |
 
-O estudo local usa `SoGLRenderAction::handleTransparency`, `renderSingle`,
-`doPathSort`, `SoPrimitiveVertexCache::depthSortTriangles`, `SoGLLazyElement`,
-`SoAnnotation` e `SoDepthBuffer`. Wiring captura estado, centro de sorting e
-camadas. Core trabalha sobre snapshots, sem travessia nem comandos GPU.
+Sorting ties are stable. Do not reorder artificial stroke triangles or raster
+pixel runs; images/text/markers retain original-object order. CoinGL retains raster
+GLRender rather than replacing bitmaps with primitive cache (B19/C07.1).
+Annotations stay traversal-ordered in own layer with depth barrier, outside base
+peeling. Deferred default is test TRUE/write FALSE/LEQUAL/range `[0,1]` unless explicit
+captured fields override. Immediate draws use captured depth; zero alpha may
+still write depth. Reject unsupported concrete states before publication.
 
-| Modalidade | Ordem e operação |
-|---|---|
-| `NONE` | Travessia imediata, sem blend; conserva alpha da superfície. |
-| `SCREEN_DOOR` | Travessia imediata, sem blend; stipple de polígonos pelo alpha do material. |
-| `ADD` | Imediata, `SRC_ALPHA, ONE`. |
-| `BLEND` | Imediata, source-over. |
-| `DELAYED_ADD` / `DELAYED_BLEND` | Opacos primeiro; transparentes na ordem de travessia. |
-| `SORTED_OBJECT_ADD` / `SORTED_OBJECT_BLEND` | Transparentes ordenados pelo centro capturado, de trás para frente. |
-| `SORTED_OBJECT_SORTED_TRIANGLE_ADD` / `SORTED_OBJECT_SORTED_TRIANGLE_BLEND` | Ordem de objetos, depois profundidade média dos vértices de cada triângulo; inclui packets de materiais da mesma shape/instância. |
-| `SORTED_LAYERS_BLEND` | Seleção de camadas por profundidade por pixel e composição de trás para frente. |
+Source-over RGB is `Cs*As + Cd*(1-As)`, separate alpha `As + Ad*(1-As)`.
+Additive RGB is `Cs*As+Cd`, alpha `As*As+Ad`, clamped in RGBA8 like
+SRC_ALPHA/ONE. Separate source-over alpha is existing CoinRender behavior,
+not a claim of exact legacy-GL alpha parity. Screen door uses Coin Bayer **32×32**,
+`{0,2,3,1}`, global lower-left origin and **65** levels `int(transparency*64)`.
+Primary alpha becomes one before texturing; texture/combine alpha remains. No
+stipple on lines/points, including expanded strokes.
 
-Empates de sorting são estáveis. Triângulos artificiais da expansão de strokes
-e dos runs de pixels raster não são reordenados. Imagens, textos e marcadores
-preservam a ordem do objeto original; a rota CoinGL conserva GLRender raster
-em vez de substituir o bitmap pelo cache de primitivas (B19/C07.1). Anotações preservam travessia na própria camada, com a
-barreira comum de profundidade; não participam do peeling da camada base.
+CPU collects per-pixel fragments; BGFX/wgpu execute actual layer passes and GPU
+compositors. No substitution with object sorting or weighted OIT. BGFX native
+profile uses `COIN_BGFX_TRANSPARENCY=auto`. Historical P09 private revision **27**,
+later **28**, frame **176**, vertex **100**, state **2280**, draw **56**; flags:
+blend0/add1/screen-door2/peeling3/stipple8–14. Both sides rebuild together. Rust
+validates flags without reclassifying alpha; ordered triangle packets cannot
+reuse one shape-identity entry. Camera changes recompute order/revoke old hints.
+These are historical layouts; stable Coin ABI is unchanged by this transport.
 
-O passe transparente adiado usa test=true, write=false, LEQUAL e range [0,1],
-salvo campos explícitos capturados de `SoDepthBuffer`. Transparência imediata
-usa o estado capturado: alpha zero ainda pode escrever profundidade. Pedidos
-fora das capacidades concretas devem ser rejeitados antes da publicação.
+## Multiple textures with shadows
 
-Source-over usa RGB `Cs*As + Cd*(1-As)` e alpha separado
-`As + Ad*(1-As)`. Aditivo usa RGB `Cs*As + Cd` e alpha `As*As + Ad`, com clamp
-no RGBA8, como `glBlendFunc(SRC_ALPHA, ONE)`. A equação separada de alpha do
-source-over é o perfil CoinRender já existente; não promete alpha bit a bit
-igual ao blend clássico do GL.
+Full GPU path keeps **8** scene units and up to **8 VSM maps** during transparency.
+Copy moments into independent RGBA32F array layers, preserve each map resolution,
+use four-texel bilinear receiver sampling and largest physical extent with per-layer
+valid-region clamp. Native/Portable scene sampling is independent. BGFX slots
+scene0–7, compositor depth8–9, array10; wgpu full layout has eight samplers/up to
+11 textures, avoiding 18 textures. Array copy costs a BGFX view included in graph
+admission. Never silently reduce maps/units/samples/mechanism.
 
-Screen door usa a matriz Bayer 32×32 do Coin `{0,2,3,1}`, origem global inferior
-esquerda, com 65 níveis `int(transparency*64)`. Alpha primário torna-se 1 antes
-da textura; alpha produzido por textura/combine permanece. Stipple não se
-aplica a linhas/pontos, inclusive strokes expandidos.
+Physical shadow budget **128 MiB/apply**: source RGBA32F+D32F **20 bytes/texel**,
+plus **16 bytes/texel/layer** at largest extent. Allocate at least two native array
+layers. wgpu six logical maps require **7** physical layers because installed GLES
+HAL infers a cube from six square faces; extra unmapped layer is reserved consistently
+on every adapter and counts in budget/layer limits. Check before RTT producers
+and, on wgpu windows, before WSI acquisition. Format/binding/interstage/program
+limits also gate admission; rejection preserves publication.
 
-O [contrato P10](coin-render-peeling-contract.md) amplia este fechamento histórico
-com 1..8 camadas, orçamento, precisão e qualificação de weighted OIT.
+RTT keeps sampler/alpha policy. At quality **0.1**, native SceneTexture FBO uses
+LINEAR where stored static texture uses NEAREST. NONE supplies sampled alpha one;
+`gpuOpaque` remains a conservative stored-content proof and may be false. DIRECT
+transports token/metadata, STAGED pixels. Classification uses sampling policy and
+captured state. Recorded Native **1×/2×/4×** profiles require Native for MSAA2×/4×
+in this path; transparency/depth/RTT still obey concrete executor limitations.
+C02.9/C03.6 evidence is not all resource cross-products.
 
-## Execução concreta e transporte
+## Tests, historical limits and oracles
 
-CPU coleta fragmentos por pixel para a referência de camadas. BGFX executa
-passes configuráveis de peeling e compositor. wgpu dispõe de attachments
-de cor/profundidade e máscaras de escrita, snapshot da profundidade opaca e
-compositor GPU. O mecanismo de camadas não é substituído por sorting de objetos
-ou weighted OIT. No BGFX, a qualificação usa `COIN_BGFX_TRANSPARENCY=auto`.
+`CoinRenderTransparencyTest` covers eleven modes, fast paths, alpha
+**0/.25/.5/1**, polygons/styles/native strokes, independent RGB (up to five levels),
+**1024** stipple pixels, material sorting/intersections, framebuffer alpha, unit7
+combine-alpha replacement, annotations and NEVER overrides. Composition/depth tests
+add explicit/default fields, ties, barriers and rollback. With
+`COIN_RENDER_REQUIRE_GL_REFERENCE=1`, native GL must keep requested mode, no fallback.
+Basic modes/material sorting/intersections compare native RGB. Peeling with
+combine/multitexture or annotations retains mandatory GL execution but uses independent
+numeric expected output: native ARB handles only texture0, replaces its environment/
+combine and has differing annotation behavior. Separate framebuffer alpha also
+uses numeric expectation rather than classical GL blend.
 
-P09 introduziu a revisão privada wgpu **27**. A atual **28** transporta opções
-no frame view de 176 bytes; vértice de 100 bytes, estado de 2280 e draw de
-56 conservam os tamanhos/offsets da revisão 26. `composition_flags` transporta
-blend (bit 0), aditivo (1), screen door (2), peeling (3) e nível de stipple
-(bits 8–14). C++ e Rust precisam ser reconstruídos juntos. Não muda a ABI
-pública do Coin. O bridge valida combinações de flags; não reclassifica alpha.
-Packets de triângulos ordenados não reutilizam uma única entrada de geometria
-identificada pela shape. Camera patch recalcula ordem e invalida o hint quando
-a sequência muda.
+Original P09 fixed-four layers, BGFX epsilon/zero-alpha stop and restricted
+LESS/LEQUAL/NEVER + write-FALSE base-peeling were historical stages. The current
+[peeling contract](coin-render-peeling-contract.md) supersedes them in qualified
+profiles with **1..8** distinct transparent depths, zero-alpha continuation,
+no fixed epsilon and C06 explicit-depth execution in CPU/wgpu/BGFX. Those updates
+do not retroactively certify every older P09 comparison. Original P09 covered at
+most two transparent surfaces over opaque background, not all ties/almost-coplanar/
+zero-alpha chains. Other ten modes/annotation fields retain independent contracts.
 
-## Sombras com múltiplas texturas
-
-O caminho completo BGFX/wgpu conserva as oito unidades de cena e até oito
-mapas VSM também na composição transparente. Os momentos são copiados para
-layers independentes de um array RGBA32F; cada mapa mantém sua resolução e o
-receiver faz quatro leituras de texel para interpolação bilinear. Grupos com
-resoluções diferentes usam a maior extensão física, com coordenadas limitadas
-à região válida de cada layer. Amostragem Native/Portable das texturas de cena
-continua sendo uma escolha separada.
-
-BGFX usa cena em 0–7, profundidades do compositor em 8–9 e array em 10; wgpu
-mantém oito samplers e até onze texturas na disposição completa. O rearranjo evita
-exigir dezoito texturas para oito unidades, oito mapas e duas profundidades.
-A cópia do array consome uma view BGFX, incluída na admissão do frame/grafo.
-Não há redução silenciosa de mapas, unidades, amostras ou mecanismo OIT.
-
-O orçamento físico de sombras é de 128 MiB por apply: as fontes custam
-20 bytes por texel (RGBA32F e D32F), além de 16 bytes por texel de cada layer
-na maior extensão. Ambos alocam pelo menos duas layers para obter um array
-nativo. No wgpu, seis mapas usam sete layers físicas: o HAL GLES instalado
-infere cubemap para seis faces quadradas e não reinterpreta o tipo na view.
-A camada extra fica sem mapa lógico; essa reserva vale em todos os adapters
-e participa do orçamento e do limite de layers. Esse custo é verificado antes dos produtores RTT;
-no caminho de janela wgpu, também antes da aquisição WSI. A recusa conserva a
-publicação anterior. Formatos, limites de bindings/interstage e programas
-concretos também participam da admissão.
-
-RTT conserva seu sampler e sua política alpha. Em qualidade 0,1, o FBO de
-`SoSceneTexture2` usa LINEAR; a textura estática dessa qualidade usa NEAREST.
-A política `NONE` fornece alpha amostrado igual a 1. `gpuOpaque` continua
-sendo uma prova conservadora sobre o conteúdo armazenado e pode ser falso
-nessa política. DIRECT transporta o token GPU e esse metadado pelo FFI;
-STAGED transporta os pixels resolvidos. A classificação de transparência
-considera a política de amostragem junto aos demais estados capturados.
-
-A campanha delimitada cobre rasterização Native em 1×/2×/4×; MSAA 2×/4×
-desse caminho exige Native. As modalidades Coin, peeling/weighted, estados de
-profundidade e RTT continuam
-sujeitos às restrições concretas de cada executor. A implementação não é uma
-qualificação de todo o produto cartesiano: os cruzamentos aprovados e os ainda
-abertos estão em C02.9/C03.6 da
-[matriz de recursos](coin-render-feature-matrix.md).
-
-## Qualificação e limites
-
-`CoinRenderTransparencyTest` atravessa cenas pela action, alternando fast path,
-os onze modos, alpha 0/.25/.5/1, polígonos, LINES/POINTS e linhas/pontos nativos.
-Verifica RGB com expectativas numéricas (até 5 níveis de byte), os 1024 pixels
-do padrão de stipple, sorting entre materiais, superfícies que se cruzam,
-alpha do framebuffer, alpha substituído por combine na unidade 7, anotações e
-override NEVER nos onze modos. Overrides de escrita imediata também são
-executados. Os testes de composição/depth completam defaults, máscara explícita,
-empates, viewport/barreiras e rejeição com preservação de imagem/serial.
-
-Com `COIN_RENDER_REQUIRE_GL_REFERENCE=1`, o GL deve renderizar o modo solicitado
-sem fallback. Os onze modos básicos, sorting entre materiais e interseções
-comparam RGB ao Coin GL. Há duas exceções explícitas às comparações de pixels:
-peeling com combine/multitextura e peeling com anotações. O programa ARB de
-`SoGLRenderAction.cpp` trata apenas textura 0, ignora suas configurações e
-substitui combine; a cena de anotações dessa rota também não reproduz a camada
-comum. Nessas duas fixtures o GL continua obrigatório, mas a verificação dos
-executores usa expectativas numéricas independentes. O alpha separado do
-framebuffer também usa expectativa numérica, não o blend clássico do GL.
-
-No fechamento histórico P09, o perfil era fixo em **quatro**; BGFX usava epsilon
-e interrupção por alpha zero. P10 substitui esse limite por 1..8 profundidades
-transparentes distintas sobre o fundo opaco, remove o epsilon fixo BGFX e
-permite continuar depois de alpha zero.
-A matriz P09 cobre até duas superfícies transparentes sobre fundo opaco,
-incluindo cruzamentos. Não certifica equivalência entre esses mecanismos em
-empates, fragmentos quase coplanares, cadeias interrompidas por alpha zero ou
-mais camadas. Essa qualificação ampliada, luzes, orçamento/configuração de
-passes e weighted OIT estão agora qualificados no perfil **P10/F16**.
-
-O compositor BGFX publica cor sobre a profundidade opaca: peeling da camada
-base exige depth test LESS/LEQUAL/NEVER e write=false. Outros estados efetivos
-são rejeitados antes da submissão, inclusive escrita transparente explícita.
-CPU/wgpu possuem mecanismo de máscara de escrita; P10 qualifica escrita
-transparente, teste desativado e GREATER nas camadas. Isso não restringe os overrides dos
-outros dez modos nem os estados capturados de anotações.
-
-Há outra diferença de raster já delimitada: GL pode repetir um vértice
-compartilhado da tesselação em POINTS com sorting de triângulos. O Core conserva
-um ponto por vértice original da face; as amostras comparativas usam um canto
-sem duplicação. P09 não encerra a qualificação integral P02, FreeCAD, MSAA,
-outros drivers/plataformas ou o spike native/Dawn. Camadas com polygon offset,
-clamp e viewports parcialmente externos exigem a qualificação própria P04/P13.
-
-## Execução local — 2026-09-28
-
-- wgpu/Rust Debug: campanha de 22 casos CTest, todos aprovados. A primeira
-  execução encontrou uma expectativa antiga de rejeição de SCREEN_DOOR em
-  `CoinRenderTextureTest`; após atualizá-la para a capacidade P09, o caso passou.
-  Os outros 21 casos, incluindo a matriz P09, passaram na execução inicial.
-- BGFX Release: 47/47 casos CTest aprovados em Vulkan/OpenGL, incluindo
-  readback, superfícies, OIT/layers, depth, clipping, raster, multitextura e P09.
-  Nenhum caso CTest das duas campanhas retornou skip.
-- Rust offline: 12 testes unitários e dois testes de shaders aprovados.
-- Matriz P09 com GL obrigatório: CPU/wgpu e BGFX Vulkan/OpenGL aprovados,
-  sem fallback de SORTED_LAYERS_BLEND e com as exceções de pixels declaradas acima.
-
-As execuções offscreen usam RGBA8 sob Xvfb. A rota OpenGL local de referência
-usa Mesa; isso não qualifica outros drivers ou a matriz física. Os avisos EGL
-de DRI3 sob Xvfb não impediram as renderizações obrigatórias do GL.
+Native POINTS triangle sorting may repeat a tessellation-shared vertex; Core keeps
+one point/original face vertex. Controls sample an unambiguous corner, not universal
+native duplication parity. Styles/MSAA/offset/clamp/external-viewports and hosts
+need their corresponding matrix cells, as do extra drivers/platforms/prototypes.
+Original 2026-09-28 closure: wgpu **22 CTests**, BGFX **47/47**, Rust **12+2**, no final
+CTest skips, mandatory Mesa GL controls with declared exceptions. Existing
+SCREEN_DOOR fixture expectation was corrected. Xvfb/Mesa does not identify every
+physical driver. Original logs/pilots are [archived](coin-render-evidence.md).

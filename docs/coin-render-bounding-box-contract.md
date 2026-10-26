@@ -1,132 +1,77 @@
-# CoinRender: Complexity BOUNDING_BOX
+# Complexity BOUNDING_BOX contract
 
-Implementação na branch `codex/coin-render-transform-performance`, base
-`bebbd1852c`, tomando o caminho Coin/OpenGL como referência.
+The common adapter calls `SoShape.computeBBox` in the effective occurrence state
+and captures six local-box quads. Placement uses midpoint of min/max; the weighted
+`computeBBox` center still serves transparent sorting. Object transform remains
+in draw state. FILLED uses **24 vertices, 36 indices/12 triangles** per occurrence,
+canonical normals/UV, material zero, CCW, no culling and one-sided lighting like
+`GLRenderBoundingBox`; original bindings/normals do not replace these attributes.
+Existing shared plans feed BGFX, wgpu and CPU. This historical change preserved
+shaders, FFI/layout and private wgpu revision **45**. OBJECT_SPACE/SCREEN_SPACE
+retain normal geometry generation. Coin elements interpret Separators, overrides
+and ignored fields; fast paths do not replace boxes or preempt later user callbacks.
 
-## Captura comum
+## Styles, alpha and callbacks
 
-O adaptador calcula `SoShape.computeBBox` no estado efetivo da ocorrência e
-captura seis quads da caixa local. O centro de posicionamento é o meio de
-min/max; o centro ponderado de `computeBBox` continua servindo à ordenação
-transparente. A transformação do objeto permanece no estado do desenho.
+FILLED/LINES/POINTS/INVISIBLE preserve their semantics. Lines/points derive from
+six contours; shared edges/corners retain per-face multiplicity. Finite degenerate
+boxes also emit lines/points; only box capture requests this Core preservation.
+In the qualified NVIDIA POINTS profile, internal quad triangulation retains
+outer-edge flags and clipping may add a point where the internal diagonal is cut.
+The transparent gate clips exactly two corners and confirms **100** native pixels,
+including that point and A/B/A restoration. LINES emits no diagonals. Diagonal
+choice is driver-qualified, not universal GL behavior.
 
-FILLED usa 24 vértices e 36 índices, ou 12 triângulos, por ocorrência. As faces
-têm normais e UV canônicas, material zero, CCW, sem culling e iluminação
-unilateral, como `GLRenderBoundingBox`. Bindings e normais originais não
-substituem esses atributos.
+Box diffuse RGBA uses Coin `SoMaterialBundle.sendFirst`/`glColor4ub` precision
+before lighting/transparency. Ambient/specular/emission retain original precision.
+SCREEN_DOOR retains classification/stipple alpha and sends opaque primary alpha.
+Native defer decisions occur before the box. Capture preserves classification of
+material arrays and stored images, even when MarkerSet disables texture, through
+the shared marker/RTT policy helper. The box snapshot changes
+SORTED_OBJECT_SORTED_TRIANGLE_ADD/BLEND to SORTED_OBJECT_ADD/BLEND, preserving face
+order as native box selection precedes triangle sorting. CPU interpolates depth
+from a reference vertex to preserve constant planes and LEQUAL on coincident faces.
 
-BGFX, wgpu e o raster CPU consomem os planos comuns existentes. Shaders,
-protocolo FFI e layouts de transporte permanecem iguais; a ABI privada wgpu
-continua 45. OBJECT_SPACE e SCREEN_SPACE conservam a geração normal.
-Separators, overrides e campos ignorados são interpretados pelos elementos Coin.
-Os fast paths não substituem caixas nem antecipam callbacks registrados
-posteriormente pelo usuário.
+Capture follows every user pre-callback and respects PRUNE/ABORT. Primitive
+observers still receive original primitives with their capture suspended; box
+geometry stays in the plan. Pre/post callbacks remain observable. VertexProperty
+is applied before boxes on shapes whose CoinGL path does so. PointSet reads its
+vertices in computeBBox but keeps inherited material. MarkerSet applies its
+property, disables texture and uses BASE_COLOR; IndexedMarkerSet retains inherited
+lighting/texture at that point. Text2/Image choose boxes before raster preparation,
+after callbacks. Empty images and native exits before shouldGLRender emit nothing.
+Subclasses with compatible computeBBox are admitted; custom GLRender overrides
+that bypass shouldGLRender require explicit adaptation.
 
-## Estilos e transparência
+## Texture, domain and shadows
 
-FILLED, LINES, POINTS e INVISIBLE mantêm sua semântica. Linhas e pontos partem
-dos seis contornos. Arestas compartilhadas e
-cantos repetidos conservam suas ocorrências por face. Caixas degeneradas
-finitas também produzem linhas/pontos; somente a captura de caixas solicita
-essa preservação ao Core de estilos.
+Unit-zero DEFAULT/EXPLICIT use box UV, ignoring shape arrays. Apply the entire
+matrix and PROJECTIVE/DIRECT_ST policy. Active FUNCTION returns `UNSUPPORTED`:
+Plane/Object/Environment can keep GL texgen active, whereas CPU-only functions
+are ignored by native cubes. Additional active units are rejected because native
+boxes send only UV zero and depend on persistent GL attributes elsewhere.
+MarkerSet may ignore these textures within its native texture-disabled scope.
+Existing quality/filter/format/RTT/alpha/budget limits remain.
 
-No perfil NVIDIA qualificado, POINTS acompanha a divisão interna dos quads
-em dois triângulos, conservando flags de arestas externas. Uma aresta criada
-por clipping pode acrescentar um ponto na diagonal interna cortada. O gate
-transparente corta exatamente dois cantos e confirma 100 pixels nativos,
-incluindo esse ponto, com restauração A/B/A. LINES conserva os contornos
-sem desenhar diagonais. As regras de flags e clipping estão nas seções
-10.1.17, 13.7 e 14.6.4 da
-[especificação OpenGL de compatibilidade](https://registry.khronos.org/OpenGL/specs/gl/glspec46.compatibility.pdf).
-A escolha da diagonal foi qualificada contra este driver; não é uma garantia
-geral para todos os drivers OpenGL.
+Nonfinite bounds/center/extent or diffuse RGBA outside `[0,1]` return
+`INVALID_SCENE` before publication. Empty boxes allocate no geometry, regularizing
+native boxes without valid bounds. Failures preserve pixels/serial; a corrected
+scene recovers. Nonzero slope factor with zero projected area is `UNSUPPORTED`.
 
-A caixa captura diffuse RGBA com a precisão de `glColor4ub` usada pelo
-`SoMaterialBundle.sendFirst`, antes da iluminação ou composição transparente.
-Ambient, specular e emission mantêm sua precisão original. SCREEN_DOOR conserva
-o alpha de classificação/stipple e envia primary alpha opaco, como o nativo.
+For SHADOWMAP, shouldGLRender returns before BOUNDING_BOX: main draws use boxes,
+map capture retains original shapes. Groups with Complexity/inherited boxes/custom
+callbacks capture maps separately. The fixture checks **12** main triangles and
+**390** original Sphere caster triangles with radius mutation/restoration. Raster
+text/image/marker boxes in map groups depend on original raster map capture and
+remain outside this historical box profile. Its real spot-map control uses zero
+intensity/emissive material to isolate geometry/UV.
 
-O CoinGL decide o adiamento transparente antes da caixa. A captura conserva
-a classificação do array de materiais e dos images armazenados, mesmo quando
-MarkerSet desativa a textura. Usa o helper compartilhado com marcadores,
-incluindo políticas RTT. O nativo escolhe a caixa antes de ordenar triângulos:
-SORTED_OBJECT_SORTED_TRIANGLE_ADD/BLEND tornam-se SORTED_OBJECT_ADD/BLEND
-somente no snapshot da caixa, preservando a ordem de suas faces.
-
-O raster CPU passou a interpolar depth a partir de um vértice de referência.
-Isso preserva planos de depth constante e evita que arredondamentos da soma
-baricêntrica alterem LEQUAL entre faces coincidentes.
-
-## Estado específico e callbacks
-
-A captura acontece após todos os pre callbacks, respeitando PRUNE e ABORT.
-Observers recebem as primitivas originais, com a captura dessas primitivas
-suspensa enquanto a caixa permanece no plano. Pre/post callbacks são mantidos.
-
-VertexProperty é aplicado antes da caixa nos vertex shapes que fazem isso
-no CoinGL. PointSet lê seus vértices em computeBBox, mas conserva o material
-herdado. MarkerSet aplica a propriedade, desativa textura e usa BASE_COLOR;
-IndexedMarkerSet conserva iluminação e textura herdadas nesse momento.
-Text2 e Image usam sua caixa antes da preparação de raster. Seus métodos
-especiais também escolhem a modalidade depois dos callbacks. Imagem vazia e
-as saídas nativas anteriores a shouldGLRender continuam sem geometria.
-
-Subclasses com computeBBox compatível são admitidas. Overrides customizados
-de GLRender que não seguem shouldGLRender dependem de adaptação explícita.
-
-## Texturas e domínio
-
-Na unidade zero, DEFAULT e EXPLICIT usam as UV próprias da caixa, ignorando
-arrays explícitos da shape. A matriz completa é aplicada, com a política
-PROJECTIVE ou DIRECT_ST do shader de sombras.
-
-FUNCTION ativo retorna UNSUPPORTED: Plane/Object/Environment podem manter
-texgen GL ativo, enquanto funções somente CPU são ignoradas pelo cubo nativo.
-Unidades adicionais ativas também são recusadas: o cubo nativo envia somente
-UV zero e usa atributos GL persistentes para as demais. MarkerSet pode
-ignorar essas texturas quando seu scope nativo as desativa.
-
-Limites existentes de qualidade/filtros, formatos, RTT, alpha e orçamento
-continuam aplicáveis. Bounds, centro calculado e extensão não finitos retornam
-INVALID_SCENE antes da publicação. Caixas vazias não alocam geometria,
-regularizando o cubo nativo sem bounds válidos. Falhas preservam pixels e
-serial anteriores; corrigir a cena permite renderizar novamente.
-Diffuse RGBA fora de [0,1] também é inválido para o empacotamento da caixa.
-Offset com fator de slope não zero e área projetada zero permanece UNSUPPORTED.
-
-## Sombras
-
-Em SHADOWMAP, shouldGLRender retorna antes de BOUNDING_BOX: o desenho principal
-usa a caixa e o mapa conserva a shape original. Grupos com Complexity, caixa
-herdada ou callbacks customizados têm captura separada do mapa. A fixture
-confirma 12 triângulos no desenho principal e 390 no caster Sphere original,
-com mutação/restauração do raio.
-
-Texto, imagem e marcadores em caixas dentro de grupos com mapas dependem da
-captura original desses rasters para o mapa. Essa combinação permanece
-UNSUPPORTED no perfil atual. O gate usa um caster primitivo e um mapa spot
-real com intensidade zero/material emissivo, isolando geometria e UV.
-
-## Validação
-
-O [gate independente](../testsuite/coinrender/CoinRenderBoundingBoxTest.cpp)
-tem modos --capture e --gpu. O segundo exige GPU real e CoinGL válido. Mede
-RGB com MAE da região ativa <=1 e outliers acima de três níveis <=max(4,2%
-da região). O alpha geral do framebuffer não é qualificado.
-
-Linux/NVIDIA: wgpu/Vulkan e BGFX/Vulkan/OpenGL passaram 137 comparações nativas
-por variante, 411 no total, além de duas execuções de captura. Shapes
-nativas/custom, centro falso, transforms, styles, materiais, UV/matriz, VP,
-scopes, callbacks, degenerados, texto/imagem, ambos MarkerSet e mapas com
-geometria original estão cobertos. Bounds NaN/infinito e overflow de extensão
-verificam INVALID_SCENE, preservação de pixels/serial e recuperação. Logs e
-regressões ficam em
-[validation/bounding-box-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bounding-box-linux>).
-
-FILLED usa bounds sem ambiguidade de cobertura nos centros de pixels;
-LINES/POINTS usam centros para testar endpoints. As tolerâncias mantêm o
-padrão anterior. Pilotos preservam a falha de cobertura da fixture e o erro
-CPU de faces coplanares corrigido nesta implementação.
-
-Windows e outros drivers precisam executar seus gates. Não foi executado
-benchmark de desempenho nesta campanha semântica.
+[CoinRenderBoundingBoxTest](../testsuite/coinrender/CoinRenderBoundingBoxTest.cpp)
+has `--capture`/`--gpu`; GPU requires real GPU/CoinGL. Active-region RGB MAE ≤1,
+outliers above three levels ≤max(4,2% of region); general framebuffer alpha is not
+qualified. Original Linux/NVIDIA wgpu/Vulkan and BGFX/Vulkan/OpenGL each passed
+**137** native comparisons (**411** total), plus two captures. FILLED witnesses
+avoid coverage ambiguity; LINES/POINTS use pixel centers for endpoints. NaN/Inf/
+extent overflow, rollback and recovery are covered. Original pilots, including
+corrected CPU coplanar-face error, remain in the [archive](coin-render-evidence.md).
+Other drivers/Windows and performance need their own campaigns.

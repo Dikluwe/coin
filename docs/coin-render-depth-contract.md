@@ -1,21 +1,17 @@
-# Contrato de profundidade WGPU/BGFX
+# CoinRender depth and polygon-offset contract
 
-`CoinRenderAction` captura `SoDepthBufferElement` e `SoPolygonOffsetElement`
-em cada `CoinRenderRenderStateSnapshot`. O padrão é depth test/write habilitados, função
-LESS, range [0,1] e offset desabilitado, factor/units zero e estilo FILLED.
-Um nó `SoPolygonOffset` habilitado preserva factor, units e a máscara de estilos.
-O estilo original de linhas/pontos permanece no estado após expansão em
-triângulos. Só draws cujo estilo intersecta a máscara recebem bias; estados
-seguintes e irmãos de `SoSeparator` não herdam uniform de um submit anterior.
+`CoinRenderAction` captures `SoDepthBufferElement` and `SoPolygonOffsetElement`
+per render-state snapshot. Defaults: test/write enabled, LESS, range `[0,1]`,
+offset disabled, factor/units zero and FILLED. Enabled offset preserves factor,
+units and the style mask. Expanded lines/points retain their original style;
+only intersecting styles receive bias. Subsequent states and Separator siblings
+never inherit a previous submit's uniforms. Disabling test also disables effective
+write, even with captured `write=TRUE`; original fields remain in the plan.
+See [fragment policy](coin-render-fragment-policy-contract.md).
 
-Com teste desligado, a execução também desliga a escrita efetiva, mesmo com
-`write = TRUE`. A captura conserva os campos originais. O contrato e os gates
-focados OFF/ON/OFF estão em
-[profundidade e política de fragmentos](coin-render-fragment-policy-contract.md#profundidade).
+## BGFX and native bias precision
 
-## BGFX
-
-O shader calcula profundidade de janela por fragmento, depois do clipping:
+After clipping, the BGFX fragment shader originally used:
 
 ```
 depth = near + (far - near) * gl_FragCoord.z
@@ -24,145 +20,66 @@ unitScale = rendererIsOpenGL ? 1 / 8388608 : 1 / 16777216
 depth = clamp(depth + factor * slope + units * unitScale, 0, 1)
 ```
 
-O uniform é configurado para todo draw, com factor/units zero quando o offset
-está desabilitado ou fora do estilo selecionado. O mesmo cálculo alimenta
-`gl_FragDepth`, a comparação manual de depth peeling e os pesos de weighted OIT.
-A transformação de range no fragmento preserva o volume de clipping original;
-alterar apenas a matriz de projeção permitiria que geometria fora desse volume
-voltasse a aparecer. Depth test, write e função continuam no estado BGFX. O agrupamento opaco só
-reordena o contrato padrão (test/write, LESS, range [0,1], sem offset); qualquer
-estado de profundidade não padrão preserva a ordem de travessia inteira.
+Every draw initializes these uniforms, including zeros for inactive/masked
+bias. The same depth feeds fragment output, manual peeling comparison and
+weighted-OIT weights. Fragment range mapping preserves the original clipping
+volume; changing projection alone would reveal previously clipped geometry.
+BGFX still owns test/write/function state. Opaque reordering admits only the
+default state (test/write, LESS, `[0,1]`, no offset); any nondefault state preserves
+the complete traversal order.
 
-A API BGFX instalada oferece `setDepthControl(constant, slopeScale, clamp)` por
-draw e o renderer GL usa `glPolygonOffset` com FILLED. Esse bias nativo seria
-sobrescrito por `gl_FragDepth` ao implementar o range em shader; além disso,
-`gl_FragCoord.z` usado pelo peeling não inclui o bias nativo. Por isso a
-implementação usa o cálculo compartilhado de profundidade no shader.
+Native BGFX `setDepthControl(constant, slopeScale, clamp)`/GL polygon offset
+would be overwritten by fragment-depth output and would not affect the
+`gl_FragCoord.z` used for peeling. Shared shader depth therefore owns this
+calculation. The constant term approximates D24: **2^-24**, or two D24 LSBs on
+OpenGL because one can round back to the same value through fragment-depth
+conversion. It is not bitwise native-GL parity on D32F or drivers with a different
+minimum offset. Slope uses remapped depth. Applying original-style bias to
+independent expanded lines/points extends GL_POLYGON_OFFSET_LINE semantics.
+Fragment depth may reduce early-Z efficiency; this semantic work has no measured
+host performance result.
 
-O termo constante usa uma unidade de profundidade normalizada D24 (2^-24).
-No renderer OpenGL são usados dois LSBs D24: um LSB pode arredondar de volta
-para o mesmo valor ao percorrer `gl_FragCoord` e `gl_FragDepth`. Em D32F, e
-nos drivers cujo fator mínimo de `glPolygonOffset` difere, isso continua sendo
-uma aproximação, não paridade bit a bit com OpenGL. A derivada de slope
-é calculada sobre a profundidade já remapeada. Linhas e pontos expandidos
-recebem a semântica do estilo original; isso também permite offset em
-primitivas independentes, uma extensão em relação ao GL_POLYGON_OFFSET_LINE.
-Escrever profundidade no shader pode reduzir a eficiência de early depth test;
-não há medição de desempenho desta mudança no FreeCAD.
+The initial Rust path uses viewport range and `wgpu::DepthBiasState`, rounding
+constant units to i32 and retaining float slope. Both values key pipelines;
+style masks resolve before pipeline selection. Native Depth32Float precision
+can differ from BGFX's D24 approximation. The private bridge changed **18→19**
+by appending state fields with size/offset assertions; mismatched revisions are
+rejected before state reads. Stable Coin node/libCoin ABI is unaffected.
 
-## Rust e ABI
+## Captured portable extension (2026-10-06)
 
-Rust mantém depth range no viewport e usa `wgpu::DepthBiasState`, com bias
-constante arredondado para i32 (limitação da API wgpu) e slope em float.
-O cache de pipelines inclui ambos; a máscara é resolvida antes da escolha do
-pipeline. A precisão do termo constante segue o formato Depth32Float do wgpu,
-portanto pode diferir da aproximação D24 usada no BGFX.
+This extension supersedes the initial increasing-only range restriction in its
+qualified profile. Clamp each finite range endpoint independently to `[0,1]`;
+reversed and collapsed ranges are valid. Reject NaN/Inf before image/serial
+publication. This does not add geometric depth clamp.
 
-O protocolo **privado** C++/Rust passa de 18 para 19. Os novos campos foram
-anexados ao estado, preservando offsets anteriores, com assertions de tamanho
-e offset dos dois lados. Bridges de revisão diferente são rejeitadas antes da
-leitura dos estados. A ABI pública de libCoin e dos nós existentes não muda.
+Core resolves original triangular-face window slope and maximum depth; polygon
+styles use the original contour before stroke expansion. FILLED may split a draw
+into per-triangle ranges while retaining order and annotation clear. Reject
+primitives outside the original clipping volume. Resolution is idempotent.
+CPU uses the D32Float quantum for units, including a representable subnormal
+step; that numeric CPU control does not qualify subnormal preservation on every
+physical shader/format. GPUs use their actual depth format. Coplanar controls
+cover both signs, units alone, factor and normal/reversed ranges.
 
-## Verificação
+wgpu maps reversed ranges in fragment depth with viewport `[0,1]`, as for resolved
+bias, preserving clipping before bias. This introduced private revision **48**,
+without layout changes. Raw private plans with unresolved offset and reversed
+range must first pass Core preparation; they are not the captured public profile.
+BGFX uses explicit `near + (far-near)*fragmentDepth`, retaining constant ranges,
+and evaluates derivatives only for nonzero factor. Coplanar strokes with active
+test/write may receive an equivalent collapsed range. Original positions/Z
+clipping remain; subpixel coverage changes do not alter bias or W/UV/color/fog.
 
-`CoinRenderDepthContractTest` cobre captura por travessia, defaults, máscaras de
-estilo após expansão, preservação das configurações de depth, FFI e invalidação
-de cache. Os testes GPU Vulkan/OpenGL verificam overlays coplanares com
-factor/units de ambos os sinais, desabilitação entre frames, máscaras de estilo,
-range não padrão e preservação de test/write/function por leitura de pixels.
-As suítes existentes de transparência/overlays devem passar com profundidade
-padrão. A validação visual da viewport real do NaviCube no FreeCAD ainda é uma
-etapa externa; os testes não afirmam ter executado o aplicativo.
+## Tests and evidence limits
 
-O backend CPU de referência não é a implementação de bias/range validada nesta
-mudança; o escopo de execução é BGFX e o contrato/pipeline Rust.
-O CoinRenderFramePlan continua aceitando apenas ranges crescentes dentro de [0,1];
-range invertido e clamping de entradas fora desse intervalo não foram adicionados.
-
-## Relatório da entrega (2026-09-26)
-
-Worktree: `/tmp/coin-wgpu-depth-offset`, branch `codex/wgpu-depth-offset`.
-O checkout original não foi alterado. As mudanças preexistentes foram copiadas
-para um commit-base separado (`41fe27af62`); o commit seguinte contém somente
-esta implementação de profundidade.
-
-Arquivos alterados (caminhos relativos ao repositório):
-
-- `src/rendering/coinrender/CoinRenderFramePlan.h`, `CoinRenderFramePlan.cpp`,
-  `CoinRenderFramePlanBuilder.cpp`: estado, validação e captura por draw/estilo.
-- `src/rendering/coinrender/CoinRenderFrameReuseCore.cpp`: invalidação por offset/range/depth.
-- `src/rendering/coinbgfx/CoinBgfxLowering.h`, `CoinBgfxLowering.cpp`: lowering,
-  filtragem de estilos, agrupamento e proteção do camera patch.
-- `src/rendering/coinbgfx/CoinBgfxBackend.h`, `CoinBgfxBackend.cpp`:
-  ciclo de vida do uniform e aplicação por draw.
-- `src/rendering/coinwgpu/CoinWgpuFfi.h`, `CoinWgpuFfiFrame.cpp`,
-  `rust_bridge/src/lib.rs`: protocolo privado 19, payload e pipeline Rust.
-- `src/rendering/coinrender/CoinRenderRecordingBackend.cpp`: diagnóstico do estado capturado.
-- `src/rendering/coinbgfx/shaders/coin_depth.sh`, `fs_base_color.sc`,
-  `fs_peel_next.sc`, `fs_weighted_oit.sc`: profundidade compartilhada dos shaders.
-- `src/rendering/coinrender/CMakeLists.txt`: dependência do include dos shaders.
-- `testsuite/coinrender/CoinRenderDepthContractTest.cpp`, `CoinRenderLightingTest.cpp`,
-  `testsuite/CMakeLists.txt`: testes e revisão do protocolo.
-- `docs/coin-bgfx-evaluation.md`, `docs/coin-render-depth-contract.md`: suporte e limitações.
-
-Validações executadas:
-
-```
-cmake --build /tmp/coin-wgpu-depth-build -j 6
-ctest --test-dir /tmp/coin-wgpu-depth-build --output-on-failure
-cargo check --offline --locked
-cargo test --offline --locked --lib
-git diff --check
-```
-
-Build C++/BGFX e shaders GLSL/SPIR-V concluídos. CTest: **47/47 passaram**,
-sem skips, incluindo os testes GPU de profundidade em Vulkan e OpenGL,
-transparência (object/weighted OIT/sorted layers), overlays, texturas, iluminação,
-RTT, cache e os testes C++ existentes. Rust: check aprovado e **3/3 testes**
-passaram; permanecem cinco warnings preexistentes de APIs deprecated/dead code.
-O teste Rust novo cobre sinais, arredondamento de units, máscaras, desabilitação
-e rejeição de NaN; a execução GPU do Rust não foi validada nesta entrega.
-
-Limitações restantes: precisão D24 aproximada no BGFX versus bias nativo D32F
-no Rust; custo de early-Z não medido; validação visual do NaviCube/textos/
-wireframes na aplicação FreeCAD ainda pendente. Os overlays coplanares do
-teste GPU passam, mas não substituem essa validação de integração.
-
-## Ampliação de geometria/viewport em 2026-10-06
-
-Veja o [perfil P02/P04/P05/P06](coin-render-geometry-viewport-contract.md):
-viewport externo/vazio no Core, correção de bindings de normais e fixtures
-compartilhadas com resize, alpha, luzes/fog e estilos com UV procedural.
-Os limites de depth/offset e a matriz completa por shape continuam abertos.
-
-## Perfil capturado ampliado — 2026-10-06
-
-Esta seção atualiza os limites históricos de range/offset e execução Rust das
-rodadas anteriores. O [perfil portátil de geometria/viewport](coin-render-geometry-viewport-contract.md#ampliação-portátil-de-fechamento--2026-10-06)
-define as células qualificadas. Cada endpoint finito de range sofre clamp
-independente; intervalos reversos e colapsados são válidos. NaN/Inf são rejeitados
-antes de publicar imagem/serial. Não há novo contrato de depth clamp geométrico.
-
-O Core resolve o gradiente de janela e o máximo do triângulo capturado em
-FILLED; nos estilos de polígono, usa o contorno original antes da expansão
-de strokes. Em FILLED, divide o draw em faixas por triângulo, preserva ordem
-e clear de annotation, e descarta primitivos fora do volume de clipping original. A resolução é idempotente.
-A referência CPU aplica units pelo quantum D32Float, inclusive um passo
-representável nos valores subnormais; o controle subnormal é numérico CPU e
-não qualifica preservação de subnormais em todos os shaders/formatos físicos. os executores GPU usam seu
-formato. Controles coplanares verificam os dois sinais, units isolado e fator,
-nos ranges normal/reverso, em CPU e GPU.
-
-O wgpu mapeia range reverso em profundidade de fragmento com viewport [0,1],
-como já faz para offsets resolvidos, mantendo clipping anterior ao bias. Revisão
-privada **48**, layouts preservados. Planos privados brutos com offset não
-resolvido e range reverso devem ser preparados pelo Core; não constituem o
-perfil capturado. Precisão em outros formatos/drivers e custo de early-Z continuam
-exigindo campanhas próprias.
-
-O shader BGFX usa a forma explícita `near + (far-near)*fragmentDepth`, mantendo
-intervalos constantes sem recombinação de duas parcelas, e só avalia derivadas
-com factor não zero. Ranges coplanares de strokes com teste/escrita ativos podem
-ser resolvidos pelo Core para um intervalo colapsado equivalente; posições e
-clipping originais em Z permanecem. O deslocamento subpixel trata cobertura,
-não altera o bias de profundidade nem as expectativas de W/UV/cor/fog.
+`CoinRenderDepthContractTest` covers capture/defaults, post-expansion masks,
+state preservation, FFI and cache invalidation. GPU Vulkan/OpenGL controls cover
+coplanar overlays, signs, disabling between frames, masks, ranges and readback.
+The original 2026-09-26 BGFX delivery passed **47/47 CTests**, Rust **3/3**;
+Rust GPU execution was not validated in that original delivery. Later captured
+range/bias execution is scoped by the [geometry profile](coin-render-geometry-viewport-contract.md).
+The [archive](coin-render-evidence.md) retains original commands, warnings and
+staged evidence. Other formats/drivers, early-Z cost and real application
+viewport validation require their own campaigns. Historical successful overlays
+do not substitute for host integration evidence.

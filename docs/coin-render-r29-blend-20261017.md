@@ -1,7 +1,0 @@
-# R29 — BLEND imediato no ANAGLYPH
-
-O manager agora admite material translúcido com `SoGLRenderAction::BLEND` imediato nos dois olhos do ANAGLYPH. A escrita de cor por canal mantém vermelho do olho esquerdo e verde/azul do direito; a limpeza de depth separa os olhos dentro de uma submissão. O perfil continua recusando passes diferidos e OIT, que compõem buffers intermediários de outra forma.
-
-`CoinRenderStereoEyeTest` usa cubo branco com transparência 0,5, captura os olhos diretos e o manager, compara todos os pixels dos canais correspondentes e confronta cada olho com CoinGL. [Sete células GPU](validation/coin-render-r29-blend-20261017/verification.json) passaram com erro máximo zero na composição por canal e no máximo um nível RGB contra CoinGL. O controle `DELAYED_BLEND` retorna UNSUPPORTED sem alterar a imagem publicada e recupera após voltar a BLEND opaco.
-
-Na [janela X11](coin-render-r29-window-anaglyph-20261017.md), o quinto frame alterna de SCREEN_DOOR para BLEND 0,5 com a camada verde e tamanho 64² mantidos. Sete células passaram 35/35 apresentações RGB exatas frente ao offscreen. A cobertura vermelha exclusiva passou de 19 para 38 pixels no fixture, evidenciando a troca de política. [Alpha de textura RGBA 1×1](coin-render-r29-texture-alpha-20261017.md) foi qualificado em seguida; outras texturas, raster transparente, OIT, RTT, sombras e demais modos estéreo permanecem abertos.

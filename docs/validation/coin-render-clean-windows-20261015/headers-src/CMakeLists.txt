@@ -1,8 +1,0 @@
-cmake_minimum_required(VERSION 3.20)
-project(public_headers LANGUAGES CXX)
-find_package(Coin REQUIRED)
-find_package(CoinRender REQUIRED)
-add_executable(public_headers main.cpp)
-set_property(TARGET public_headers PROPERTY CXX_STANDARD 11)
-set_property(TARGET public_headers PROPERTY CXX_STANDARD_REQUIRED ON)
-target_link_libraries(public_headers PRIVATE CoinRender::CoinRender Coin::Coin)

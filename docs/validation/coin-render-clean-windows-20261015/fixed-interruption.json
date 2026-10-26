@@ -1,5 +1,0 @@
-{
-  "reason": "Recording and BGFX test build failed because Windows GL headers omit GL_DEPTH_CLAMP; wgpu configuration interrupted before repeating the same failure.",
-  "runner_tree_stopped": 7760,
-  "fix": "Test-local guarded token, same value as vendored Khronos glext.h; no oracle or runtime change."
-}

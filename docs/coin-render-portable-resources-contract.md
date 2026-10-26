@@ -1,281 +1,279 @@
-# P03/P15/P16/P24/P28 — contratos além do primeiro perfil
+# Portable shaders, spatial textures, bump and multipass
 
-Este documento define os planos de shaders próprios, texturas espaciais e MSAA/multipass. A execução é delimitada pela [matriz de recursos](coin-render-feature-matrix.md): R23.1/R23.2 implementam volumes POT/NPOT e R23.3 amplia o formato para sRGB em CPU, BGFX e wgpu; R24.3/R24.4 completam o perfil armazenado de cubemap linear/sRGB; R27 possui perfis MSAA. Shaders autorais, cubos e multipass possuem implementação; seus perfis de execução e pendências estão delimitados na matriz. Uma qualificação de perfil não cobre automaticamente os recursos e cruzamentos restantes.
+The implemented resource families below are qualified only in their recorded
+profiles. Implementation does not qualify every combination. The
+[scope matrix](coin-render-feature-matrix.md) and [archived full matrix](coin-render-evidence.md)
+distinguish current limitations from historical delivery stages.
 
-## Shaders próprios: primeiro contrato portátil
+## Portable shader v1
 
-A entrada é um módulo tipado do produto, versionado e imutável, com assinatura
-verificada no Core. GLSL legado (`SoShaderProgram`, ARB/Cg, built-ins `gl_*`), WGSL
-ou binário BGFX não são essa entrada. Wiring identifica o programa Coin ativo e
-seus parâmetros; a aplicação associa a adaptação explicitamente por
-`CoinRenderAction::setPortableShaderModule`. Sem adaptação, rejeita antes da publicação. Tradução automática
-arbitrária de fonte GL permanece fora do primeiro contrato.
+Input is a typed, versioned, immutable product module with Core-verified signature.
+Legacy GLSL/ARB/Cg, `gl_*` builtins, WGSL strings and BGFX binaries are not that
+input. Wiring identifies active Coin program/parameters; application explicitly
+associates an adaptation through `CoinRenderAction::setPortableShaderModule`.
+Without adaptation reject before publication. No arbitrary automatic GL-source
+translation or execution of node string content is provided.
 
-O primeiro módulo altera apenas a cor de fragmento de triângulos. Posição,
-clipping, interpolação perspectiva, fog, alpha test, depth, composição, seleção,
-camadas e sombras conservam os donos atuais. Sua entrada é a cor primária após
-iluminação e antes de fog/composição, mais coordenadas UV homogêneas capturadas
-por Wiring. Sua saída é RGBA finito, sem pré-multiplicação; o Core decide
-classificação transparente por metadado explícito conservador. O módulo não
-escreve depth, não modifica a posição e não pode ocultar primitivas de picking.
-Uma futura operação discard requer contrato separado para depth/alpha/seleção.
+Initial module changes triangle fragment color only. Position, clipping,
+perspective interpolation, fog, alpha test, depth, composition, selection, layers
+and shadows retain their owners. Input is lit primary color before fog/composition
+plus captured homogeneous UV. Output is finite, unpremultiplied RGBA. Explicit
+conservative metadata governs alpha classification; module cannot write depth,
+move geometry or hide picking primitives. Discard would require another contract.
 
-| Elemento | Primeiro limite e semântica |
+| Property | Limit/semantics |
 | --- | --- |
-| Expressões | AST acíclica com constantes f32, vetores 2/3/4, uniformes, add/sub/mul/div, min/max/clamp, dot e amostragem 2D; sem laços, recursão, compute ou efeitos laterais |
-| Uniformes | 4 KiB por módulo; tipos e tamanhos exatos; campos ausentes, extras e NaN/Inf diagnosticados; divisão somente por escalar constante/uniforme validado não zero; padding é decisão do lowering |
-| Complexidade | 256 expressões, profundidade 32, até oito amostragens e oito imagens 2D; recursos ligados por identidade lógica e geração |
-| Coordenadas | Unidade explícita 0..7; divisão por q segundo P07; funções Coin resolvidas em Wiring/Core, sem chamada ao Coin na Infra |
-| Sampler | Perfil P07 comum; qualidade não é reinterpretada pelo módulo |
-| Identidade | Digest de versão, AST, assinatura e perfil; parâmetros e imagens têm revisões próprias; cache inclui dispositivo/geração/formato/amostras |
-| Composição | Alpha do módulo declarado como potencialmente variável força scheduling conservador; programas opacos precisam prova estrutural, nunca inferência dos pixels de um quadro |
-| Falha | Validação/compilação incompatível falha antes do submit dos produtores; erro de runtime posterior preserva a publicação anterior e permite recuperação |
+| Expressions | Acyclic AST; f32 constants, vectors 2/3/4, uniforms, add/sub/mul/div, min/max/clamp, dot, 2D sample; no loops/recursion/compute/side effects |
+| Uniforms | **4 KiB/module**, exact types/sizes; missing/extra/NaN/Inf diagnosed; division only by validated nonzero constant/uniform scalar; lowering owns padding |
+| Complexity | **256 expressions**, depth **32**, at most **8 samples/8 images**, bound by logical identity/generation |
+| Coordinates | Explicit units **0..7**, common projective-Q rules; Coin functions resolved before Infra |
+| Samplers | Common quality policy, never reinterpreted by module |
+| Identity | Version/AST/signature/profile digest; parameter/image revisions; cache includes device/generation/format/samples |
+| Alpha | Potential variability forces conservative scheduling; opacity requires structural proof, never one frame's pixels |
+| Failure | Known validation/compile incompatibility rejects before producer submission; later runtime errors preserve publication/recover explicitly |
 
-A assinatura canônica completa, incluindo nomes, tem limite inclusivo de
-65.536 bytes. A função gerada tem limite de 262.144 bytes, excluindo o NUL
-do transporte privado. Comprimentos são verificados antes de ler/copiar a
-assinatura ou alocar a fonte anunciada pelo callback. Uma associação inválida
-preserva a associação anterior; saídas auxiliares permanecem intactas na falha.
+Canonical full signature including names is at most **65,536 bytes**; generated
+function at most **262,144 bytes**, excluding transport NUL. Check lengths before
+reading/copying/allocating callback-declared source. Invalid association preserves
+previous binding and auxiliary outputs. Logical module transport budget is
+**32 MiB/frame and root/producer graph**, inclusive. Stored instance costs
+`64 + 40*N + 4*P + S` bytes for descriptor, N IR nodes, P parameter floats and S
+signature bytes. Repeated draws in one slot count once; distinct slots/producer
+faces count separately. Validate full sum before compilation/producer execution/
+publication, including private Rust ingress before first Core module call.
+This is not total driver memory or replacement for program-cache/texture/attachment/
+multipass budgets. R22 retained ABI65; later R23.3/R24.3 used **66/67**.
 
-O transporte lógico de módulos tem orçamento inclusivo de 32 MiB por frame e
-por grafo raiz/produtores. Cada instância armazenada custa `64 + 40*N + 4*P + S`
-bytes: descritor, N nós IR, P floats de parâmetros e S bytes da assinatura.
-Vários draws no mesmo slot contam uma vez; slots distintos e faces dos
-produtores contam separadamente. O Core valida a soma completa antes de
-compilar, executar produtores ou publicar. O ingresso privado Rust também
-admite a tabela inteira antes de chamar o Core para o primeiro módulo. Não é
-uma estimativa da memória do driver nem substitui o cache de programas e os
-orçamentos próprios de texturas, attachments e multipass. A entrega R22 preservou a ABI65; R23.3 introduziu a revisão 66 e a corrente é 67 em R24.3.
+Core validates/orders one IR; Infra emits WGSL/BGFX variants, checks native limits
+and fence-retains programs. There are no independent Coin semantic interpreters.
+Diagnostics identify module/resource/operation/phase without exposing shader source
+in normal UI. Tests require constant/parameterized colors, projective/eight bindings,
+mutations/resize, clip/fog/alpha/composition/RTT and malformed IR/signatures/limits/
+compile/loss/recovery. CoinGL is oracle only for demonstrated equivalent adaptation.
 
-Core valida AST/assinatura, ordena operações e produz um IR único. Infra emite
-WGSL e as variantes de shader BGFX a partir desse IR, verifica limites reais e
-retém programas até o fence. Não haverá dois intérpretes de semântica Coin.
-Shell relata módulo, recurso/operação e fase da falha, sem expor fonte de shader
-na UI normal. Não executar código externo só por que um nó contém uma string.
+## Volume textures
 
-Fechamento de implementação: mesmo módulo com cor constante e parametrizada,
-UV projetivo, oito bindings, resize/mutação, clipping/fog/alpha/composição e RTT;
-IR malformado, assinatura incompatível, limite, compilação, perda de dispositivo
-sem publicação e recuperação. Comparar CPU/IR e BGFX/wgpu; CoinGL só é oráculo
-quando a adaptação demonstra equivalência com o programa original.
+R23 represents all slices/spatial mip levels in a physical 2D RGBA8 atlas with
+logical `volumeWidth/Height/Depth/Columns/SourceComponents` and `volumeMipmapped`.
+Physical width/height describe atlas and `mipmapped=false` prevents 2D atlas mips.
+CPU/GPU manually perform nearest/trilinear and 3D mip selection/interpolation,
+wrap S/T/R and PROJECTIVE STR/Q after perspective interpolation. One sampler/unit
+supports mixed 2D/3D without additional bindings; never silently collapse to one slice.
 
-## Texturas 3D, cube maps e RTT de cubo
+Atlas columns are sufficient powers of two for slices; levels stack vertically.
+POT axes **1..256** have **729** extents, physical maximum
+**4096×5471×4 = 89,636,864 bytes** including mips/padding. Same maximum applies to
+all **16,777,216** integer extents introduced in R23.2. Limit **128 MiB/published
+image**, plus actual executor 2D extent limit; scene/conversion temporaries add CPU
+memory. Each NPOT mip axis is `max(1,floor(axis/2))`; integrate entire preceding
+voxel-cell areas in XYZ, including odd trailing rows/slices, then nearest-integer
+round once per level, ties upward. POT bytes remain unchanged; padding must be zero.
+Identity/dedup/reuse include metadata/bytes; capture-local atlas cache includes node
+revision. The maximum 256³ test does not certify missing formats/combinations.
 
-O perfil R23.1 usa atlas RGBA8 2D contendo todas as fatias e todos os níveis espaciais, com metadados lógicos `volumeWidth/Height/Depth/Columns/SourceComponents` e `volumeMipmapped`. `width/height` descrevem a textura física; `mipmapped=false` impede mipmaps 2D do atlas. CPU e shaders fazem nearest/trilinear e a seleção/interpolação entre mips 3D, com wrap S/T/R e divisão por q no perfil PROJECTIVE após interpolação perspectiva. Um sampler por unidade preserva a coexistência de imagens 2D/3D sem aumentar o número de bindings; não há redução do volume a uma fatia.
+Historical private format **11**, revision **60**, encodes W−1 bits **0–7**, H−1
+**8–15**, D−1 **16–23**, mips **24**. R23.3 revision **66** adds sRGB bit **25**;
+**26–30** reserved zero, **31** general opacity declaration without changing alpha.
+Revision **67** preserves this. Validate length/dimensions/padding/flags/RQ before
+revision-cache/publication, including lines/points; reject invalid extents without
+silent reduction. Format participates in identity; older revision 65 is explicitly
+rejected by the sRGB transport. Old packVolumeAtlas symbol stays linear; typed
+overload admits only linear/sRGB and preserves output on failure.
 
-O atlas usa colunas em potência de dois suficientes para as fatias e empilha os níveis verticalmente. No domínio POT 1..256, as 729 extensões possíveis têm máximo físico de 4.096×5.471×4=89.636.864 bytes, incluindo padding e mips; o teto de 128 MiB é por imagem publicada. Imagem da cena e temporários de conversão são memória CPU adicional. As dimensões físicas também respeitam o limite real de textura 2D do executor. Identidade, deduplicação, reuso e validação incluem os metadados e bytes; cache de atlas é restrito à captura e inclui revisão do nó. O teste público cobre o máximo 256³ com/sem mips; não usa esse passe como prova de formatos, NPOT ou combinações ainda ausentes.
+`storedTextureColorSpace` applies to SoTexture3 authored bytes: retain base bytes,
+decode sRGB RGB per voxel before spatial/inter-level filtering, keep alpha linear.
+Generate RGB mips by full-area integration in linear light and encode once/level;
+alpha keeps integer mean/tie-up; linear path keeps prior bytes. Output is linear
+RGBA8. Compression/depth/HDR spatial formats and anisotropy >1 require other
+contracts. R23.1 historical **14** processes covered seven Linux cells/two sampling
+policies, intermediate filters and R-only footprint. Native same-object already-
+mipmapped quality transition **0.6→0.8** can retain prior filter (**C14 open**).
+B14 corrected native upload's confusion of image dimension/prior enable state on
+3D→2D. New platforms remain separate.
 
-As 14 execuções Linux de R23.1 passaram com CPU/GPU/CoinGL em sete células e duas políticas de sampling, incluindo filtros intermediários e footprint apenas em R. A transição CoinGL 0,6→0,8 no mesmo objeto já mipmapped mantém o filtro anterior; C14 conserva esse contrato em aberto. B14 registra a correção do upload nativo, que confundia dimensão da imagem com estado habilitado anterior ao trocar 3D→2D. Novas plataformas e cruzamentos seguem V/C17.
+C17.2 keeps independent STRQ in up to eight mixed 2D/volume/cube units with shadows.
+Shadow DIRECT_ST uses transformed STR without Q division; ordinary volume PROJECTIVE
+divides STR/Q; cube uses STR and ignores finite Q including zero. Reject nonfinite
+values, zero/singular cube direction and invalid projective Q before publication.
+LOD uses actual triangle derivatives; precise QuadMesh fan uses legacy nonaffine
+attribute weights. Offscreen/window/RTT coverage remains per-profile.
 
-R23.2 amplia o mesmo atlas RGBA8 linear para todos os eixos inteiros de 1 a 256, preservando a extensão e os voxels autorais. Cada mip usa `max(1, floor(eixo/2))`; cada voxel novo integra a área completa das células do nível anterior nos três eixos e arredonda ao inteiro mais próximo, com empate para cima, uma única vez por nível. Linhas/fatias finais ímpares participam; volumes POT mantêm os bytes anteriores. Padding físico deve ser zero. O máximo físico acima também vale no domínio completo de 16.777.216 extensões.
+## Stored cubemaps
 
-O protocolo privado wgpu 60 original de R23.2 conserva os tamanhos das estruturas e codifica, no formato 11, W−1 nos bits 0–7, H−1 em 8–15, D−1 em 16–23 e presença de mips no bit 24; bits 25–31 são zero. Comprimento, dimensões, padding e coordenadas R/Q são validados antes do cache e da publicação, inclusive para linhas/pontos. Nenhuma extensão inválida é reduzida silenciosamente. A matriz R23.2 delimita os perfis aprovados; B63 sincroniza a primeira captura de janela BGFX. Não há exigência de pixels idênticos entre máquinas.
+`CoinRenderCubeTextureCore` prepares six equal POT faces **1..2048**, logical order
+**+X,-X,+Y,-Y,+Z,-Z**, original L/LA/RGB/RGBA components and linear/sRGB RGBA8 storage.
+Keep base bytes. Each fetch decodes sRGB RGB before filtering; mips integrate in
+linear light/encode once per level. Alpha stays linear with integer mean/tie-up.
+Atlas width **2N**, sequential level/face/row texels; height ceiling(total/width),
+trailing padding zero. Full maximum chain is **4096×8192×4 = 134,217,728 bytes**.
+CPU projection/sampling validates descriptors before reading and preserves output
+on failure. Axis ties prioritize **X/Y/Z**; filtering clamps within each face,
+without seamless edges. Four quality bands/per-face mips extend native CoinGL's
+fixed LINEAR min/mag without mips, verified numerically rather than claiming native
+mip equivalence.
 
-R23.3 estende `CoinRenderOptions::storedTextureColorSpace` às imagens autorais
-`SoTexture3`. O atlas admite RGBA8 linear ou sRGB, preservando os bytes originais
-do nível base. Cada voxel RGB sRGB é decodificado antes da interpolação espacial
-e entre níveis; alpha permanece linear. Os mips RGB integram em espaço linear
-as mesmas áreas completas, incluindo bordas NPOT ímpares, e codificam uma vez
-por nível. O alpha conserva a média inteira e o arredondamento existentes;
-o caminho linear mantém seus bytes. A cor de saída permanece RGBA8 linear.
+MODULATE/REPLACE/DECAL/BLEND retain original components; RGB REPLACE preserves
+primary alpha, DECAL L/LA rejects. No wrap across faces, seamless or authored
+SAMPLECUBE. Reject anisotropy >1, NPOT faces, compression/HDR/depth, missing/mixed
+faces, pending filenames and bad metadata/bytes. STR receives full 4×4 texture
+matrix once and perspective interpolation before face selection; finite zero/
+negative Q does not divide STR; do not normalize per vertex. Zero/nonfinite direction,
+including an interior primitive singularity, rejects before publication. Qualified
+inputs include TextureCoordinate3, unequal direction lengths/perspective W, default
+bbox XY (square tie S=Y/T=X) with nonzero resulting direction, CPU Object/Plane/
+ReflectionMap/Environment callbacks in recorded cases. No implicit Reflection.
+Default reaching zero rejects. Geometric NormalMap supplies a hardware-dependent
+zero dummy callback here and rejects even if a matrix shifts it; preserve separate
+raster evaluator. Active TEXGEN without CPU callback rejects; quality zero retains
+disabling. Separator/unit/revision/reuse remain coherent.
 
-A ABI privada 66 introduzida em R23.3, preservada na revisão 67, mantém o formato 11 e os tamanhos das estruturas, com sRGB no
-bit 25 dos metadados do volume; bits 26–30 permanecem reservados e zero. O bit
-31 conserva a declaração geral de opacidade, sem modificar o alpha autoral. Dimensões,
-padding, comprimento e flags são validados antes do reuso por revisão. O formato
-participa da identidade/cache; a revisão anterior 65 é recusada explicitamente.
-O símbolo anterior de `packVolumeAtlas` conserva a semântica linear; a sobrecarga
-com formato admite somente RGBA8 linear/sRGB e preserva a saída na falha.
+Validate before same-revision caches at Target/CPU/BGFX/C++/Rust. BGFX reuse,
+including CAMERA_PATCH, includes format/metadata/bytes; Rust TextureKey includes
+format-12 metadata, so same revision/digest/payload cannot hide linear↔sRGB changes.
+Orientation follows native asymmetric interior controls on AMD/NVIDIA. LOD uses
+chosen-face projection derivatives; bilinear/mip interpolation is manual with
+integer texelFetch in BGFX and u32 addressing in wgpu, not CPU-preprojected images.
+MSAA k/N coverage applies to an observed resolved face without subsequent mixed
+texels; producer+consumer resolves can yield k/N² fractions. Isolate stages or
+calculate complete composition, without vendor pixel patches. Axis ties/seams
+are not seamless claims; native Q divergence remains **B29**.
 
-C17.2 preserva coordenadas STRQ independentes em misturas de até oito unidades
-2D/volume/cubo junto de sombras. O perfil shadowed DIRECT_ST usa STR transformado
-sem divisão por Q; um volume PROJECTIVE sem sombras divide STR por Q, enquanto
-o cubemap usa a direção STR e ignora Q finito, inclusive zero. Entradas não
-finitas, direção zero/singular dentro da primitiva e Q projetivo inválido são
-recusados antes da publicação. Os filtros/LODs são avaliados sobre os atributos
-do triângulo efetivo; o fan preciso de QuadMesh conserva seus pesos legados,
-que não são a média afim dos atributos. A matriz C17.2 delimita a qualificação
-offscreen, janela e RTT; não encerra as demais combinações de C17.
+## Cubemap RTT
 
-A representação comum para extensões futuras terá `dimension` (2D/3D/cube), extensão xyz, formato, mip levels,
-face/layer e bytes/pitches por subrecurso. A identidade inclui todos os descritores
-e payloads; a conversão de L/LA/RGB/RGBA para RGBA8 acontece uma única vez no
-Core. Os perfis armazenados de volumes e cubos admitem RGBA8 linear/sRGB. Compressão, depth e float/HDR espaciais exigem contrato próprio,
-assim como anisotropia maior que 1; as solicitações sem suporte são recusadas. Limites iniciais de admissão: volume 256 por eixo,
-cubo 2048 por face, 128 MiB somando subrecursos/mips por imagem. Os limites reais
-do executor podem ser menores e devem ser verificados antes de alocar.
+One logical producer has six Core-described camera passes, earlier dependencies,
+maximum eight levels and cycle rejection. Publish only all six complete faces
+from one generation; sixth-face failure retains previous cube/frame/tickets and
+fence-retires candidates. Cache includes face camera/scene/format/dimensions/
+transparency/revisions. A window consumes the graph; it is not a face producer.
+Each face clears background RGB with alpha **1** like native prerender callback.
+Preserve authored camera parameters while replacing capture orientation without
+mutating scene fields. Logical face order is independent of native enum numbering.
+Own/inherited image override applies only unit zero, following active SoTexture2;
+extra units do not set global override. This deliberately differs from native
+SoSceneTextureCubeMap's inactive own-override setter paths.
 
-Wiring captura `SoTexture3` e suas coordenadas 3D; nunca reduz volume a uma
-fatia 2D silenciosa. Coordenadas s/t/r/q mantêm interpolação perspectiva. No perfil PROJECTIVE, STR é
-dividido por q antes de amostrar; zero/não finito segue a rejeição comum P07.
-Wrap S/T/R explícito, qualidade e mip selection têm o mesmo dono de P07.
-O perfil R23.2 admite os eixos inteiros 1..256 e recusa geração incompleta;
-filtragem entre fatias usa interpolação nas três dimensões. Upload/flip deve
-preservar os eixos Coin, demonstrados por um volume com oito cantos diferentes.
+Format **12** introduced in private revision **61**, retained through **67**:
+face exponent bits **0–3**, source components **4–6**, mips **7**, GPU resource
+**8**, sRGB **9**, reserved-zero **10–30**, opacity declaration **31**. RTT cubes
+are always linear RGBA8, bit9 zero even with authored sRGB policy: never decode
+rendered linear bytes again. GPU cube uses four components, null CPU pointer,
+zero length; private content_digest carries token. Validate physical extent,
+domain/generation/chain before cache. Revision/digest are hints, not resource
+identity; descriptor/bytes/sampler/matrix remain validated. Recheck retained layout
+against capture; canonical no-mip declaration can consume a shared complete atlas.
+Reject repeated face/atlas tokens before retiring temporaries, preserving prior
+publication and unique owner retirement. This is not public cube export API.
 
-O núcleo R24.1 (`CoinRenderCubeTextureCore`) prepara seis faces POT 1..2048 em RGBA8 linear/sRGB, com cadeia de mips isolada por face. O overload anterior conserva o caminho linear; o overload tipado e o membro final de formato do atlas selecionam sRGB. Bytes autorais do nível base são preservados. Cada fetch decodifica RGB antes de interpolar; cada mip integra RGB em luz linear e codifica uma vez por nível. Alpha permanece linear e conserva a média inteira com empate para cima. O atlas usa largura 2N e sequência linear de níveis/faces/linhas; a altura é o teto do total de texels dividido pela largura e o padding final é zero. No máximo 2048, a cadeia completa ocupa 4096×8192×4=134.217.728 bytes, incluindo padding. Projeção e amostragem CPU validam os descritores antes de ler e preservam a saída em caso de erro. O desempate portátil de direção prioriza X/Y/Z; a filtragem inicial limita cada face às próprias bordas. A integração pública R24.2 liga esse núcleo à captura, ao plano, à CPU e aos executores BGFX/wgpu; a matriz delimita a qualificação e os cruzamentos ainda abertos. Seamless permanece ausente.
+Assembled atlas token owns resources independently of six face tokens. DIRECT
+retires face registry entries after assembly; physical destruction still follows
+last-use fence and pending memory remains budgeted. Capacity uses peak live
+records: k retained producers need **k+7** while assembling cube and leave **k+1**.
+wgpu registry has **64** slots minus external live tokens; do not assign that
+limit to BGFX. Reject zero/old-generation/aliased/inconsistent tokens and CPU
+payload on GPU-resource descriptors. Account six colors, transient depth, mips,
+resolve and simultaneous staging; 2D RTT's 64 MiB debit is not total cube memory.
+Use checked sums/products, executor overhead/capacity and per-subresource pitches/
+origin/face order; a 2D RGBA readback does not represent a cube.
 
-R24.2 captura as seis imagens de `SoTextureCubeMap`, na ordem +X, -X, +Y, -Y, +Z, -Z. As faces têm mesmo tamanho e componentes originais L/LA/RGB/RGBA; o atlas físico é RGBA8 linear/sRGB segundo `storedTextureColorSpace`. MODULATE, REPLACE, DECAL e BLEND conservam os componentes originais; REPLACE RGB preserva alpha primário e DECAL L/LA é recusado. O sampler limita cada face à borda, como o caminho CoinGL atual; não aplica wrap entre faces. Anisotropia maior que 1, compressão, HDR/depth e faces NPOT ficam fora deste perfil e são recusados. Seamless e SAMPLECUBE autoral não são implementados; outros cruzamentos/plataformas exigem qualificação própria.
+RECORDING public STAGED linear RGBA8 **1×** selects CPU for root and all producers,
+without automatic GPU→CPU fallback. Replacing only GPU consumer with a CPU fixture
+does not prove this profile. Historical **33/33** headless tests cover faces/cameras/
+sampler/alpha/graph/callbacks/sharing/stereo and dimensions **1/2/2048** with/without
+mips. Root OOM after complete atlas retains publication and sets TARGET_ERROR;
+explicit public same-size resize invalidates publication/serial and recovers same
+target/backend with exact RGBA/depth A/B/A. Thread-local internal sixth-face fault
+lets five real submissions finish, then fails before allocation/publication; root
+retains output/readiness, disarming permits immediate B then exact A restoration.
+Admission checks every face before any producer, so invalid last-face input does
+not consume armed fault. CPU DIRECT/MSAA2×/4×/window/async/shadows/bump remain refused.
 
-A direção STR recebe a matriz de textura 4×4 uma única vez e mantém interpolação perspectiva antes da seleção da face; Q finito zero/negativo não divide STR. Não há normalização por vértice. Direção zero/não finita, inclusive singularidade dentro da primitiva, falha antes da publicação. O perfil qualifica `SoTextureCoordinate3`, direções variáveis de comprimentos diferentes e perspectiva com W distintos. Também qualifica o default geométrico bbox XY do Coin (no empate quadrado, S=Y/T=X), com matriz que mantém STR não nulo, e os callbacks CPU Object, Plane, ReflectionMap e Environment nas entradas registradas. Não há Reflection implícito. Default que alcance direção zero é recusado. O NormalMap geométrico deste Coin entrega somente um callback dummy zero e depende de hardware: é recusado mesmo se uma matriz deslocar esse dummy; o avaliador raster existente é preservado. TEXGEN sem callback CPU recusa quando a textura está ativa; qualidade zero conserva a desativação anterior. Face ausente/mista, filename pendente e bytes/metadados inválidos são recusados; Separator, unidade, revisão e reuso preservam o estado. Validação precede cache de mesma revisão e publicação nos ingressos Target/CPU/BGFX/C++/Rust. Formato, metadados e bytes do cubo participam do reuso BGFX, inclusive CAMERA_PATCH; metadados do formato 12 participam de TextureKey no Rust. Mesma revisão/digest/payload não encobre uma troca válida linear/sRGB/linear.
+## Legacy opaque bump (R26)
 
-A orientação segue a tabela 3.19 do OpenGL 2.1 e passou nos controles interiores assimétricos CoinGL AMD/NVIDIA. O CoinGL atual fixa MIN/MAG em LINEAR sem gerar mips em `SoGLCubeMapImage`; CoinRender amplia esse caminho com quatro bandas de qualidade e mips por face, verificadas por oráculo numérico. O LOD usa derivadas da projeção na face escolhida; bilinear e interpolação de níveis são manuais. A verificação de cobertura MSAA k/N vale para uma face resolvida observada sem nova mistura de texels no consumidor. Quando produtor e consumidor resolvem N amostras e o consumidor combina texels diferentes, podem surgir frações k/N²; esse resultado não exige correção de pixels por fabricante. Os testes devem isolar cada resolução ou calcular a composição completa. BGFX usa endereço inteiro e `texelFetch`, wgpu usa endereço u32, sem converter a direção em imagem CPU para executar na GPU. O protocolo wgpu privado corrente 67 usa formato 12 com metadados de tamanho/componentes/mips e bit 9 sRGB, sem alterar o FrameView de 544 bytes. A revisão 66 é recusada. Empates de eixo e filtragem nas costuras não recebem alegação de seamless; a divergência nativa AMD/NVIDIA para Q está registrada em B29.
+Linux GPU profile: opaque triangles/linear RGBA8, **1–8** consumed lights. Without
+shadows allow directional/point/spot mixtures; legacy spot uses position as point
+without cone/attenuation, following soshape_bumprender::initLight. With shadows,
+only directional lights/maps, up to **8** maps/one group. Never truncate to first
+light or replace bump with ordinary Phong. Per vertex, transform light/eye to
+object S/T/N basis in Coin normalization order; fragment interpolates, evaluates
+DOT3 and specular exponent `shininess*64`. Sum contributions; base modulates
+diffuse separately from specular. Nonbump occurrences retain own model. CPU provides
+capture/admission/math controls, not bump raster execution.
 
-RTT de cubo é um produtor lógico com seis passes e câmeras descritas no Core,
-com dependências anteriores, limite de oito níveis e ciclos rejeitados. Só
-publica o cubo quando as seis faces estão completas na mesma geração. Um erro
-na sexta face mantém o cubo/quadro/tickets anteriores; recursos candidatos são
-aposentados por fence. Cache inclui câmera por face, cena, formato, dimensões,
-política de transparência e revisões. Não confundir seis passes com seis
-produtores independentes publicáveis. Janela não é produtor de face: recebe
-um consumidor do grafo, com ownership do dispositivo da janela.
+Opaque bases: existing 2D RGBA8, volumes **1..256**, stored POT cubes **1..2048**,
+2D/cube STAGED or DIRECT RTT. Models/combine/units0..7 follow receiver admission.
+Decode base sRGB before filtering/combine. Normal-map RGB is linear encoded data,
+never sRGB-decoded; ignore its alpha. Height conversion preserves native Sobel/
+components. RTT face/atlas/mips remain linear with private bit9 zero. ABI67 needs
+no new fields. Effective base/material alpha requires separate transparency contract
+and rejects in this opaque profile; RTT's explicit declaration stays separate.
+Opacity checks all sampleable mips/faces, excluding padding. Keep family sampler/
+wrap/quality/P07-Q limits, including upload-associated quality and B29. Bump axes
+**1..32767**, **48 MiB/image**, **256 MiB RGB/frame** transport.
 
-R25 introduziu o formato 12 na ABI privada wgpu 61; a revisão corrente 67 conserva os tamanhos das estruturas.
-No formato 12, os bits 0–3 indicam o expoente do tamanho da face, 4–6 os
-componentes de origem, 7 a cadeia de mips, 8 um recurso GPU e 9 sRGB armazenado.
-Bits 10–30 são reservados zero; bit 31 é a declaração geral de opacidade, sem alterar alpha. Cubos RTT permanecem RGBA8 linear mesmo com a política de imagens autorais em sRGB: bit 9 deve ser zero para o produtor/token GPU. Não se decodificam novamente os bytes lineares de um resultado renderizado. O cubo RTT GPU usa quatro componentes, ponteiro nulo e comprimento
-CPU zero; o campo privado content_digest transporta o token do recurso.
-Dimensões físicas do atlas, domínio, geração e cadeia são validados antes do
-cache. O token do cubo montado possui seus próprios recursos e permanece válido
-após aposentar os seis tokens de face. No grafo DIRECT, essa aposentadoria
-ocorre após a montagem e retira somente os registros das faces. A liberação
-física continua obedecendo ao fence de seu último uso; memória ainda pendente
-na GPU permanece no envelope de orçamento. A capacidade é verificada pelo
-pico de registros, não pela soma de todas as faces de todos os produtores:
-com k produtores anteriores retidos, um cubo exige k+7 registros durante a
-montagem e deixa k+1 ao concluir. O registro wgpu tem 64 posições, reduzidas
-pelos tokens externos vivos; esse limite não é atribuído ao BGFX. Zero, geração antiga, alias de faces,
-metadados inconsistentes e payload CPU em um recurso GPU são recusados sem
-publicação. A matriz R25 discrimina a execução dos testes desse ingresso.
+Revision/digest/pointer never replace current resource validation. Admission precedes
+cache/producer work, even malformed inactive bump data, final indices/lights/images
+or sixth faces. Refusal preserves pixels/depth/serial/prior valid ticket; FFI publishes
+only a complete successful candidate. Valid inactive data must not light another
+draw. Recorded profiles cover MSAA1×/2×/4×, Native/Portable, offscreen/window/readback/
+resize, directional shadows and RTT, without qualifying untested products. Physical
+window observation uses original five-second deadline after one apply, no artificial
+reapply/wait for another frame. No immediate first-XGetImage promise. Translucency/
+OIT, arbitrary same-draw modules, PBR/HDR/depth/compression/seamless/other platforms
+retain separate contracts. B34 recreation remains unqualified.
 
-Revisão e digest são pistas de cache, não identidade do recurso: descritores, bytes, sampler e matriz continuam sujeitos à validação. A resolução confere novamente o layout retido e a declaração capturada; uma declaração de cubo sem mips pode consumir o atlas completo compartilhado, desde que ambos sejam canônicos. O executor recusa token repetido entre faces ou retornado como atlas antes de aposentar os temporários, mantendo a publicação anterior e a aposentadoria única pelo owner. Isso não cria uma API pública de exportação de cubemap.
+## MSAA, resolve and multipass
 
+Target sample/format/color-space configuration has exact capability checks and no
+silent reduction. Default is linear RGBA8/one sample; implemented initial profiles
+use **1/2/4**. Historical P24 proposal for 8/sample-shading, HDR and general pass
+extensions is preserved in the archive and is not implementation qualification.
+Resolve linear color once after final writer, before RTT sampling/readback/present;
+sRGB publication conversion is explicit. HDR requires float/exposure/tone-map contract.
+Depth semantics must be stated per implemented profile; do not infer central/min/max
+universal equivalence from an old unsupported-depth proposal. Current peeling
+per-sample depth resolves minimum as specified in its contract. VSM stays single-
+sample. OIT/peeling/alpha-to-coverage do not activate merely because MSAA is chosen.
+Coin picking stays geometric.
 
-Para R25, o clear de cada face combina `backgroundColor` RGB com alpha 1: esse valor é explícito no `prerendercb` de `SoSceneTextureCubeMap` nativo. Não herdar alpha de outro tipo de RTT. A ordem lógica é +X, -X, +Y, -Y, +Z, -Z, independente dos índices do enum nativo; cada câmera deve preservar os parâmetros autorais, substituindo a orientação na captura sem alterar os campos da cena. O override herdado é respeitado apenas na unidade zero; o próprio `isOverride()` também estabelece override de imagem apenas na unidade zero, como o caminho ativo de `SoTexture2`. Unidades extras não estabelecem override global. Isso é uma diferença deliberada do `SoSceneTextureCubeMap` nativo, que não aplica o próprio override; os setters presentes em `SoTextureCubeMap::doAction` e `SoSceneTexture2::doAction` estão desativados e não servem como referência ativa. Esse contrato orienta a implementação; a qualificação permanece discriminada em R25 na matriz.
+Pass dependencies forbid simultaneous read/write of one subresource; Core orders
+DAG/rejects cycles and preserves annotations/foreground/shadow/RTT order. Capture
+once rather than repeating callback side effects per sample. Nominal attachments
+use `w*h*(bytesColor*N + bytesDepth*N + bytesResolve)` plus simultaneous mips/OIT/
+peeling/staging/tickets, with checked arithmetic before creation. Resize fence-
+retires old generation; old-sized candidates cannot publish into new target.
+Zero-size suspension allocates nothing; restore rebuilds before present.
 
-A contabilidade deve incluir seis cores, depth temporário, cadeia de mips,
-resolve e staging efetivamente simultâneos. O limite atual de 64 MiB do RTT
-2D não será reutilizado como uma estimativa de memória total. Core contabiliza
-bytes nominais com multiplicação/addição verificadas; Infra informa overhead e
-capacidades adicionais. Readback expõe ordem de faces, pitches e origem por
-subrecurso; readback RGBA 2D não representa um cubo.
+R28 action/scene-manager `setNumPasses(int)`/get default **1**, retaining requested
+value. At apply/render, <1 returns INVALID_SCENE, >**16** UNSUPPORTED before
+producers/consumer. Adapter forwards native count; passUpdate with multiple passes
+rejects because profile publishes only final result. Per-pass callbacks/other
+native options remain separate R34 scope. Capture once/logical update with exact
+reuse allowed. Apply native jitter to each occurrence's original effective-viewport
+projection. Materialize Marker/Text2 after jitter before snap/layout; Image keeps
+native nonjittered anchor. Camera-independent RTT/VSM executes once. GPU accumulates
+float RGBA and publishes linear average once; depth comes from last sample. Target
+MSAA1/2/4 remains independent.
 
-Fechamento: oito cantos, seis faces assimétricas, wrap/filter/mips, mutação e
-qualidade desligada/reativação, callbacks e referência GL; staged/direct,
-transparência, resize, faces incompletas, orçamento/ciclo/geração, falha tardia
-e recuperação em CPU/BGFX/wgpu. `SoTexture3` tem consumidor FreeCAD real no
-inventário; presença do nó não basta para certificar esse ViewProvider.
+Multipass budget default **256 MiB**, set/getMultipassBufferBudget; zero permits
+one pass but rejects multipass OUT_OF_MEMORY. Admit simultaneous scene/MSAA/resolve/
+float sums/OIT/peeling/VSM/RTT/staging/mips/output/readback/retained tickets/pending
+queue resources before producers/root, with checked math. Refusal retains exact
+RGBA/depth/serial and same-target/action/manager recovery. Budget is not all driver
+memory or replacement for resident textures. Historical ABI**65**, FrameView**544**,
+adds count/reserved-zero/budget and per-sample/state MVP float counts; one sample
+uses null pointer/count zero. composition_flags **15..30** select samples (zero=all),
+bit**31** marks materialized raster; lower bits retain prior meaning. Reject inconsistent
+metadata before uploads/submission; never mix ABI63 headers/binaries with ABI65.
+Subsequent bridge revisions, including stereo70/600, require matching recompilation.
 
-O perfil CPU integral de RTT usa a configuração pública `COIN_RENDER_BACKEND=RECORDING`: a fábrica seleciona o rasterizador auxiliar tanto na raiz quanto nos produtores STAGED. Não há fallback automático de GPU para CPU. Substituir somente o consumidor por uma referência CPU em um build GPU não comprova esse perfil. O perfil STAGED RGBA8 linear 1× passou 33/33 testes públicos RECORDING sem display ou drivers GPU: seis faces, câmera, sampler, alpha, grafo, callbacks, compartilhamento, estéreo e limites 1/2/2048 com/sem mips. Após OOM na submissão raiz, com o atlas CPU completo já preparado, a publicação anterior permanece intacta e TARGET_ERROR bloqueia novas submissões. A recuperação usa resize público explícito nas mesmas dimensões: invalida a publicação/serial e permite renderizar novamente no mesmo alvo e backend, com RGBA/depth A/B/A exatos.
+## Host adaptation
 
-A falha nativa na sexta face também é qualificada: o hook interno, isolado por thread e compartilhado entre instâncias CPU, permite cinco submissões reais completas e falha na sexta antes de alocar ou publicar. A raiz mantém RGBA/depth/serial e permanece pronta; desarmar o hook permite publicar B imediatamente, seguido da restauração exata de A. Uma dependência já concluída não torna publicável o atlas parcial do produtor seguinte. A admissão percorre todas as faces antes de qualquer produtor; entradas inválidas e capacidades CPU recusadas, inclusive apenas na última face, não consomem a falha armada. DIRECT, MSAA 2×/4×, janela, async, sombras e bump mantêm as recusas anteriores desse conector, sem serem apresentados como recursos CPU implementados.
-
-## Bump legado opaco — R26
-
-O perfil GPU Linux renderiza triângulos opacos em RGBA8 linear com uma a oito luzes consumidas. Sem grupo de sombras, aceita qualquer mistura de direcionais, pontuais e `SoSpotLight`. Neste caminho legado, spot usa a posição como point, sem cone ou atenuação, conforme `soshape_bumprender::initLight`. Com sombras ativas, conserva somente luzes/mapas direcionais, até oito mapas e um grupo. Não há truncamento para a primeira luz nem substituição por Phong comum.
-
-Cada vértice transforma luz e olho para o espaço do objeto e a base S/T/N, seguindo a ordem de normalização do Coin; o fragmento interpola esses vetores, calcula DOT3 e o termo especular com expoente `shininess*64`. As contribuições são somadas; a base modula a parcela difusa separadamente do especular. Ocorrências sem bump conservam seu próprio light model. CPU oferece captura, admissão e referência matemática; não implementa este rasterizador bump.
-
-As bases opacas usam as famílias RGBA8 existentes: 2D armazenada, volume 1..256 por eixo, cubemap armazenado de seis faces POT 1..2048 e RTT 2D/cubo STAGED ou DIRECT. Modelos, combinações e unidades 0..7 seguem a admissão comum do receiver. RGB da base sRGB é decodificado por texel antes do filtro/combine. RGB do mapa normal é dado linear codificado, sem decodificação sRGB; seu alpha é ignorado. A conversão de altura preserva Sobel e componentes nativos. RTT resolve faces/atlas/mips em RGBA8 linear e não anuncia sRGB no bit 9 do token privado. A ABI continua 67, sem novos campos de transporte.
-
-Alpha efetivo da base ou material requer o contrato de transparência e é recusado neste perfil opaco; a política declarada de RTT permanece explícita. A opacidade considera todos os mips amostráveis e faces, sem tratar padding do atlas como texel. Limites de imagem, atlas, sampler, wrap e P07/Q permanecem os das famílias de origem, inclusive a qualidade associada ao upload de `SoTexture2` e a divergência nativa B29. Imagens bump têm eixos 1..32767, até 48 MiB por imagem e 256 MiB de RGB transportado por frame.
-
-Revisão, digest e ponteiro são indícios de reuso, não substituem os recursos atuais. A admissão antecede o cache e a submissão dos produtores, inclusive para entradas bump inativas malformadas, últimos índices/luzes/imagens e sexta face. Uma recusa preserva pixels, depth, serial e o ticket anterior válido; o transporte FFI publica o candidato completo somente após sucesso. Dados inativos válidos não impõem iluminação a outro draw.
-
-A qualificação é a seleção de casos e células registrada na matriz, com MSAA 1×/2×/4×, Native/Portable, offscreen, janela/readback/resize, sombras direcionais e RTT. Apresentação física é observada dentro do prazo original de cinco segundos após uma aplicação, sem reaplicar a cena ou aguardar artificialmente para obter outro frame. Não promete visibilidade instantânea no primeiro `XGetImage`. Transparência/OIT, módulos arbitrários com bump no mesmo draw, PBR, HDR/depth/compressão, seamless e outras plataformas conservam contratos próprios. B34 externo permanece aberto; a recriação NVIDIA/OpenGL no caminho afetado continua não qualificada.
-
-## MSAA/resolve, cor e multipass — P24
-
-Configuração futura tipada do target: formato de cor, espaço de cor e número
-de amostras. Default conserva RGBA8 linear/uma amostra. Primeiro MSAA propõe
-1/2/4; 8 e sample shading ficam fora do perfil inicial. Action produz passes
-sem escolher contagens diferentes do target. Mudança de configuração/resize
-avança a geração e invalida attachments/pipelines/tickets dependentes.
-As duas Infra consultam capacidade por formato e número exato de amostras.
-Não arredondar ou reduzir MSAA silenciosamente.
-
-Resolve de cor ocorre uma vez após o último passe que escreve o attachment,
-antes de amostrar RTT, readback ou present. Conteúdo linear é resolvido em
-linear; conversão sRGB é explícita na fronteira de publicação. HDR exige formato
-float e contrato de exposição/tone mapping antes de readback RGBA8. Rejeitar
-HDR/MSAA até essa implementação em vez de clamp implícito.
-
-Depth readback MSAA fica UNSUPPORTED no primeiro perfil: não há equivalência
-universal com depth da amostra central nem com min/max. Sombras continuam
-single-sample. Weighted OIT/peeling e alpha-to-coverage precisam planos próprios
-e não serão habilitados automaticamente pelo número de amostras. Picking Coin
-continua geométrico; MSAA não altera identidade de seleção.
-
-Cada passe comum descreve attachment/subrecurso, load (clear/load), store,
-viewport/scissor, depth e dependências de leitura/escrita. Proibir read/write
-simultâneo do mesmo subrecurso; Core ordena o DAG e rejeita ciclos. Anotações,
-foreground, sombras e RTT existentes devem baixar para esses descritores sem
-mudar sua ordem. Multipass não significa repetir a travessia com efeitos de
-callbacks a cada amostra. Captura uma vez; produtores executam conforme grafo.
-
-Orçamento nominal: `w*h*(bytesColor*N + bytesDepth*N + bytesResolve)` para
-attachments presentes, mais mips/OIT/peeling/staging/tickets simultâneos.
-Aritmética conferida antes de criar recursos; informar por target e por grafo.
-Resize durante trabalho pendente aposenta a geração antiga somente após fence;
-resultado candidato de tamanho/geração antiga não pode ser publicado no alvo
-novo. Suspensão zero não aloca; restauração reconstrói antes de apresentar.
-
-Fechamento: arestas com cobertura parcial vs controle uma amostra, cor/alpha e
-resolve, leitura RTT depois do resolve, clear/load/store e ordem de passes,
-janela/offscreen, resize/suspend, limites/pitches/overflow, falha de alocação ou
-device loss com pixels/serial/tickets preservados e recuperação. Planos de
-amostras/cor precisam chegar ao protocolo privado; ABI pública Coin preservada,
-ABI experimental versionada se for necessário acrescentar campos.
-
-### Multipass da action — R28
-
-`CoinRenderAction` e `CoinRenderSceneManager` oferecem `setNumPasses(int)` e
-`getNumPasses()`. O padrão é 1; o valor pedido é preservado. No render/apply,
-valores menores que 1 produzem `INVALID_SCENE`, maiores que 16 produzem
-`UNSUPPORTED`, antes de executar produtores ou o consumidor. O adaptador do
-manager encaminha a contagem nativa. `passUpdate` com mais de uma passagem é
-recusado explicitamente: este perfil publica somente o resultado final.
-Callbacks específicos por passagem e demais opções nativas continuam em R34.
-
-A captura ocorre uma vez por atualização lógica, admitindo reuso exato do plano.
-Cada amostra aplica o jitter nativo à projeção do viewport efetivo da ocorrência,
-a partir da matriz original. Marker/Text2 são materializados depois desse
-jitter e antes do snap/layout; SoImage mantém a âncora nativa não jitterada.
-Produtores RTT e mapas VSM independentes da câmera consumidora executam uma vez.
-BGFX/wgpu acumulam RGBA em float na GPU e publicam a média linear uma vez;
-a profundidade é a da última amostra. O alvo conserva sua contagem MSAA 1/2/4.
-
-`setMultipassBufferBudget(uint64_t)`/`getMultipassBufferBudget()` definem um
-orçamento de 256 MiB por padrão. Zero admite uma passagem e recusa multipass
-com `OUT_OF_MEMORY`. A admissão considera os recursos simultâneos da composição:
-anexos de cena/MSAA, resolve, somas float, OIT/peeling, VSM, RTT/staging/mips,
-saída/readback, tickets retidos e recursos pendentes na fila. Usa aritmética
-checada e precede os produtores e o consumidor. Uma recusa preserva exatamente
-RGBA, profundidade e serial anteriormente publicados; recuperação usa o mesmo
-alvo, action ou manager. O orçamento não substitui limites próprios de texturas
-residentes nem mede toda a memória do driver.
-
-O transporte privado wgpu é ABI65, `FrameView` de 544 bytes. Acrescenta contagem,
-reservado zero, orçamento e matrizes MVP por amostra/estado; a contagem das
-matrizes é em floats. Uma passagem usa ponteiro nulo e contagem zero. Os bits
-15..30 de `composition_flags` selecionam amostras (zero significa todas); o
-bit 31 identifica raster já materializado. Bits inferiores conservam o contrato
-anterior. Metadados inconsistentes são recusados antes de uploads/submissão.
-Não se podem misturar headers/executáveis ABI63 com bibliotecas ABI65.
-Os limites de qualificação permanecem na [matriz](coin-render-feature-matrix.md#r28--multipass-integrado--21102026).
-
-## Host, subclasses e certificação
-
-A integração deve fornecer callback que prepare conteúdo frio e atualize câmera,
-viewport/DPR, material e revisões. Não chamar `GLRender` para preparar caches.
-Uma subclasse não herda certificação visual do tipo nativo: callbacks próprios
-permanecem observáveis. GL-only conhecido precisa callback/adaptação ou rejeição
-explícita no host; C++ não oferece introspecção segura de todos os overrides.
-
-P03/I01/I02 estão implementados nos tipos nativos Linux. I03/I04/I06 e os
-consumidores de Sketcher/Draft/Fem/Measure/Mesh precisam casos próprios do
-FreeCAD. Para cada caso registrar inicialização sem frame GL anterior,
-conteúdo visível, resize/câmera/DPR, mutação/remoção, picking/seleção quando
-pertinentes e backend efetivamente apresentado. Teste sintético no Coin e
-exportação do grafo não substituem essa evidência. Windows fica em célula
-separada: esta estação Linux não pode certificar código Windows novo.
+Host callbacks must prepare cold content and update camera/viewport/DPR/material/
+revisions without GLRender cache preparation. A subclass inherits no native visual
+certification merely by type; custom callbacks remain observable. Known GL-only
+behavior requires explicit host adaptation or rejection, since C++ cannot safely
+introspect all overrides. Synthetic Coin tests/exports do not certify host consumers.
+Record cold start without prior GL frame, visible output, resize/camera/DPR,
+mutation/removal and picking/selection where relevant. Linux observations cannot
+qualify new Windows code. Original case/cell matrices and receipts remain in the
+[companion archive](coin-render-evidence.md).

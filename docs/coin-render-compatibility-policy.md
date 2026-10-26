@@ -1,160 +1,119 @@
-# Compatibilidade com CoinGL e tratamento de bugs
+# CoinGL compatibility and bug handling
 
-Diretriz estabelecida em 2026-10-06 e refinada em 2026-10-12: CoinGL é a
-referência de compatibilidade para CoinRender, mas não define sozinho o
-resultado correto. Bugs confirmados, acessos inválidos e comportamento
-indefinido não devem ser reproduzidos para obter igualdade com uma imagem ou
-execução legada. O objetivo é preservar a semântica válida da cena nos
-executores BGFX e wgpu; o backend CPU é auxiliar de testes.
+Policy established on 2026-10-06 and refined on 2026-10-12: CoinGL is the
+historical compatibility reference for CoinRender, but does not alone determine
+correctness. Do not reproduce confirmed bugs, invalid accesses or undefined
+behavior merely to match a legacy image. Preserve valid scene semantics in
+BGFX and wgpu; CPU is an auxiliary test executor.
 
-## Ordem para definir o resultado esperado
+## Determining the expected result
 
-1. Descrever a entrada e a semântica documentada dos nós e estados Coin. Fixar
-   unidades, espaços de coordenadas, projeção, ordem de composição, formatos,
-   espaço de cor e precisão relevantes ao caso.
-2. Aplicar a matemática do modelo visual escolhido e os contratos das APIs
-   gráficas. Uma iluminação aproximada herdada do Coin não se torna fisicamente
-   baseada por trocar de backend; uma mudança de modelo exige contrato e modo
-   próprios. Nos casos em que a especificação permite mais de um resultado,
-   declarar a política portátil antes de comparar pixels.
-3. Calcular uma expectativa independente para a propriedade testada, como
-   transformações, cobertura, profundidade, interpolação, texels, mistura ou
-   contribuição de luz. Esse controle deve poder detectar um erro compartilhado
-   por CoinGL e CoinRender.
-4. Comparar CoinGL, BGFX e wgpu no mesmo ambiente e classificar cada diferença.
-   CoinGL confirma compatibilidade histórica no domínio válido; não substitui
-   os três passos anteriores.
+1. Specify the input and documented Coin node/state semantics. Fix relevant
+   units, coordinate spaces, projection, composition order, formats, color space
+   and precision.
+2. Apply the mathematics of the chosen visual model and graphics API contracts.
+   Changing executor does not turn legacy approximate lighting into PBR; a new
+   model requires its own contract and mode. Where specifications allow multiple
+   results, state the portable policy before comparing pixels.
+3. Compute an independent expectation for the tested property: transforms,
+   coverage, depth, interpolation, texels, blending or light contribution. The
+   control must detect an error shared by CoinGL and CoinRender.
+4. Compare CoinGL, BGFX and wgpu in the same environment and classify differences.
+   CoinGL establishes compatibility in the valid domain; it does not replace
+   the preceding reasoning.
 
-Conversões exigidas pela API ou pelo driver, como origem da textura, intervalo
-de profundidade e apresentação em janela, pertencem ao executor. O resultado
-observável deve continuar obedecendo ao contrato comum. Quando uma regra
-portátil deliberada difere de CoinGL, registrar ambos os resultados e a razão;
-não chamar a divergência de paridade visual exata.
+API/driver conversions (texture origin, depth interval and window presentation)
+belong to executors. Observable results still obey the common contract. If a
+deliberate portable rule differs from CoinGL, record both results and the reason;
+do not call that exact visual parity.
 
-## Entrega determinística e resultado nativo por máquina
+## Deterministic delivery and native numeric results
 
-Decisão de 18/10/2026 após a investigação B22: a garantia do caminho nativo é
-preparar e entregar corretamente à GPU a semântica da cena, com estado,
-geometria, atributos, uniforms, formatos e ordem de operações definidos.
-A mesma entrada e configuração devem produzir uma entrega equivalente,
-independente de estado residual ou do histórico de cache não previsto no
-contrato. Identificadores de recursos e endereços não precisam coincidir.
+The 2026-10-18 B22 decision guarantees correct preparation and delivery of scene
+semantics to the GPU: defined state, geometry, attributes, uniforms, formats and
+operation order. Equal input/configuration must yield equivalent delivery,
+independent of residual state or undocumented cache history. Resource IDs and
+addresses need not match.
 
-Igualdade de pixels entre GPUs, drivers ou APIs não é critério geral de
-aceite do caminho nativo. Pequenas diferenças numéricas de rasterização,
-interpolação e precisão, caracterizadas com entradas corretas e sem evidência
-de violação da API, são aceitas como resultado nativo de cada ambiente.
-Não alterar a geometria, os comparadores ou a precisão do produto apenas
-para igualar tais resultados entre máquinas. Perfis canônicos explicitamente
-solicitados conservam seu contrato próprio, sem impor esse custo ao caminho
-nativo por uma exigência geral de igualdade entre GPUs.
+Pixel identity across GPUs, drivers or APIs is not a general acceptance criterion
+for the native path. Small characterized rasterization/interpolation/precision
+differences with correct inputs and no evidence of an API violation are accepted
+native results. Do not alter geometry, comparators or product precision solely
+to match machines. Explicit canonical profiles retain their own contracts.
 
-O tamanho visual da diferença, sozinho, não determina a classificação.
-Entradas erradas, estados ausentes, acessos inválidos, uso indefinido da API,
-falhas de publicação ou perda de coerência geométrica continuam sendo bugs.
-Casos ainda sem diagnóstico precisam da investigação de vizinhança descrita
-abaixo antes de receber a classificação de variação numérica aceita.
+Visual size alone does not classify a difference. Wrong inputs, missing state,
+invalid accesses, undefined API use, publication failures and lost geometric
+coherence remain bugs. Undiagnosed cases require the neighborhood investigation
+below. B22 is closed as accepted native numeric variation only in its investigated
+32F domain, without a renderer fix. Its strict differences remain diagnostic
+facts, not identical images or retroactively passing historical comparisons.
+Other differences do not inherit this classification. The complete B22 study is
+in the [companion archive](coin-render-evidence.md) at its original dated path.
 
-B22 fica encerrado como variação numérica nativa aceita no domínio 32F
-investigado, sem correção do renderizador. As diferenças estritas registradas
-permanecem fatos diagnósticos; não são convertidas em imagens idênticas ou
-passes históricos. Elas deixam de ser bloqueio de aceite por paridade entre
-máquinas nesse caso. Outras divergências não recebem essa classificação
-automaticamente. Ver [investigação B22](coin-render-b22-native-interpolation-20261018.md).
+In precise `SoQuadMesh` mode, the geometric center averages four vertices, while
+attributes use legacy weights quantized by the binary exponent of squared-distance
+ratios. Builds without `ilogb`/`_logb` use the legacy fixed-zero exponent fallback.
+For ratio one, weights are approximately `(0.23205, 0.23205, 0.26795, 0.26795)`,
+not four quarters. Original GL and portable capture preserve this rule. A texture/
+LOD oracle must account for the fan triangle and its derivatives; assuming affine
+interpolation at this center is incorrect. Avoid triangle edges for numeric
+witnesses, where derivatives can differ. This does not classify other differences.
 
-No modo preciso de `SoQuadMesh`, o centro geométrico é a média dos quatro
-vértices, mas os atributos usam pesos legados quantizados pelo expoente
-binário das razões de distâncias quadradas; builds sem `ilogb`/`_logb` usam
-o expoente fixo zero do fallback legado. Para razão um, os pesos são
-aproximadamente `(0,23205; 0,23205; 0,26795; 0,26795)`, em vez de quatro
-quartos. O GL original e a captura portátil preservam essa regra. Um oráculo
-de textura/LOD deve considerar o triângulo do fan e suas derivadas; assumir
-interpolação afim nesse centro produz uma referência incorreta. Testemunhos
-numéricos devem evitar a aresta entre triângulos, onde as derivadas podem
-diferir. Isso não classifica outras divergências como variação aceita.
+## Undocumented behavior and neighborhood investigation
 
-## Comportamento não documentado e investigação de vizinhança
+Policy dated 2026-10-18: if documentation leaves the result unspecified, first
+state a plausible CAD expectation consistent with geometry, mathematics and
+defined API rules. Occlusion should respect depth, and a continuous surface
+should not acquire holes without geometric/coverage cause. This is an explicit
+contract hypothesis, not proof of historical Coin intent.
 
-Diretriz de 18/10/2026: quando a documentação não determinar o resultado,
-formular primeiro uma expectativa plausível para o uso em CAD, compatível
-com a geometria, a matemática e as regras definidas da API. Por exemplo,
-oclusão deve respeitar a profundidade e uma superfície contínua não deve
-adquirir furos sem uma causa geométrica ou de cobertura. Essa expectativa é
-uma hipótese explícita de contrato; não prova a intenção histórica do Coin.
+Before classifying an edge or threshold anomaly:
 
-Um resultado estranho em uma borda ou limiar deve ser investigado junto com
-sua vizinhança antes de ser classificado como requisito ou bug:
+1. Compare adjacent pixels, primitives and samples: interior, contour and both
+   sides of the threshold. Change one input at a time with small camera/geometry,
+   depth, UV, alpha or resolution perturbations; record actual values and extent.
+2. Check expected discontinuities. Raster silhouettes, quantization, alpha tests
+   and exact comparators need not vary smoothly. Perturbations diagnose behavior;
+   they are not implementation epsilons.
+3. Make controlled software changes: disable a suspected cache, rebuild state,
+   specify an inherited binding or use an equivalent operation. Require equivalent
+   output for semantics-preserving changes. State the expected effect in advance
+   when deliberately changing the tested hypothesis.
+4. Run original and variant on the same input/neighborhood with an unaffected
+   control. Check persistence, disappearance, displacement and restoration.
+   Persistence alone does not prove correctness; disappearance alone does not
+   prove cause.
+5. Combine the plausible contract, graphics rule and causal evidence. Bound
+   legitimate differences. Fix confirmed bugs and add regressions for the case
+   and its neighborhood. Keep an undiscriminated cause open if evidence cannot
+   distinguish hypotheses.
 
-1. Comparar pixels, primitivas e amostras adjacentes, incluindo interior,
-   contorno e lados do limiar. Variar uma entrada por vez, com pequenas
-   translações de câmera/geometria, profundidade, UV, alpha ou resolução,
-   registrando os valores efetivos e o intervalo em que o efeito aparece.
-2. Verificar se a transição é esperada. Silhuetas rasterizadas, quantização,
-   alpha-test e comparadores exatos podem mudar de forma descontínua;
-   suavidade visual não substitui suas regras. Uma pequena variação é um
-   instrumento de diagnóstico, não um epsilon aplicado à implementação.
-3. Fazer alterações pequenas e controladas no software para testar a causa:
-   desativar o cache suspeito, reconstruir o estado em lugar de reutilizá-lo,
-   explicitar um binding herdado ou substituir uma operação por uma forma
-   equivalente. Quando a alteração preservar a semântica, exigir resultado
-   equivalente; quando mudar deliberadamente a hipótese investigada,
-   explicitar antes qual efeito ela deve produzir.
-4. Executar original e variante sobre as mesmas entradas e vizinhança,
-   preservando um controle não afetado. Verificar persistência, desaparecimento
-   ou deslocamento da anomalia e restauração após retirar a alteração.
-   Persistir não prova correção; desaparecer não prova, sozinho, a causa.
-5. Sustentar a classificação pela combinação de contrato plausível, regra
-   gráfica e evidência causal. Diferenças legítimas ficam delimitadas; bugs
-   confirmados recebem correção e regressão que cubra o caso e sua vizinhança.
-   Se a evidência não distinguir as hipóteses, manter a causa não discriminada.
+Do not turn an isolated legacy pixel into a contract, or move the input, reference
+or tolerance merely to pass a comparison. Diagnostic modifications are temporary;
+only justified fixes and relevant regressions belong in the product.
 
-Não transformar um pixel legado isolado em contrato, nem deslocar a entrada,
-a referência ou a tolerância somente para fazer a comparação passar. As
-alterações de diagnóstico são descartáveis; somente a correção justificada e
-os testes relevantes permanecem no produto.
+## Classifying differences and evidence
 
-## Classificação de uma diferença
+| Classification | Required treatment |
+| --- | --- |
+| Valid Coin behavior | Preserve it and compare qualified scenes/platforms with CoinGL. Unexpected appearance alone is not proof of a bug. |
+| Confirmed bug/undefined behavior | Define and test correct safe behavior; record deliberate divergence. Defective CoinGL output is not the expected value. |
+| Accepted native numeric variation | Demonstrate correct state/input and characterize the difference without contract violation; retain cross-machine comparison as diagnosis. |
+| Undiagnosed difference | Keep a minimal scene and evidence; claim neither parity nor a bug exception. |
+| API/driver adaptation | Identify the conversion and verify observable semantics. |
+| Unsupported feature | Record the gap and diagnostic; missing support is not a CoinGL bug fix. |
 
-- **Comportamento válido do Coin:** preservar e comparar com CoinGL nas cenas
-  e plataformas qualificadas. Uma escolha visual inesperada não basta para
-  classificá-la como bug.
-- **Bug confirmado ou comportamento indefinido:** definir um resultado correto
-  e seguro, registrar a divergência deliberada e testar esse contrato. O
-  resultado defeituoso do CoinGL não serve como resultado esperado.
-- **Variação numérica nativa aceita:** entradas e estado corretos, diferença
-  caracterizada e sem evidência de violação do contrato; aceitar o resultado
-  do ambiente e manter comparações entre máquinas como diagnóstico.
-- **Diferença ainda sem diagnóstico:** manter a investigação aberta, com cena
-  mínima e evidência. Não declarar paridade nem uma exceção por bug sem base.
-- **Adaptação de API ou driver:** identificar a transformação necessária,
-  verificar o resultado observável e não transportar a convenção da API para
-  a semântica da cena.
-- **Recurso ainda sem suporte:** registrar a lacuna e o diagnóstico existente;
-  a ausência de suporte não é uma correção de bug do CoinGL.
+An exception identifies a minimal scene, Coin revision/environment, demonstrated
+cause and expected semantics. Use Coin documentation, relevant specifications and
+independent calculations/tests where applicable. Driver, raster precision and
+tolerance differences need their own diagnosis. A regression must detect the
+fault and verify the correction, including state restoration. Invalid inputs may
+be explicitly rejected while preserving the previous valid frame, or receive a
+defined safe treatment. Increasing tolerance, dropping discrepant pixels or
+removing the revealing comparison is insufficient.
 
-## Evidência e testes
-
-Uma exceção precisa identificar a cena mínima, a revisão do Coin e o ambiente,
-a causa demonstrada no código ou na execução e a semântica esperada. Quando
-aplicável, usar documentação do Coin, a especificação relevante e um cálculo
-ou teste independente para sustentar o resultado. Diferença entre drivers,
-precisão de raster ou tolerância numérica exige diagnóstico próprio.
-
-O teste de regressão deve detectar o defeito e verificar o resultado correto,
-incluindo restauração de estado quando pertinente. Para uma entrada inválida,
-o contrato pode ser rejeição explícita com preservação do último frame válido,
-ou um tratamento seguro definido. Não basta aumentar a tolerância, omitir
-pixels discrepantes ou remover a comparação que revelou o problema.
-
-As comparações CoinGL continuam cobrindo o domínio válido. A evidência deve
-separar paridade comprovada, divergência deliberada por bug, diferenças em
-investigação e lacunas de suporte. Uma exceção conhecida não certifica o restante
-do recurso. Desempenho e compatibilidade de ABI têm qualificações separadas.
-
-## Exemplo já tratado
-
-O [contrato de marcadores](coin-render-marker-contract.md#compatibilidade-e-limites)
-documenta acessos sem limite no CoinGL Release para listas curtas ou IDs sem
-bitmap. CoinRender aplica o tratamento seguro descrito nesse contrato, sem
-usar o acesso indefinido como referência. Esses casos são distinguidos das
-comparações de bitmaps válidos.
+Separate proven parity, deliberate bug divergence, open differences and support
+gaps. One exception does not certify a whole feature. Performance and ABI
+compatibility have separate qualifications. The [marker contract](coin-render-marker-contract.md)
+illustrates safe handling of short lists/missing bitmap IDs where Release CoinGL
+can access out of bounds; those cases are distinct from valid-bitmap comparisons.

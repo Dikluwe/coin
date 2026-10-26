@@ -1,185 +1,113 @@
-# CoinRender: coordenadas de textura projetivas
+# Projective texture coordinates
 
-Implementação na branch `codex/coin-render-transform-performance`, tomando
-o comportamento do Coin/OpenGL como referência.
+Capture retains homogeneous `(s,t,r,q)` in each of eight units. Promote 2D to
+`(s,t,0,1)` and 3D to `(s,t,r,1)`; `SoPrimitiveVertex` and Coin's 4D element keep
+all components without capture-time division. `SoTextureMatrixTransform` applies
+the complete matrix, including R and variable Q. Clipping interpolates all four;
+common line/point expansion preserves them. Texture Q is independent of geometric
+W and stroke `screenSpaceW`.
 
-## Captura e interpolação
+Classic executors perspective-interpolate `(s,t,q)` and sample `(s/q,t/q)` per
+fragment. Vertex division is a different result for varying Q: a counterfactual
+gate must visibly distinguish it. RTT vertical flip follows division. Capture
+belongs to Coin adaptation; transform/validation/sampling policy are common;
+executors transport and execute. Affine Q=1 retains the no-division path.
+IndexedFaceSet's fast path accepts explicit 2D UV including projective matrices;
+3D/4D input uses native callbacks to preserve R/Q. Deduplication, digest,
+attribute comparison and reuse include these fields.
 
-O plano conserva a coordenada homogênea `(s,t,r,q)` em cada uma das oito
-unidades. Coordenadas 2D são promovidas a `(s,t,0,1)`; coordenadas 3D conservam
-`r` e usam `q=1`. O `SoPrimitiveVertex` e o elemento Coin de coordenadas 4D
-conservam os quatro componentes, sem divisão durante a captura.
+## Native shadow-shader policy
 
-`SoTextureMatrixTransform` aplica a matriz completa. A transformação pode
-usar `r`, produzir `q` variável ou fazer ambos. Clipping interpola os quatro
-componentes; a expansão comum de linhas e pontos conserva os mesmos atributos.
-O `q` da textura é independente do W geométrico e de `screenSpaceW` dos strokes.
+The generated `SoShadowGroup` shader uses transformed ST directly without Q
+division. Capture records `DIRECT_ST` when a group is active and `SoShadowStyle`
+includes SHADOWED; other draws use `PROJECTIVE`. This is independent of map count
+and pipeline. Entry resets ShadowStyle to CASTS_SHADOW_AND_SHADOWED; Separator
+pop restores it. SceneTexture producers start independent state with shadow
+shader disabled; consumer policy survives return.
 
-No render clássico, os executores interpolam `(s,t,q)` em perspectiva e
-amostram a textura em `(s/q,t/q)` no fragmento. Dividir nos vértices produz
-outro resultado quando `q` varia: o gate inclui esse contrafactual e exige
-diferença visível. O flip vertical de RTT ocorre depois da divisão.
+An empty `SoShaderProgram` inside an active group removes the generated program
+and changes lighting/shadows. This profile returns `UNSUPPORTED` and preserves
+the previous frame. Outside a group an empty program is admitted. Explicit active
+shaders require their own portable adaptation contract.
 
-A captura fica no adaptador Coin; transformação, validação e política de
-amostragem pertencem ao contrato comum. BGFX e wgpu transportam e executam
-esses valores. UV afim com `q=1` conserva o caminho sem divisão.
+## Admitted domain
 
-O fast path de IndexedFaceSet continua aceitando UV explícito 2D, incluindo
-matriz projetiva. Entradas 3D/4D usam os callbacks nativos, preservando `r/q`.
-Deduplicação, digest, comparação de atributos e reuso incluem os novos campos.
+PROJECTIVE transformed Q must be nonzero, nonsubnormal and same-sign within each
+primitive. Consistent negative Q is valid; separate points may have differing
+signs. Validate before clipping/expansion, including LINES contours, so clipping
+does not hide a singularity between endpoints. Captured STRQ, matrices, transformed
+values and ST/Q must be finite representable floats. Invalid input returns
+`INVALID_SCENE` before publication, retaining pixels/serial and permitting recovery.
+DIRECT_ST samples only transformed ST, so zero/subnormal/sign-changing Q causes
+no division; captured values/matrices and transformed ST must still be finite.
+Rust FFI consumers receive the same validation. Procedural/default UV, formats,
+filters, quality, shadows and RTT retain their separate limits.
 
-## Política do shader nativo de sombras
+## Private transport and Coin ABI
 
-O shader gerado por `SoShadowGroup` usa ST transformado diretamente,
-sem divisão por Q. A captura registra `DIRECT_ST` quando um grupo está ativo
-e `SoShadowStyle` inclui `SHADOWED`; os demais desenhos usam `PROJECTIVE`.
-Essa decisão independe da quantidade de mapas e do pipeline escolhido.
+The historical UV change introduced private wgpu revision **45**:
 
-Coin redefine ShadowStyle para `CASTS_SHADOW_AND_SHADOWED` ao entrar no grupo.
-Separators restauram o estado no pop. O produtor capturado de SceneTexture
-usa estado independente, com shader de sombras desligado; o consumidor
-conserva sua política após o retorno.
-
-Um `SoShaderProgram` vazio dentro de um grupo ativo remove o programa gerado
-e altera também iluminação/sombras. Esse perfil é recusado com `UNSUPPORTED`,
-preservando o último quadro publicado. Fora do grupo, o nó vazio continua
-admitido. Shaders explícitos ativos permanecem fora do contrato portátil.
-
-## Domínio admitido
-
-Com `PROJECTIVE`, Q transformado deve ser não zero, não subnormal e ter o mesmo
-sinal em cada primitivo. Q negativo consistente é admitido. Pontos separados
-podem ter sinais diferentes. A validação ocorre antes de clipping e expansão,
-para não esconder uma singularidade entre os extremos de uma linha.
-Contornos de polígonos em LINES conservam essa condição antes do clipping.
-
-ST/R/Q capturados e matrizes devem ser finitos. A transformação e o resultado
-ST/Q também devem caber em float finito. Entradas inválidas retornam
-`INVALID_SCENE` antes da publicação; pixels e serial anteriores permanecem
-disponíveis, e corrigir a cena permite renderizar novamente.
-
-Com `DIRECT_ST`, somente ST transformado participa da amostragem; Q zero,
-subnormal ou com mudança de sinal não causa divisão. A validação conserva
-os requisitos de valores capturados/matrizes finitos e ST transformado finito.
-A ponte Rust aplica as mesmas regras para consumidores diretos do FFI.
-
-UV procedural/default, formatos de textura, filtros, qualidade, sombras e
-RTT continuam com seus limites próprios. Este trabalho não amplia esses perfis.
-
-## Transporte privado e custo
-
-| Estrutura neste build Linux | Anterior | Atual |
+| Structure (Linux build) | Before | After |
 | --- | ---: | ---: |
-| Vértice comum | 100 bytes | 164 bytes |
-| Estado comum | 1648 bytes | 1648 bytes |
-| Vértice FFI wgpu | 100 bytes | 164 bytes |
-| Estado FFI wgpu | 2288 bytes | 2292 bytes |
-| Vértice BGFX completo | 188 bytes | 220 bytes |
-| Vértice BGFX compacto | 124 bytes | 124 bytes |
+| Common vertex | 100 | 164 bytes |
+| Common state | 1648 | 1648 bytes |
+| wgpu FFI vertex | 100 | 164 bytes |
+| wgpu FFI state | 2288 | 2292 bytes |
+| BGFX full vertex | 188 | 220 bytes |
+| BGFX compact vertex | 124 | 124 bytes |
 
-A ABI privada wgpu passa para **45**. O vértice transporta ST/R/Q por unidade;
-a política ocupa o novo campo final do estado FFI. C++ e Rust precisam ser
-recompilados juntos. O estado comum usa um byte de padding anterior para a
-política; a tabela GPU de materiais permanece com stride 80. A ABI pública
-estável de libCoin não é alterada.
+The FFI vertex carries STRQ per unit; the policy is appended to FFI state and
+uses former padding in common state. Material stride remains **80 bytes**.
+wgpu uses **13** vertex attributes; BGFX uses free tangent/bitangent channels for
+extra Q, with **15** attributes in the full layout. Instancing layouts remain
+unchanged. Full-vertex memory growth is real, with no performance claim; budgets
+use `sizeof`. Rebuild C++/Rust together.
 
-### Compatibilidade com Coin 4
+This work remains on Coin 4 without incompatible `origin/coin-5` changes. Private
+revision 45 is not libCoin's public ABI version. Homogeneous attributes are
+private renderer state, with no UV change to `include/Inventor` or
+`experimental/include`. `SoLazyElement::LightModel` is the canonical public enum;
+`CoinRenderLightModel` aliases the same type, values and layout. The library
+remains **4.0.10**, SONAME **libCoin.so.80**.
 
-UV projetivo continua na linha Coin 4, sem integrar as alterações incompatíveis
-de `origin/coin-5`. A revisão 45 é da ponte privada C++/Rust; não é a versão da
-ABI pública da libCoin. O commit de UV não modifica `include/Inventor` nem
-`experimental/include`: os atributos homogêneos ficam no plano e no transporte
-privados do renderer.
+Historical Linux/GCC compatibility evidence against `v4.0.10` used equivalent
+DWARF builds, libabigail **2.4** and an old-header external consumer loading the
+new library without recompilation. The public-type comparison reported zero
+changed types and zero removed/changed existing functions, only added symbols.
+The complete report's two indirect differences changed neither public members
+nor sizes; private types stayed opaque without custom suppressions. The old
+consumer passed **14** checks and all three UV GPU gates passed. This qualifies
+that Linux binary scope, not general source compatibility or MSVC/macOS.
 
-O enum público `SoLazyElement::LightModel`, renomeado numa etapa anterior,
-volta a ser o tipo canônico. `CoinRenderLightModel` permanece como alias desse
-mesmo tipo, conservando valores e layout. A biblioteca permanece na versão
-4.0.10, com SONAME `libCoin.so.80`.
+## Oracle and qualification limits
 
-A qualificação contra a release `v4.0.10` usa builds equivalentes com DWARF,
-comparação libabigail e um consumidor externo compilado pelos headers antigos
-que executa com a biblioteca nova sem recompilação. Logs e escopo ficam em
-[validation/projective-uv-public-abi-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/projective-uv-public-abi-linux>).
+[CoinRenderProjectiveUvTest](../testsuite/coinrender/CoinRenderProjectiveUvTest.cpp)
+separates `--capture` and `--gpu`. GPU requires CoinGL; comparison measures RGB,
+not general framebuffer alpha. This NVIDIA fixed-function reference exposes
+`GL_MAX_TEXTURE_UNITS=4`; native comparisons cover up to four stages. Unit 7
+alone with REPLACE uses an explicitly identified equivalent CoinGL scene on unit
+0, retaining image/matrix/coordinates. Eight simultaneous stages instead use an
+independent per-pixel bilinear homogeneous/product oracle, with per-unit A/B/A
+and premature-division controls. This is not native eight-stage CoinGL evidence.
 
-Em Linux/GCC, libabigail 2.4 no recorte de tipos públicos registra zero tipos
-alterados, zero funções existentes removidas/alteradas e somente adições de
-símbolos. O relatório completo é preservado: suas duas diferenças indiretas
-não têm alterações de tamanho ou membros públicos; o recorte mantém tipos
-privados opacos, sem suppressions customizadas. O consumidor antigo passa
-14 checks carregando a libCoin nova e os três gates GPU de UV passam novamente.
-Essa evidência qualifica compatibilidade binária Linux; MSVC/macOS precisam de
-seus gates. Não é uma declaração de compatibilidade geral de fonte das demais
-mudanças herdadas da branch.
+Shadow controls use a real spot map with zero intensity and white emissive
+material to isolate sampling. They cover group styles/off, ignored DIRECT_ST Q
+and empty-program refusal. This executable profile requires a visible pass;
+zero-map groups remain outside it. Peeling/weighted controls use one layer/
+contribution and do not claim arbitrary multilayer equivalence.
 
-wgpu usa 13 atributos de vértice. BGFX usa os atributos tangent/bitangent
-livres para os Q adicionais; o layout geral usa 15 atributos. Os layouts de
-instancing permanecem inalterados. O aumento de memória dos vértices completos
-é real; não há medição de desempenho nesta campanha semântica. Orçamentos de
-transporte continuam calculados por `sizeof`.
+Classic peeling uses an explicitly identified equivalent CoinGL BLEND single
+contribution over black. Legacy SORTED_LAYERS_BLEND ARB `TEX` ignores projective
+texture environment and adds texture RGB to primary color; it is not the classic
+projective oracle. Shadow controls use generated GLSL and native layers comparison.
+RTT staged/direct controls have projective producer/consumer, separate Q mutations
+and orientation. SceneTexture precedes consumer matrix: native FBO inherits outer
+matrices, while pbuffer and current capture start independent state. External
+producer-matrix inheritance is not qualified; pilot differences stay archived.
 
-## Validação e limites da referência
-
-O [gate de UV projetivo](../testsuite/coinrender/CoinRenderProjectiveUvTest.cpp)
-tem modos `--capture` e `--gpu`. O segundo exige CoinGL válido. A referência
-mede RGB; não certifica alpha geral de framebuffer.
-
-Nesta NVIDIA, `GL_MAX_TEXTURE_UNITS=4` para o caminho fixo. As comparações
-nativas cobrem até quatro estágios. A unidade 7 isolada com REPLACE é confrontada
-com uma cena CoinGL equivalente na unidade 0, conservando imagem, matriz e
-coordenadas. Essa projeção é identificada nos logs.
-
-Oito estágios simultâneos recebem um oracle analítico independente por pixel,
-com gradientes bilineares, coordenadas homogêneas e produto dos oito estágios.
-Cada unidade tem mutações A/B/A e contrafactual de divisão prematura. Os logs
-e contagens distinguem esse oracle das comparações CoinGL; isso não certifica
-oito estágios simultâneos no render fixo desta GPU.
-
-Os controles de sombras executam um mapa spot real, com intensidade zero e
-material emissivo branco para isolar a amostragem. Verificam os estilos do
-grupo, sua desativação, Q ignorado em `DIRECT_ST` e a recusa de programa vazio.
-O perfil executável exige ao menos um passe visível; um grupo com zero mapas
-continua fora desse perfil. Peeling e weighted usam uma camada/contribuição,
-sem reivindicar equivalência geral da composição de várias camadas.
-
-O peeling clássico tem uma referência equivalente explicitamente identificada:
-CoinGL em BLEND com uma única contribuição sobre fundo preto. O programa ARB
-de `SORTED_LAYERS_BLEND` usa `TEX` sem projeção, ignora o ambiente da textura e
-soma seu RGB à cor primária. Esse comportamento legado não fornece o oracle
-projetivo clássico. Os controles de sombras usam o shader GLSL gerado e mantêm
-a comparação nativa em `SORTED_LAYERS_BLEND`. Essa distinção acompanha os
-[limites existentes de transparência](coin-render-transparency-contract.md).
-
-RTT staged e direto têm produtor e consumidor projetivos, mutações separadas
-de Q e controle de orientação. `SceneTexture` é visitado antes da matriz do
-consumidor: o FBO nativo herda matrizes do estado externo, enquanto o caminho
-pbuffer nativo e a captura atual iniciam um estado independente. A herança de
-matrizes externas no produtor RTT não é qualificada por este gate. A diferença
-encontrada nessa ordem de nós está preservada nos logs de piloto.
-
-O modo `--capture` verifica o plano e o raster CPU nos perfis que esse executor
-admite. Sombras, peeling/OIT de sombras e produtores RTT são executados pelo
-modo `--gpu`, com alvos reais e referência CoinGL obrigatória.
-
-Resultado desta campanha nos três executores:
-
-| Gate | Resultado |
-| --- | ---: |
-| UV: comparação nativa CoinGL/GPU | 414 |
-| UV: projeção CoinGL equivalente da unidade 7 para 0 | 12 |
-| UV: peeling clássico, source-over equivalente de uma camada | 15 |
-| UV: oito unidades simultâneas, oracle analítico/GPU | 150 |
-| Regressão de fragmentos | 348 comparações GPU |
-| Regressão de texto/imagem | 279 comparações GPU |
-| Regressão de marcadores | 363 comparações GPU |
-| Core/CTest | 58 testes |
-| Rust/ABI/shaders | 38 testes |
-
-Também passaram duas execuções de captura, três gates nativos de sombras,
-multidispositivo wgpu e o draw style BGFX/OpenGL direto. O CTest de draw style
-fixa Vulkan por configuração CMake, por isso OpenGL teve execução separada.
-As execuções finais GPU não tiveram skips; os pilotos e suas correções de
-fixture estão registrados separadamente.
-
-A evidência fica em [validation/projective-uv-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/projective-uv-linux>).
-O perfil é Linux/NVIDIA com wgpu/Vulkan e BGFX/Vulkan/OpenGL. Windows e outros
-drivers precisam executar seus próprios gates.
+Historical Linux/NVIDIA wgpu/Vulkan and BGFX/Vulkan/OpenGL campaign: **414** native
+comparisons, **12** unit-7 projections, **15** equivalent classic peeling controls,
+**150** eight-unit analytic comparisons; regressions **348** fragments, **279**
+text/image, **363** markers, **58** Core/CTest and **38** Rust/ABI/shaders.
+Final GPU runs had no skips. Original pilots, ABI report and receipts remain in
+the [archive](coin-render-evidence.md). Windows/other drivers need their own gates.

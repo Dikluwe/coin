@@ -1,134 +1,60 @@
 # CoinRender source layout
 
-CoinRender remains an opt-in library with a separate build target and package.
-Its public declarations live in `include/Inventor` so applications can include
-headers using the established Coin paths. Their location does not make them
-part of Coin's stable default API: build them with `COIN_BUILD_RENDER=ON`, and
-install the CoinRender SDK only with `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`.
-The default Coin header collection and install explicitly exclude all 17
-CoinRender and compatibility-alias headers. The `CoinWgpuExperimental` alias
-remains available for existing build integrations.
+CoinRender has a separate optional library and package. Its public declarations
+live in `include/Inventor`; build with `COIN_BUILD_RENDER=ON` and install the
+experimental SDK only with `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`. Default Coin
+header installation excludes CoinRender experimental headers. Use the canonical `CoinRender` package and build options; obsolete CMake option
+and package aliases are excluded from this contribution.
 
-Public API declarations and implementation stay separate. Public `.h` files
-belong under `include/Inventor`; private headers belong beside their
-implementation under `src`. Put non-template implementations in `.cpp` files
-in their owning source area. Header definitions are appropriate for templates
-and small inline accessors whose bodies must be visible to callers or whose
-existing contract explicitly requires inline behavior. Keep those exceptions
-narrow and avoid exposing private implementation types through public headers.
+| Source area | Responsibility |
+| --- | --- |
+| `include/Inventor` | Public experimental declarations |
+| `src/actions/` | Coin action, traversal and state adaptation, split into Action/Execution/Reuse/Capture/Rtt implementation files |
+| `src/rendering/coinrender/` | Common Core, plans, target orchestration, backend contracts and wiring |
+| `src/rendering/coinbgfx/` | BGFX executor, private BackendInternal state, resources, submission, shaders and lowering |
+| `src/rendering/coinwgpu/` | wgpu C++ connector, private FFI, modular Rust bridge and shaders |
+| `testsuite/coinrender/`, `testsuite/coinbgfx/`, `testsuite/coinwgpu/` | Common and executor tests |
+| `testsuite/coinwgpu/rust/unit/` | Rust unit tests |
+| `testsuite/coinwgpu/rust/gouraud_shader.rs`, `shadow_shader.rs` | Rust shader integration tests |
+| `examples/coinrender/` | Standalone examples, benchmark clients and installed-SDK consumer |
+| `cmake/patches/` | Pinned external dependency patches and reproduction instructions |
 
-The architecture keeps Coin traversal and backend work in distinct areas:
+Private headers stay beside implementations in `src`. Non-template bodies
+belong in `.cpp` files. Header definitions are appropriate for templates and
+small inline accessors whose contract requires visibility, without exposing
+private implementation types through public declarations.
 
-- `src/actions/` integrates Coin actions, state and traversal.
-- `src/rendering/coinrender/` owns shared planning, targets, contracts and
-  orchestration.
-- `src/rendering/coinbgfx/` owns the BGFX executor.
-- `src/rendering/coinwgpu/` owns the Rust/wgpu executor and bridge.
-- `testsuite/coinrender/`, `testsuite/coinbgfx/` and `testsuite/coinwgpu/` hold
-  tests for the shared contract and backend behavior.
+`CoinRenderAction` is Wiring: it reads Coin state, controls occurrences,
+callbacks, original contours, layers and capture errors. It does not include
+executor classes or choose behavior through BGFX/wgpu macros. The factory owns
+compiled executor selection. `CoinRenderPlanAssemblyCore` receives snapshots,
+matrices and arrays, normalizes/deduplicates state and assembles indexed ranges;
+it does not read `SoAction`, `SoState` or nodes. `CoinRenderCubeGeometryCore`
+shares immutable 24-vertex/36-index cube ranges, validates local indices and
+limits its material cache to 32; the builder decides Coin eligibility and
+bindings. `CoinRenderImageCore` expands L/LA/RGB/RGBA to RGBA8 transactionally;
+quality, wrapping, texgen and RTT producer selection remain in capture.
 
-Rust unit tests live under `testsuite/coinwgpu/rust/unit/`. Rust shader tests
-live in `testsuite/coinwgpu/rust/gouraud_shader.rs` and
-`testsuite/coinwgpu/rust/shadow_shader.rs`. C++ tests remain in the matching
-`testsuite` backend directories. Keep tests separate from production
-implementation so each source file has one clear role.
+`CoinRenderTransformCore` owns projection conversion to depth `[0,1]`, normal
+matrices, viewport projection/scissor intersection and finite-matrix checks.
+BGFX lowering and the wgpu packer use the same calculations. Compact/full vertex
+layouts, uniform packing, batching and buffer patches remain executor-specific.
+Transparency ordering, alpha, screen door and effective depth are common Core.
 
-Validation receipts excluded from this clean source layout currently resolve
-to absolute paths inside the local archive at
-`/mnt/Laranja/Git/externos/coin-render` (reference revision
-`c28812338b8c6d51f7a1a8bd7eea6d997a291013`). The receipts are not published
-remotely; publish them at a durable location and update these links before
-upstream submission.
+`CoinRenderTarget` owns admission, dimensions, generations and transactional
+publication. `CoinRenderNativeSurfaceCore` checks descriptor ABI, size, reserved
+fields and handles without platform SDKs. `CoinRenderBackend` owns per-target
+execution. `CoinRenderBackendRuntime` supplies services that may outlive targets:
+surface support/destruction, ticket polling/cancellation, telemetry and device
+polling. The runtime service has process lifetime but does not own host handles
+or retain GPU devices itself; concrete resources remain in Infra. Surface
+release precedes wgpu executor destruction and never destroys the host window.
+Ticket polling/cancellation works after the originating target is destroyed.
+BGFX detach discards its executor and advances generation; CPU depth initialization
+is an explicit executor fact, not a compile-time guess in the target.
 
-## Preparing this branch
-
-The clean branch starts at upstream `ca247c1321bce07199ec0f034493977761b3218e`.
-Its source snapshot is `codex/coin-render` at
-`c28812338b8c6d51f7a1a8bd7eea6d997a291013`, including the local architecture
-and integration edits present when extraction started. Production code, tests,
-and examples/documentation are recorded separately. General container/thread
-hardening and unrelated comment changes from the development history are
-excluded; the original checkout retains them.
-
-The transfer covers the integration source, tests, examples and tracked local
-edits, rather than every historical experiment under `docs/validation`.
-The final Windows BGFX dependency patch, initially omitted from publication,
-was recovered in `Dikluwe/coin` commit
-`68657a5b969f252234760080be35acf67350b40d` on 2026-10-15. This branch preserves
-its original bytes, dependency revisions and recovery receipt in `cmake/patches`.
-See [dependency reproduction](../cmake/patches/README.md) for pinned revisions,
-build commands and the independent application check. Applying the patch to the
-exact upstream sources reproduces the recovered SDK source hashes. This closes
-the missing-patch gap; it is not a new Windows build or GPU qualification and
-does not resolve the existing BGFX/OpenGL or parallel Rust teardown failures.
-
-The extraction preserves the common Core/Shell/Infra/Wiring responsibilities,
-both GPU executors, legacy aliases and opt-in installation. A lexical comparison
-of the moved C++ function bodies checks that moving code and formatting did not
-change their tokens, allowing adjacent string literals introduced by formatting.
-It does not replace compilation or behavioral tests.
-
-Rust tests need serialized execution on this host:
-
-```sh
-cargo test --offline --locked --release \
-  --manifest-path src/rendering/coinwgpu/rust_bridge/Cargo.toml \
-  -- --test-threads=1
-```
-
-The default parallel library-test run passes all 42 assertions but may crash
-at process shutdown. This behavior was reproduced using the untouched original
-source in a separate temporary baseline. Both original and reorganized sources
-pass serially; the two shader integration targets add five passing tests.
-This existing teardown problem remains open.
-The later [B06 lifecycle diagnosis](coin-render-b06-lifecycle-20261017.md)
-reproduces the loader stack and closes the admitted CoinRender concurrency on
-the available Linux GPU/API cells; this paragraph records the earlier baseline.
-
-Builds during validation run one at a time with two jobs and a per-process
-virtual-memory limit of 8 GiB; documentation generation is disabled.
-
-## Validation of this extraction (2026-10-14)
-
-All four configurations compiled in Release with the Coin C++11 minimum:
-RECORDING, RUST_BRIDGE/wgpu, BGFX, and the default Coin build with CoinRender
-disabled. The installed wgpu and BGFX SDKs expose the 17 intended experimental
-headers, byte-identical to source, with no private-source header leakage. A
-standalone C++11 translation unit including all those headers compiled. C++
-and C11 installed consumers built; Vulkan portable-sampling smokes passed on
-NVIDIA with an exact sampling oracle. The default SDK excluded all 17 headers.
-
-| Suite | Passed | Skipped | Failed |
-| --- | ---: | ---: | ---: |
-| recording | 136 | 54 | 0 |
-| wgpu | 181 | 46 | 0 |
-| bgfx | 246 | 51 | 1 |
-| off | 86 | 0 | 0 |
-
-The wgpu result combines the full Xvfb run with nine successful reruns on the
-physical NVIDIA display. Those nine initially failed because CoinGL's mandatory
-reference context was unavailable; `COIN_GLX_PIXMAP_DIRECT_RENDERING=1` and
-NVIDIA PRIME selected the working reference without changing tolerances.
-Skipped tests are not passes or platform qualification.
-
-The BGFX failure is `CoinBgfxInstancingOpenGLTest` on NVIDIA OpenGL 615.71.09:
-one pixel at (179,59), RGB error 138, when comparing affine PHONG directional
-and point-light instanced/general draws. The same values were recorded before
-this extraction in `/tmp/coin-render-sparse-bgfx-ctest-nvidia.log` on 2026-10-11.
-The test and its tolerance remain unchanged; this driver-specific discrepancy
-is still open. The Vulkan instancing test passed.
-
-The final two declaration/implementation moves are additionally checked through
-targeted composition, texture capture, builder and backend-boundary regressions.
-GPU tests run serially in a systemd scope limited to 8 GiB of resident memory;
-builds use two jobs and a per-process virtual-memory limit. Build peak resident
-set measurements stayed below 600 MiB per process. No documentation generation
-was part of these commands.
-
-## Windows continuation (2026-10-15)
-
-The clean branch needed the existing study fix that removes DLL import/export
-from the header-defined `SbLazyPimplPtr` template. Without it, MSVC reported
-C2491 while building CoinRender as a DLL. The Windows build/SDK results,
-initial failure and remaining limitations are recorded in the
-[Windows validation](coin-render-clean-windows-20261015.md).
+Builds and consumers must recompile experimental C++ types and the paired
+C++/Rust private bridge together. Historical ABI numbers in contracts document
+specific changes; the checked-in FFI declarations and assertions determine the
+current transport. Do not mix historical headers and a newer bridge library.
+See [build and tests](coin-render-build.md) and [archived extraction evidence](coin-render-evidence.md).

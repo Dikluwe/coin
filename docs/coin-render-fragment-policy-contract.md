@@ -1,149 +1,90 @@
-# CoinRender: profundidade, teste de alpha e REPLACE
+# CoinRender depth, alpha-test and REPLACE policy
 
-Contrato implementado em 2026-10-05 na branch
-`codex/coin-render-transform-performance`, tomando o Coin/OpenGL como referência.
+Implemented on 2026-10-05 against Coin/OpenGL semantics. Disabling
+`SoDepthBuffer.test` disables both comparison and effective depth write even
+when `write` is enabled. CPU, wgpu and BGFX retain original fields in capture
+and apply this execution rule. Peeling's temporary attachments have their own
+algorithmic policy. The discriminating scene draws far blue, near red with test
+OFF/write ON, then intermediate green with test/write ON: green must win.
 
-## Profundidade
-
-Com `SoDepthBuffer.test = FALSE`, o fragmento não compara nem escreve
-profundidade, mesmo quando o campo `write` está ligado. O plano conserva os
-valores capturados; CPU, wgpu e BGFX aplicam a regra na execução. Os attachments
-temporários de peeling mantêm sua política própria.
-
-O caso discriminante usa três desenhos sobrepostos: azul distante, vermelho
-próximo com teste desligado/escrita ligada e verde intermediário com teste e
-escrita ligados. O resultado do Coin/OpenGL é verde. Comparar apenas os dois
-primeiros desenhos não detecta a escrita indevida.
-
-A qualificação de 2026-10-06 acrescenta o modo `--depth-only` ao gate e os
-CTest `CoinRenderDepthDisabled*`. São seis frames: OFF/write ON, repetição,
-OFF/write OFF, OFF com função NEVER, controle ON/write ON e restauração OFF.
-A captura conserva os campos explícitos originais. Com teste OFF, os controles
-produzem cor e profundidade idênticas; o controle ON armazena o quad próximo.
-A leitura de profundidade da GPU é obrigatória, completa e finita nesse modo.
-A restauração OFF/ON/OFF exige igualdade exata dos buffers de cada executor.
-A comparação com CoinGL usa RGB; não há leitura do depth buffer nativo GL.
+`CoinRenderFragmentPolicyTest --depth-only`/`CoinRenderDepthDisabled*` exercise
+six frames: OFF/write ON, repeat, OFF/write OFF, OFF/NEVER, ON/write ON control,
+and OFF restoration. OFF cases must have identical color/depth; ON stores the
+near quad. Full finite GPU depth readback is mandatory; OFF/ON/OFF restoration
+requires exact per-executor buffers. CoinGL comparison is RGB, without native
+GL depth readback.
 
 ## SoAlphaTest
 
-A adaptação na action atualiza o estado nativo de `SoLazyElement`, conservando
-herança e push/pop de separadores sem chamar `GLRender`. O plano transporta
-uma função semântica e uma referência em `[0,1]`; constantes GL ficam na
-adaptação do estado Coin.
+Capture adapts `SoLazyElement` without `GLRender`, preserving inheritance and
+Separator state. The plan carries a semantic function/reference `[0,1]`; GL
+enums remain in Coin adaptation.
 
-| Função | Fragmento aceito quando |
+| Function | Accepted fragment |
 | --- | --- |
-| NONE / ALWAYS | Sempre |
-| NEVER | Nunca |
-| LESS / LEQUAL | Alpha menor / menor ou igual à referência |
-| EQUAL / NOTEQUAL | Alpha igual / diferente da referência |
-| GEQUAL / GREATER | Alpha maior ou igual / maior que a referência |
+| NONE / ALWAYS | Always |
+| NEVER | Never |
+| LESS / LEQUAL | Alpha less than / at most reference |
+| EQUAL / NOTEQUAL | Alpha equal / unequal to reference |
+| GEQUAL / GREATER | Alpha at least / greater than reference |
 
-A comparação ocorre sobre o alpha final, depois das texturas e de
-`SoTextureCombine`, antes de fog, escrita de profundidade e blend. O fragmento
-descartado não altera a cor nem a profundidade. Referências fora do intervalo
-são limitadas como no GL; NaN e funções inválidas produzem `INVALID_SCENE`.
+Compare final alpha after textures/combine and before fog, depth write and blend.
+Discard changes neither color nor depth. Clamp out-of-range references like GL;
+NaN/invalid functions return `INVALID_SCENE`. With an effective test, normalize
+primary material alpha at capture to Coin's `glColor4ub` 8-bit precision before
+interpolation/textures: `0.5` becomes `128/255`, so `LEQUAL 0.5` discards it.
+NONE/ALWAYS retain the prior contract. Native transparency classification and
+SCREEN_DOOR values remain independent of this conversion.
 
-Com teste efetivo, a captura normaliza o alpha primário do material com a
-mesma precisão de 8 bits do `glColor4ub` usado pelo Coin. Por exemplo, material
-com alpha `0.5` produz `128/255`, portanto `LEQUAL 0.5` descarta o fragmento.
-Essa conversão ocorre por material antes da interpolação e das texturas, na
-adaptação comum; os executores recebem o valor normalizado. `NONE` e `ALWAYS`
-conservam o contrato anterior. A classificação nativa de transparência e o
-valor de SCREEN_DOOR são preservados independentemente dessa normalização.
+`SoImage` and mono `SoText2` glyphs inherit the test; gray Text2 retains CoinGL's
+own `GREATER 0.3`. Coverage masks still suppress empty raster regions. Surface
+shaders share tests with RTT, peeling and weighted OIT. Effective BGFX tests
+use the general path rather than restricted instancing. The original profile
+rejects shadows combined with an effective alpha test before submission;
+NONE/ALWAYS remain admitted. Later per-raster/shadow profiles have separate
+qualification, including the marker C07.10 cases; do not generalize them.
 
-`SoImage` e glifos mono de `SoText2` herdam o teste. O buffer gray de `SoText2`
-conserva o teste próprio `GREATER 0.3` instalado pelo Coin/OpenGL. A máscara de
-cobertura continua impedindo escrita nas regiões vazias do raster.
+Private wgpu revision **43→44** appended function/reference preserving earlier
+offsets. At that Linux build common state **1640→1648 bytes**, FFI state
+**2280→2288 bytes**; material GPU stride stays **80 bytes**. Projective UV later
+introduced revision **45**, FFI **2292 bytes**. These are transport-history
+facts, not stable public layouts; rebuild C++ and Rust together. No public Coin
+class changed for this policy.
 
-Os shaders de superfície compartilham o teste com RTT, peeling e weighted OIT.
-No BGFX, testes efetivos usam o caminho geral em vez do instancing restrito.
-Mapas de sombras ainda não têm casters com alpha de material/textura: a
-combinação de sombras e teste efetivo é recusada antes da submissão. `NONE` e
-`ALWAYS` não descartam fragmentos e permanecem admitidos.
+## REPLACE and classification
 
-A ABI C privada wgpu passa de revisão 43 para **44**, acrescentando função e
-referência ao final do estado transportado. Consumidores precisam recompilar
-o par C++/Rust; os offsets anteriores são preservados.
-Neste build Linux, o estado comum cresce de 1.640 para 1.648 bytes e o estado
-FFI de 2.280 para 2.288 bytes. O stride da tabela GPU de materiais permanece
-80 bytes; nenhuma classe pública Coin foi alterada.
-A revisão posterior de [UV projetivo](coin-render-projective-uv-contract.md)
-leva a ABI privada a 45 e o estado FFI a 2292 bytes, sem mudar esse stride.
+RGB/luminance `SoTexture2.model=REPLACE` replaces RGB and preserves preceding
+alpha; RGBA/luminance-alpha replaces both. RGBA8 conversion must retain original
+component semantics. Capture uses common combine: RGB from TEXTURE, alpha from
+PREVIOUS for RGB/L, per unit. Explicit `SoTextureCombine` has precedence. No new
+image format, digest or transport is required. Precedence gates place combine
+before the active image, matching Coin examples; changing combine after the
+image in traversal is not qualified by this campaign.
 
-## REPLACE por formato de imagem
+Fragment alpha and native shape classification are separate. Coin considers
+all material transparency slots even when OVERALL uses only opaque slot zero.
+This flag governs blending/defer in relevant modes even for NONE/ALWAYS and an
+opaque REPLACE/combine output. Action NONE/SCREEN_DOOR retain their policies.
+A discriminating gate draws RGB/REPLACE then a green depth-disabled quad: green
+wins with opaque material; changing only an unused slot to transparency `0.5`
+defers the red texture, which wins. Repeat/ALWAYS/used-slot/A/B/A controls verify
+classification without changing texture/shading alpha.
 
-Para imagens RGB e luminância, `SoTexture2.model = REPLACE` substitui RGB e
-preserva o alpha anterior. Imagens RGBA e luminância/alpha substituem ambos.
-A conversão para armazenamento RGBA8 não pode transformar essa diferença
-do formato original em alpha opaco.
+## Evidence
 
-A captura normaliza RGB/L usando o programa comum de combinação já existente:
-RGB vem de `TEXTURE`; alpha vem de `PREVIOUS`. Isso vale em cada unidade de
-textura. Um `SoTextureCombine` explícito continua tendo precedência. Imagens
-canônicas, digests e transporte GPU não precisam de um novo formato.
-Os gates de precedência colocam `SoTextureCombine` antes da imagem ativa,
-como nos exemplos do Coin: o GL aplica a combinação ao configurar a imagem.
-Esta campanha não qualifica mudanças de combine posteriores à imagem na
-ordem de travessia.
+The [test](../testsuite/coinrender/CoinRenderFragmentPolicyTest.cpp) has `--capture`
+and `--gpu`; GPU mode requires valid CoinGL, permitting skip only when the GPU
+executor is unavailable. RGB parity does not certify general framebuffer-alpha
+parity; CoinRender retains separate source-over alpha semantics. Original Linux/
+NVIDIA profiles: wgpu/Vulkan and BGFX/Vulkan/OpenGL. Initial **330** comparisons
+(110/executor), then **348** (116/executor) for RGB/REPLACE passed at maximum
+1/255; depth-only **18** GPU/CoinGL comparisons had zero RGB error. Original
+logs, pilot ordering divergence and regression counts remain in the
+[archive](coin-render-evidence.md), not a current HEAD rerun.
 
-### Classificação do material e ordem de desenho
-
-O alpha usado pelo fragmento e a classificação nativa da forma são preservados
-separadamente. O Coin considera todos os slots de transparência do material,
-mesmo quando o binding `OVERALL` usa somente o slot zero opaco. Essa flag
-continua governando blend e adiamento nos modos correspondentes, inclusive
-com `SoAlphaTest.NONE` ou `ALWAYS` e resultado opaco de `REPLACE`/combine.
-`NONE` e `SCREEN_DOOR` da action conservam suas políticas próprias.
-
-O gate discriminante sobrepõe um quad RGB/REPLACE a um quad verde desenhado
-depois, com profundidade desligada no verde. Sem slots transparentes, o verde
-cobre a textura. Alterar somente um slot não usado para transparência `0.5`
-adia a textura no CoinGL, que passa a aparecer vermelha por cima. O gate
-também verifica repetição do frame, `ALWAYS`, alpha do slot usado e restauração
-exata A/B/A. A composição comum agora preserva essa classificação sem depender
-da função de alpha-test; o programa de textura e o alpha de shading permanecem
-os mesmos.
-
-## Validação
-
-O gate [CoinRenderFragmentPolicyTest](../testsuite/coinrender/CoinRenderFragmentPolicyTest.cpp)
-tem modos `--capture` e `--gpu`. O segundo exige uma referência Coin/OpenGL
-válida; somente indisponibilidade do executor GPU permite skip. Comparações
-de RGB não certificam paridade geral do alpha de framebuffer: CoinRender
-mantém seu contrato existente de composição source-over.
-
-A evidência Linux fica em
-[validation/fragment-policy-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/fragment-policy-linux>).
-Essa campanha cobre wgpu/Vulkan e BGFX/Vulkan/OpenGL nesta máquina NVIDIA.
-Windows e outros drivers precisam de execução própria dos mesmos gates.
-
-Passaram **330 comparações RGB** do novo gate (110 por executor), com erro
-máximo de 1/255. Também passaram as 279 comparações de regressão de raster,
-46 gates CTest e 34 testes Rust em série. Os dois builds passaram o modo CPU
-do novo gate. Não houve skip nos gates finais.
-
-O peeling usa a política padrão de profundidade do algoritmo, sem um nó
-`SoDepthBuffer.write = FALSE` interferindo na coleta temporária do CoinGL.
-O OIT usa um único contribuinte sobrevivente para comparar ao blend ordenado.
-O oracle RTT usa produtor uniforme e UVs interiores: prova o teste de alpha
-do produtor staged/direct, sem certificar filtros, bordas CLAMP ou geometria
-geral de RTT. A recusa em sombras verifica diagnóstico e preservação do frame,
-com controle GPU PHONG válido antes da entrada recusada.
-
-A campanha adicional de RGB/REPLACE em
-[validation/rgb-replace-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/rgb-replace-linux>) reexecuta o gate
-com seis cenas adicionais por executor e registra o piloto que reproduziu a
-divergência de ordem antes da correção. Passaram **348 comparações GPU RGB**
-(116 por executor), com erro máximo de 1/255, além de 279 comparações de
-texto/imagem, 363 de marcadores e 49 gates CTest. Não houve skip nas execuções
-finais. O perfil continua restrito a Linux/NVIDIA; não houve alteração de ABI,
-Rust ou shaders nesta correção.
-
-A campanha focada de profundidade em
-[validation/depth-disabled-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/depth-disabled-linux>) passou
-**18 comparações GPU/CoinGL** (seis por executor) e as respectivas comparações
-CPU/CoinGL, com erro RGB zero. Os dois builds passaram captura/CPU. O gate
-completo wgpu/Vulkan passou **119 comparações GPU/CoinGL**, com erro máximo
-1/255. Não houve skip. O comportamento já estava implementado; esta entrega
-acrescenta testes e documentação, sem alterar produção, shaders, Rust ou ABI.
+Peeling uses default algorithm depth without a native `write=FALSE` affecting
+temporary collection. OIT uses one surviving contribution for ordered-blend
+comparison. RTT's uniform producer/interior UV control proves alpha-test in
+staged/direct producers, not filter edges, CLAMP or arbitrary RTT geometry.
+Shadow rejection checks prior valid PHONG output and preserved publication.
+Other drivers/Windows need the same gates in their own environments.

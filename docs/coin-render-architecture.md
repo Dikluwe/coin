@@ -1,99 +1,65 @@
-# CoinRender: arquitetura e fonte de verdade
+# CoinRender architecture and ownership
 
-## Acompanhamento da cobertura
+CoinRender extends Coin rendering beyond CoinGL. `CoinRenderAction` captures scene
+semantics once into a common plan. Each executor consumes that contract rather
+than independently interpreting Coin nodes. Scene semantics, the chosen visual
+model and independent mathematical controls define the expected result;
+CoinGL provides historical compatibility evidence for valid inputs under the
+[compatibility policy](coin-render-compatibility-policy.md).
 
-A [matriz consolidada de recursos e combinações](coin-render-feature-matrix.md), iniciada em 16/10/2026, é o ponto de entrada para o estado funcional atual e suas evidências. Os relatórios e contagens datados abaixo conservam seus escopos históricos; não são uma nova execução no HEAD atual.
-
-Estado auditado em 2026-10-12 na branch `codex/coin-render`. Este documento
-descreve a intenção atual da funcionalidade; os relatórios de validação e as
-ADRs de ondas anteriores preservam o contexto histórico de cada entrega.
-
-## Propósito
-
-A API pública fica em `include/Inventor`, mas continua experimental: `COIN_BUILD_RENDER=ON` constrói a biblioteca separada `CoinRender`, e somente `COIN_INSTALL_RENDER_EXPERIMENTAL=ON` instala seus headers e pacotes. A instalação padrão de Coin exclui esses 17 headers, apesar de estarem junto aos demais headers públicos.
-
-CoinRender amplia as opções de renderização do Coin além do CoinGL. Ele captura
-a semântica da cena Coin uma vez em um plano comum e a entrega a executores
-como BGFX e wgpu. Um futuro executor deve consumir o mesmo contrato sem criar
-outra interpretação da cena na action. A semântica dos nós, o modelo visual
-escolhido e controles matemáticos independentes definem o resultado esperado;
-CoinGL continua sendo a referência de compatibilidade histórica para entradas
-válidas, respeitada a [política de compatibilidade](coin-render-compatibility-policy.md).
-
-O executor CPU/`RECORDING` é auxiliar: fornece log e renderização em software
-para testes sem GPU e para diagnósticos de contratos. Ele não chama CoinGL,
-não é o oráculo de paridade visual e não corrige a saída BGFX/wgpu. Alguns
-testes o instanciam mesmo em builds GPU; a presença do objeto na biblioteca
-não o torna o executor selecionado para esses builds.
-
-## Fluxo e donos
+The public declarations live under `include/Inventor`, but remain experimental:
+`COIN_BUILD_RENDER=ON` builds the separate `CoinRender` library;
+`COIN_INSTALL_RENDER_EXPERIMENTAL=ON` installs its headers and packages. The
+default Coin installation excludes CoinRender experimental headers.
+Their source location does not make them stable Coin API.
 
 ```mermaid
 flowchart LR
-    Scene[Cena Coin] --> Action[CoinRenderAction / captura]
-    Action --> Plan[CoinRenderFramePlan / semântica comum]
-    Plan --> Target[CoinRenderTarget / admissão e publicação]
-    Target --> Contract[CoinRenderBackend / contrato privado]
-    Contract --> BGFX[Executor BGFX]
-    Contract --> WGPU[Executor wgpu]
-    Contract --> Recording[RECORDING / testes]
-    BGFX --> API[API gráfica / driver / GPU]
+    Scene[Coin scene] --> Action[CoinRenderAction / capture]
+    Action --> Plan[CoinRenderFramePlan / common semantics]
+    Plan --> Target[CoinRenderTarget / admission and publication]
+    Target --> Contract[CoinRenderBackend / private contract]
+    Contract --> BGFX[BGFX executor]
+    Contract --> WGPU[wgpu executor]
+    Contract --> Recording[RECORDING / auxiliary tests]
+    BGFX --> API[Graphics API / driver / GPU]
     WGPU --> API
     Scene --> GL[SoGLRenderAction / CoinGL]
     GL --> OpenGL[OpenGL / driver / GPU]
-    OpenGL --> Oracle[Comparação visual]
-    API --> Oracle
 ```
 
-| Decisão | Dono no projeto |
+| Decision | Owner |
 | --- | --- |
-| Travessia Coin, callbacks e leitura de estado | `CoinRenderAction` e builder comuns |
-| Significado de geometria, materiais, texturas, composição, profundidade e limites | Contratos e Core `coinrender` |
-| Buffers, shaders, recursos, passes, apresentação e readback | Executor BGFX ou wgpu |
-| API gráfica, fragmentos cobertos pelo rasterizador fixo e implementação de driver | API/driver/GPU, salvo política própria implementada no executor |
-| Resultado esperado | Semântica Coin, modelo visual e expectativa independente para a propriedade testada |
-| Compatibilidade visual histórica do Coin válido | CoinGL no mesmo ambiente, com divergências classificadas |
-| Log e rasterização sem GPU | `RECORDING`/CPU auxiliar |
+| Coin traversal, callbacks and state reads | Common action and builder (Wiring) |
+| Geometry, materials, texture semantics, composition, depth and limits | `coinrender` contracts and Core |
+| Buffers, shaders, resources, passes, presentation and readback | BGFX or wgpu executor (Infra) |
+| Fixed raster coverage and driver implementation | Graphics API/driver/GPU unless the executor implements an explicit portable policy |
+| Expected result | Coin semantics, visual model and independent control for the tested property |
+| Historical visual compatibility | CoinGL in the same environment, with classified divergences |
+| Headless diagnostic log and software rasterization | Auxiliary RECORDING/CPU |
 
-BGFX e wgpu são alternativas, não camadas uma sobre a outra. OpenGL, Vulkan,
-D3D12 e Metal são APIs usadas por um executor e pelo driver; escolher OpenGL
-em BGFX/wgpu não transforma esse caminho no CoinGL legado.
+RECORDING does not call CoinGL, is not the visual parity oracle and does not
+repair BGFX/wgpu output. Tests may instantiate it in GPU builds; that does not
+make it the selected executor for those builds. BGFX and wgpu are alternatives.
+OpenGL, Vulkan, D3D12 and Metal are graphics APIs used by an executor. Selecting
+OpenGL inside BGFX/wgpu does not select the legacy CoinGL traversal.
 
-## Seleção atual e extensão futura
+`COIN_RENDER_BACKEND` selects one executor per build: `BGFX`, `RUST_BRIDGE`
+(wgpu), `RECORDING`, or the `DAWN`/`WGPU_NATIVE` prototypes. The private
+`CoinRenderBackendFactory` wires that executor and its runtime into the target.
+`CoinRenderOptions` may request a supported graphics API within the compiled
+GPU executor, without silent fallback. Dynamic executor loading and switching
+BGFX/wgpu in one binary are not implemented.
 
-`COIN_RENDER_BACKEND` escolhe **um executor por build**: `BGFX`, `RUST_BRIDGE`
-(wgpu), os protótipos `DAWN`/`WGPU_NATIVE` ou `RECORDING`. O
-`CoinRenderBackendFactory` liga explicitamente esse executor ao target. Dentro
-do executor GPU, `CoinRenderOptions` pode selecionar uma API gráfica suportada
-sem fallback silencioso. A interface comum permite novos executores; carregá-los
-dinamicamente ou alternar BGFX e wgpu no mesmo binário ainda não está
-implementado e não deve ser anunciado como capacidade existente.
+A new Coin modality starts with a common semantic contract and compatibility
+expectation, then is implemented or explicitly rejected by each executor.
+Changes to the CPU helper or relaxed image gates do not resolve GPU differences.
+The historical AMD/NVIDIA perspective-coverage study observed different edge
+choices even in CoinGL; a 3× mode regressed other scenes. Its receipts remain
+[archived](coin-render-evidence.md). Do not infer universal cross-GPU pixel
+identity from a local image comparison. Native numeric differences require the
+case-specific diagnosis described in the compatibility policy.
 
-Uma nova modalidade Coin começa por contrato comum e expectativa de
-compatibilidade, depois é implementada ou rejeitada explicitamente em cada
-executor qualificado. Uma diferença que só aparece entre drivers não fica
-resolvida ao mudar o backend CPU ou ao relaxar um gate de imagem. O
-[caso de cobertura AMD/NVIDIA](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/perspective-coverage-20261012/summary.md>)
-permanece aberto para os caminhos GPU: o próprio CoinGL escolheu lados
-diferentes de uma aresta entre as duas placas, e o modo 3× regrediu outras
-cenas. É preciso definir uma política de cobertura portátil e demonstrá-la em
-BGFX e wgpu antes de prometer pixels idênticos entre placas.
-
-## Estado e documentos
-
-A [checklist das próximas frentes](coin-render-next-fronts-checklist.md) é a
-fonte de verdade para itens abertos e concluídos no escopo declarado de cada
-linha. O [plano P/F/A](coin-render-work-plan.md) preserva a decomposição e as
-dependências históricas; um P ainda aberto ali pode ter subperfis já fechados
-na checklist. Os [relatórios de isolamento](coin-render-isolation-roadmap.md)
-registram a separação de camadas já executada. O
-[guia da branch](coin-render-branch-guide.md) aponta o checkout de integração
-e os passos para um PR.
-
-Na revisão desta arquitetura, a checklist tem **88 caixas concluídas e 25
-abertas**: 20 frentes e cinco critérios repetidos a cada entrega. Das frentes,
-`Remover completamente os fontes/referências GL remanescentes do Coin base` é
-trabalho do Coin base, e `Qualificar CoinGL nativo com oito mapas` é trabalho
-do oráculo CoinGL. Ambos continuam listados como dependências visíveis; sua
-conclusão não deve ser atribuída ao executor BGFX ou wgpu. Mesa, drivers,
-Android físico e hardware ausente exigem evidência externa ao código comum.
+The [scope matrix](coin-render-feature-matrix.md) identifies open qualification
+work, including B34/B94/B95. Historical checklist counts and campaign completion
+claims remain in the companion archive with their original dates and scopes.

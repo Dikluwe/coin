@@ -1,179 +1,108 @@
-# CoinRender — múltiplos alvos e recuperação (P14)
+# Multiple targets and recovery (P14)
 
-## Contrato Coin e divisão de responsabilidades
+Coin actions have their own viewport/state. CoinGL offscreen rendering activates
+its canvas/cache context and restores the previous context; another canvas does
+not silently replace its image. CoinRender retains this isolation with owner/
+generation stamps and [transactional publication](coin-render-rtt-publication-contract.md).
+Wiring coordinates ordered actions, target lifecycle, lost peers and publication;
+Core owns queue admission and stamps; Infra owns fences/views/textures/buffers and
+safe retirement/recreation; Shell owns options/diagnostics.
 
-O Coin aplica uma action ao grafo com viewport e estado próprios. No caminho GL,
-`SoOffscreenRendererP::renderFromBase` ativa o canvas, troca o cache context da
-`SoGLRenderAction` e restaura o contexto anterior. A imagem pertence ao renderer;
-a existência de outro canvas não permite trocar silenciosamente o resultado.
-Referências locais: `src/rendering/SoOffscreenRenderer.cpp` e
-`src/actions/SoGLRenderAction.cpp`. CoinRender preserva essa responsabilidade,
-usando planos capturados e recursos com owner/gerações do P12 e publicação do P13.
+## Scheduling and limits
 
-- **Wiring:** aplicação ordenada das actions; tamanho, suspensão e destruição do
-  alvo; coordenação dos consumidores de uma geração perdida; publicação.
-- **Core:** admissão da fila pelo número de tickets e bytes de saída; stamps de
-  owner/alvo/dispositivo; composição e dependências RTT já definidas no P12/P13.
-- **Infra:** ocupação concreta das filas, fences, views, texturas e buffers;
-  liberação segura da geração perdida; criação do próximo dispositivo/superfície.
-- **Shell:** seleção tipada/defaults e diagnósticos. A falha informa o mecanismo
-  e mantém o último resultado CPU válido.
+The caller orders apply/applyAsync per target. RTT producers precede consumers.
+Tickets retain submitted frame/dimensions independently of later resize/destruction.
+Producer mutation/another target cannot publish into this target.
 
-## Agendamento e isolamento
+BGFX has one process runtime, one active renderer and one API thread. A prepared
+target starts with **16 views**, reserving further contiguous blocks for larger
+compositions. Capacity depends on `caps.maxViews`, live peers and contiguous free
+spans. Destruction returns all blocks; exhaustion returns `UNSUPPORTED`. B51
+expanded the old fixed-16-per-frame limit, with B51.2 resource-boundary qualification
+in four BGFX Linux cells. Preflight observes pool without reserving: DIRECT checks
+largest shared root/producer span; STAGED needs distinct contiguous parent and
+largest sequential-child spans, respecting live peers without summing destroyed
+children. Reject before first producer, preserving RGBA/depth/serial; reserve on
+submission. STAGED keeps its consumer prepared while children live, preventing
+runtime shutdown between passes. Destroying the initializer does not stop peers.
 
-O chamador ordena `apply`/`applyAsync` por alvo. O grafo RTT executa produtores
-antes de consumidores; o ticket corresponde ao frame e às dimensões capturadas
-na submissão. Resize/destruição do alvo não alteram tickets independentes já
-aceitos. Mutações de produtor e submissões de outro alvo não publicam nesse alvo.
+Public wgpu targets use default device. Extra-device private FFI tests do not
+add public device selection; BGFX does not gain multiple devices.
 
-No BGFX existe um runtime por processo, um renderer ativo e uma thread de API.
-Cada alvo preparado começa com um bloco de 16 views. Composições maiores
-reservam blocos contíguos adicionais conforme o plano; o limite depende de
-`caps.maxViews`, dos outros alvos vivos e da disponibilidade de um intervalo
-contíguo. Destruição devolve todos os blocos do alvo; falta de capacidade retorna
-`UNSUPPORTED`. O limite antigo de 16 por frame foi ampliado em B51, cuja
-fronteira de recursos foi requalificada nas quatro células BGFX Linux em B51.2. O preflight consulta o pool sem
-reservar views: DIRECT verifica o maior span compartilhado entre raiz e
-produtores; STAGED verifica spans contíguos distintos para o pai e o maior
-filho sequencial, respeitando os outros alvos vivos. Não soma filhos que já
-foram destruídos antes do próximo produtor. A recusa deve anteceder o primeiro
-produtor e preservar RGBA, profundidade e serial; a reserva real ocorre na
-submissão. RTT staged mantém o consumidor preparado durante a vida dos
-filhos, evitando desligar o runtime entre passes. Isso substitui a liberação antiga do consumidor, inadequada ao
-runtime compartilhado. O initializer pode ser destruído sem interromper peers.
+Linux Xlib/Vulkan host owns Display/window and may close/destroy them after target
+destruction while peers retain runtime. Pointer reuse is not proof a new connection
+was prepared. BGFX and wgpu Vulkan-Xlib HAL negotiate XFIXES on each concrete
+connection before WSI, requiring version **≥2** and a valid response to request
+**6.0**. Missing/invalid responses reject with diagnostic before publication while
+preserving offscreen peers. OpenGL/offscreen targets do not inherit this window
+prerequisite. B54 qualification does not close B34 recreation failures.
 
-Os alvos públicos wgpu usam o dispositivo default; a bridge privada já possui
-IDs de dispositivos extras e testes de isolamento, perda e destruição. P14
-qualifica essa bridge e o default compartilhado; não adiciona seleção pública
-de dispositivos por alvo. BGFX não passa a oferecer múltiplos dispositivos.
+The common queue admits **16 tickets and 128 MiB packed pending output**, color+
+depth, with checked arithmetic. Action checks before RTT producers; Target before
+root submission; BGFX defends executor entry too. Rust concrete job occupancy
+includes cancelled work pending retirement and aggregates its runtime devices.
+Lost descriptors without staging consume no output bytes. Admission observes
+occupancy, not a concurrent reservation. Caller-ordered Coin applications are
+required; no graph mutation/traversal or same-target thread safety is promised.
+BGFX polling/cancel/destruction also require its API thread. Staging alignment,
+caches and driver memory are separate; 128 MiB is not total GPU memory.
 
-No perfil Linux Xlib/Vulkan, o `Display` e a janela pertencem ao chamador.
-Depois de destruir o alvo, ele pode destruir a janela e fechar sua conexão,
-enquanto outro alvo mantém o runtime ativo. Endereços de `Display`/XCB podem
-ser reutilizados; o endereço não comprova que uma conexão já foi preparada.
-BGFX e o ingresso Vulkan Xlib do HAL wgpu negociam XFIXES na conexão concreta
-antes do WSI. O perfil de apresentação requer versão 2 ou superior, com
-resposta compatível com o pedido 6.0; ausência ou resposta inválida retorna
-recusa com diagnóstico antes de publicação, preservando o peer offscreen.
-OpenGL e alvos offscreen não adquirem esse pré-requisito de apresentação.
-O [protocolo XFIXES, seção 4](https://xorg.freedesktop.org/archive/current/doc/fixesproto/fixesproto.txt)
-exige negociar a versão antes dos demais pedidos da extensão.
-A qualificação Linux e os limites de recriação estão em
-[B54/B34 na matriz](coin-render-feature-matrix.md); esses casos são distintos.
+## Shared loss and reconstruction
 
-A fila comum admite até **16 tickets e 128 MiB de saída empacotada pendente**,
-cor e depth somados. O cálculo é do Core; Infra informa contagem/bytes. A action
-verifica antes de executar produtores RTT, e Target verifica antes da submissão
-raiz. O BGFX mantém a mesma defesa na entrada do executor. A bridge Rust mantém
-seu limite concreto de jobs; sua consulta inclui cancelados ainda em retirement e agrega os dispositivos do
-runtime, seguindo a fila global já existente na bridge.
-Descritores de gerações perdidas sem staging não ocupam o orçamento de saída.
+BGFX loss invalidates the shared device. Wiring retires all registered connectors,
+advances target generations and marks `TARGET_LOST`. Infra holds readback buffers
+until shutdown, releases references and retains loss descriptors only. Old tickets
+return `READBACK_DEVICE_LOST` preserving vectors and can be cancelled; they do not
+block next-generation recreation. Next apply on an existing target recreates it
+with a new runtime epoch.
 
-A admissão é uma verificação de ocupação, não uma reserva para ações concorrentes.
-As aplicações Coin deste perfil são ordenadas pelo chamador. Não há promessa de
-thread safety para mutação/travessia do grafo nem para uso simultâneo de um alvo.
-BGFX exige também polling/cancel/destruição na thread de API. Alinhamento de
-staging, caches e memória física do driver são medidos separadamente em P18/P19;
-128 MiB não representa um teto para toda a memória GPU.
+wgpu drops lost-generation resources/recreates default device; peers rebuild on
+next execution. CoinRender observes prepared/completed domains and advances target
+resource generation for changed epochs. Old tickets report loss/invalidity without
+publication. Wrong-owner/epoch RTT tokens remain rejected. Epoch change between
+producers rejects graph and frees temporaries without assuming the new healthy
+device must also be destroyed.
 
-## Perda e reconstrução
+Loss preserves last CPU color/depth, serial, validated revision and borrowed
+allocations. Validated revision belongs to captured plan, not GPU handles; resize
+still invalidates it. Later success replaces results atomically. Configuration,
+OOM or generic backend errors do not gain infinite retries; explicit target
+recovery/status policy still applies.
 
-Uma perda BGFX invalida o dispositivo compartilhado. Resetar somente o alvo que
-observou a falha deixava peers/tickets prendendo o runtime morto. Agora Wiring
-aposenta todos os conectores BGFX registrados, incrementa as gerações dos alvos
-e os marca `TARGET_LOST`. Infra retém buffers de readback até `bgfx::shutdown`,
-libera suas referências e guarda somente descritores de perda. Tickets antigos
-retornam `READBACK_DEVICE_LOST`, preservam os vetores do chamador e podem ser
-cancelados; eles não impedem a reconstrução. A próxima aplicação em um alvo
-existente recria seus recursos e o dispositivo, com novo epoch.
+## Host contexts and presentation timing
 
-No wgpu a bridge descarta recursos da geração perdida e recria o default; peers
-reconstroem seus recursos ao voltar a executar. CoinRender observa o domínio
-preparado/concluído e avança a geração de recursos do alvo quando o epoch muda.
-Um ticket de geração descartada retorna perda ou invalidade, sem publicar dados.
-Tokens RTT de outro owner/epoch continuam rejeitados pelo contrato P12. Uma
-mudança de epoch observada entre produtores rejeita o grafo e libera os tokens
-temporários, sem presumir que o novo dispositivo saudável precise ser destruído.
+Linux BGFX/OpenGL owns a private X11 connection to first-target/default server.
+It does not own caller EGL resources: destroying all targets must preserve caller
+context/pbuffer/unbind/rebind. Private connection lasts until actual BGFX shutdown,
+including async tickets outliving targets, then closes. Host window remains caller-
+owned; creation is synchronized before another connection uses its XID. This
+avoids assuming eglInitialize adds an independent ownership reference on an
+already initialized EGLDisplay. B61 context preservation does not resolve B34.
 
-Perda preserva a última cor/depth CPU, serial, revisão validada e empréstimos
-publicados. A revisão de validação é uma propriedade do plano capturado, não do
-handle GPU; resize continua invalidando-a. A próxima publicação bem-sucedida
-substitui esses resultados pelo contrato P13. Um erro de configuração, OOM ou
-falha geral de backend não ganha um retry infinito: continua com seu diagnóstico
-e política explícita de recuperação já definida pelo alvo.
+Explicit BGFX window readback waits for the current scene callback. `frame()`
+alone synchronizes the prior frame, so B63 uses an empty FLUSH frame as fence
+without repeating scene or presenting the empty frame. Cold preparation/drawing
+stay inside apply; callback deadline is unchanged; serial advances once. Capture
+completion and physical presentation remain distinct: callback can precede flip,
+and Vulkan queued present does not prove X11 visibility. No promise that first
+XGetImage after apply sees the new frame. Physical tests observe within their
+existing **5-second** deadline, without reapplying, and compare full framebuffer
+against same-apply readback plus color/MSAA oracles. This observer deadline adds
+no fixed product wait and does not close B34/B94/B95.
 
-## Checklist e evidência
+## Evidence scope
 
-- [x] Isolamento de tamanhos, imagens, serial e mutação de produtor RTT.
-- [x] Aplicações intercaladas; resize de um alvo preserva o peer.
-- [x] Ticket RTT sobrevive à destruição do alvo e à execução de um peer.
-- [x] Admissão no limite de jobs/bytes e proteção contra overflow.
-- [x] 16 tickets repartidos entre alvos; 17º rejeitado antes de produtores GPU;
-  cancelamento restaura a capacidade.
-- [x] View budget BGFX esgotado, rejeitado e devolvido por destruição.
-- [x] Perda com dois alvos e ticket pendente; publicação anterior preservada;
-  mesmos alvos voltam a executar RTT num epoch novo.
-- [x] Janelas BGFX simultâneas e offscreen: resize, suspensão, troca/destruição do
-  initializer e reconstrução dos mesmos alvos depois de perda compartilhada.
-- [x] Superfícies wgpu e bridge de dispositivos extras requalificadas.
+`CoinRenderMultiTargetTest` covers staged/direct wgpu and BGFX Vulkan/OpenGL,
+interleaving, resize isolation, tickets surviving target destruction, queue/byte/
+overflow boundaries, seventeenth-ticket rejection before producers, cancellation,
+views exhaustion/return, pending-ticket loss and same-target recovery. Serial/
+armed faults verify pre-producer rejection. MultiWindow adds suspension, initializer
+swap/destruction and shared loss with opaque/OIT/peeling peers.
 
-Fixture nova: `testsuite/coinrender/CoinRenderMultiTargetTest.cpp`, em wgpu
-staged/direto e BGFX Vulkan/OpenGL staged/direto. A rejeição antes dos produtores
-é observada pelo serial global wgpu e por um fault BGFX não consumido. A fixture
-BGFX também esgota o limite real de views. `CoinBgfxMultiWindowTest` acrescenta
-perda/reconstrução ao seu perfil de janelas, opaco/OIT/peeling e inicialização
-por janela ou offscreen. Regressões anteriores de publicação, ownership,
-SoSceneTexture2, async, superfície e composição continuam parte da campanha.
-
-Execução Linux/Xvfb/Mesa. Esta evidência fecha P14 no perfil experimental atual;
-matriz física de drivers/plataformas/FreeCAD continua P16/P17/P20. Formatos RTT
-ampliados seguem F14; ALPHA_TEST foi qualificado em P27.4 conforme Coin/GL;
-profiling físico P18; persistência/pools e
-readback de janela P19. Inventário de nós/workbenches é a próxima entrega P15.
-
-### Campanhas de validação
-
-Builds C++11 BGFX/CPU e Debug wgpu. Rust: 16 testes unitários e 2 de shaders
-aprovados. CPU: 4/4, incluindo publicação e ownership. A campanha wgpu corrigida
-passou 33/33, incluindo stress de múltiplos dispositivos e RTT/readback. A
-assertiva final exige um ticket real pendente antes da perda: wgpu 2/2 e BGFX 4/4
-nos modos staged/direto, Vulkan/OpenGL. A campanha ampla BGFX
-exercitou 74 casos; a rodada final focada passou 18/18, incluindo os cinco casos
-que falharam inicialmente. Três eram a regressão de tratamento de epoch corrigida;
-dois retornaram falta de capacidades OpenGL depois de múltiplas inicializações
-do contexto e passaram na reexecução com Xvfb novo. Essa intermitência do ambiente
-Mesa/Xvfb fica registrada, sem ampliar a certificação de drivers.
-
-Logs locais: `/tmp/coin-p14-bgfx-regression.log`,
-`/tmp/coin-p14-bgfx-final-focused.log`, `/tmp/coin-p14-wgpu-regression.log`,
-`/tmp/coin-p14-recording-tests.log` e `/tmp/coin-p14-rust-tests.log`.
-
-No perfil Linux X11/BGFX/OpenGL, o runtime possui uma conexão X11 privada,
-aberta no servidor do primeiro alvo (ou no display default para offscreen).
-Os recursos EGL do chamador permanecem independentes: destruir todos os alvos
-não deve invalidar seu contexto/pbuffer nem impedir unbind/rebind. A conexão
-privada vive até o shutdown efetivo do BGFX, incluindo tickets assíncronos que
-sobrevivem ao alvo, e então é fechada. A janela continua pertencendo ao chamador;
-a criação é sincronizada antes de o renderer acessar seu XID pela outra conexão.
-Isso evita tratar criação de contexto como propriedade exclusiva do EGLDisplay:
-[EGL 1.5, seção 3.2](https://registry.khronos.org/EGL/specs/eglspec.1.5.pdf)
-não dá uma referência adicional a `eglInitialize` sobre display já inicializado.
-O perfil de preservação B61 não encerra as falhas de recriação NVIDIA B34.
-
-Quando a janela BGFX recebe um pedido explícito de readback, a submissão
-aguarda o término do callback de captura da cena corrente. `frame()` sozinho
-sincroniza o frame anterior; por isso B63 usa um frame FLUSH vazio como fence,
-sem repetir a cena ou apresentar o frame vazio. Preparação fria e desenho
-permanecem dentro do `apply`; o prazo do callback não é ampliado. A publicação
-lógica e o serial avançam uma única vez. Isso não encerra B34 nem implica
-ganho de desempenho medido.
-
-Conclusão do readback e apresentação física são eventos distintos. O callback
-BGFX pode terminar antes de `flip()`; em Vulkan, enfileirar o present não
-comprova sua conclusão no servidor X11. O retorno de `apply` com readback
-corrente não promete que o primeiro `XGetImage` já observe esse frame. Os
-testes físicos observam a imagem corrente dentro do prazo X11 existente de
-cinco segundos, sem reaplicar a cena; comparam o framebuffer inteiro ao
-readback do mesmo apply e também conservam os oráculos de cor e MSAA. Esse
-prazo pertence ao observador do teste e não amplia o prazo do callback nem
-adiciona uma espera fixa ao produto.
+Historical closure used C++11 BGFX/CPU and Debug wgpu: Rust **16+2**, CPU **4/4**,
+wgpu **33/33**, final pending-ticket-loss controls **2/2 wgpu, 4/4 BGFX**; broad BGFX
+**74** cases and final affected **18/18**. Initial epoch regressions were fixed;
+two OpenGL-capability failures passed in fresh Xvfb but remain recorded as
+intermittency, not driver stability. Full original receipts are
+[archived](coin-render-evidence.md). Physical drivers/platforms, host integrations,
+expanded RTT formats and total physical memory retain separate qualification.
