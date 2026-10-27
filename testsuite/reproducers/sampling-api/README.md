@@ -1,11 +1,16 @@
-# Qualificação da API pública de sampling
+# Public sampling API qualification
 
-`run.py` usa opções explícitas native/portable dos testes públicos, executa GPU
-sequencialmente e grava comando, ambiente, hashes, código de saída e log. Qualquer
-FAIL/SKIP produz saída não zero; o ledger preserva ambos. Requer Linux com display
-acessível, builds wgpu/BGFX e bibliotecas em `build-{backend}/{bin,lib}` sob o root
-de artefatos. `XAUTHORITY` é herdado. Os perfis padrão são AMD Vulkan/OpenGL e
-NVIDIA Vulkan para ambos os backends; use `--profiles` para restringir hardware.
+`run.py` uses the public tests' explicit native/portable options, runs GPU work
+sequentially and records the command, environment, hashes, exit status and log.
+Any FAIL/SKIP produces a nonzero result; the ledger preserves both. It requires
+Linux with an accessible display, wgpu/BGFX builds and libraries in
+`build-{backend}/{bin,lib}` under the artifact root. XAUTHORITY is inherited.
+Default profiles are AMD Vulkan/OpenGL and NVIDIA Vulkan for both backends;
+use `--profiles` to restrict hardware.
+
+The results discussed here belong to the recorded historical revisions. Archived
+reports and application fixtures retain their original paths in the companion
+archives; see the [evidence guide](../../../docs/coin-render-evidence.md).
 
 ```sh
 root=/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api
@@ -16,12 +21,12 @@ python3 testsuite/reproducers/sampling-api/run.py --artifacts "$root" \
   --name native-resources-repeat --cases selection,publication,ownership,large,devices,stress,instancing,shadow-eight,shadow-viewport,shadow-alpha
 ```
 
-`api` exercita as duas políticas no mesmo processo; seleção/publicação/ownership,
-recursos/instancing/sombras são controles nativos independentes. Casos exclusivos
-wgpu/BGFX são filtrados. `COIN_SAMPLING_STUDY=fetch` é injetado como conflito
-intencional: a nova API deve ignorar o antigo seletor de laboratório.
+`api` exercises both policies in one process; selection/publication/ownership,
+resources/instancing/shadows are independent native controls. Backend-exclusive
+wgpu/BGFX cases are filtered. `COIN_SAMPLING_STUDY=fetch` is injected as an
+intentional conflict: the public API must ignore the old laboratory selector.
 
-Quando for necessária a comparação com CoinGL AMD corrigido apenas no laboratório:
+When a comparison requires the laboratory-only patched AMD CoinGL reference:
 
 ```sh
 python3 testsuite/reproducers/sampling-api/run.py --artifacts "$root" \
@@ -30,20 +35,25 @@ python3 testsuite/reproducers/sampling-api/run.py --artifacts "$root" \
   --mesa-prefix /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install
 ```
 
-O prefixo Mesa é opcional, externo ao renderer, altera somente o ambiente dos
-processos AMD e desativa cache para o estudo. Compare coortes de driver instalado
-e driver de estudo separadamente. Não interpretar uma referência CoinGL corrigida
-como conserto do driver instalado. Preserve o ambiente, builds e ICDs efetivos.
+The Mesa prefix is optional and external to the renderer. It changes only AMD
+child-process environments and disables caching for the study. Compare installed-
+driver and study-driver cohorts separately. A corrected CoinGL reference does not
+fix the installed driver. Preserve the actual environment, builds and ICDs.
 
-Runners antigos em `portable-sampling-study` recusam a nova API para impedir que
-uma medição rotulada fetch/fine execute silenciosamente native. Use o baseline
-congelado da revisão `43f00b0e18830ba79fe8fd19020d1f8ececa4983` para reproduzir
-histórico e este runner para a política pública. Builds são mutáveis; logs de cada
-coorte identificam os binários realmente usados.
+Older `portable-sampling-study` runners reject the public API to prevent a
+fetch/fine-labeled measurement from silently running native sampling. Use the
+frozen baseline `43f00b0e18830ba79fe8fd19020d1f8ececa4983` for historical
+reproduction and this runner for the public policy. Builds are mutable; each
+cohort's logs identify the binaries actually used.
 
-Contrato, limites e ledger: [API](../../../docs/coin-render-texture-sampling-api.md).
+Contract, limits and ledger: [API](../../../docs/coin-render-texture-sampling-api.md).
 
-## Continuação Linux: janela, desempenho e FreeCAD
+## Linux continuation: window, performance and historical FreeCAD controls
+
+The window and benchmark runners remain in this checkout. The FreeCAD commands
+in the following historical recipe require the separately preserved application
+integration; `qualify_freecad_linux.py`, its host patches and macros are excluded
+from this contribution. Do not treat them as runnable from this checkout alone.
 
 ```sh
 root=/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux
@@ -61,60 +71,65 @@ python3 testsuite/reproducers/sampling-api/qualify_freecad_linux.py --artifacts 
   --name freecad-dpr2-repeat --scale 2 --policies portable
 ```
 
-`window` exige imagens de dois alvos simultâneos e oracle após resize/suspensão/
-remap, independência de políticas e recuperação; também exercita manager e
-adapter. wgpu/OpenGL não oferece COPY_SRC nessa superfície: o teste inspeciona
-os pixels X11 apresentados. Os outros perfis usam captura RGBA do renderer.
-O fixture confirma extent e MapNotify antes da submissão; corridas do WM não
-são resultados válidos de resize ou exposição.
+`window` requires images from two simultaneous targets and an oracle after
+resize/suspend/remap, policy independence and recovery; it also exercises the
+manager and adapter. wgpu/OpenGL has no COPY_SRC on this surface, so the test
+inspects physically presented X11 pixels. Other profiles use renderer RGBA
+capture. The fixture confirms extent and MapNotify before submission; window
+manager races are not valid resize/exposure results.
 
-O benchmark usa ordem ABBA e não lê pixels. Os resultados CPU representam
-chamadas render/present com possível backpressure, sem promessa de latência de
-display ou GPU concluído. A sonda GPU é uma campanha separada, síncrona e com
-escopos por backend; timestamp indisponível permanece indisponível e não qualifica a sonda GPU.
-O runner exige recibo do adaptador físico solicitado. BGFX/OpenGL usa o nome
-do contexto GL com trace apenas no setup, pois capabilities pode informar
-vendor/device zero. Os recibos e seu audit aparecem no ledger.
-wgpu/OpenGL usa `--allow-vsync`, pois esta superfície não oferece Immediate/
-Mailbox; não comparar sua taxa como se estivesse sem vsync. O milhão BGFX usa
-12 amostras/4 warmup para delimitar seu custo elevado, com os mesmos números
-nas políticas e baseline. Comandos individuais guardam a configuração efetiva.
-`--resume` conserva checkpoints válidos; não misturar revisões de runtime numa
-coorte de qualificação final. O runner histórico nunca foi usado para medir
-política portátil desta API.
+The benchmark uses ABBA ordering and does not read pixels. CPU results represent
+render/present calls with possible backpressure, not display latency or completed
+GPU work. The GPU probe is a separate synchronous campaign with backend-specific
+scopes; unavailable timestamps remain unavailable and do not qualify the probe.
+The runner requires identification of the requested physical adapter. BGFX/OpenGL
+uses the GL context name with tracing only during setup because capabilities can
+report vendor/device zero. The identification records and their audit appear in
+the ledger. wgpu/OpenGL uses `--allow-vsync` because the surface does not offer
+Immediate/Mailbox; do not compare its rate as though vsync were disabled. The
+BGFX million-instance case uses 12 samples/4 warmups to bound its high cost, with
+the same counts for policies and baseline. Individual commands retain the actual
+configuration. `--resume` retains valid checkpoints; do not mix runtime revisions
+within a final qualification cohort. The historical runner was never used to
+measure this API's portable policy.
 
-A qualificação FreeCAD exige uma cópia privada recompilada do host em
-`freecad-host/build`, com
-[patch Qt por viewport](../../../examples/coinrender/freecad_sampling_policy.patch).
-O patch usa a propriedade Qt booleana `coinRenderPortableSampling` e publica
-`coinRenderActiveSamplingPolicy`; trocar a propriedade recria o adapter.
-`freecad_sampling_policy.FCMacro` reaplica os gates existentes de screen-content
-sem reduzir tolerâncias. O caso projetivo usa uma imagem POT 256×256 e
-qualidade 0,5 para exercer NEAREST_MIPMAP_LINEAR/minificação no host, além do
-conteúdo legado. A câmera é estabelecida por dois redraws antes do
-baseline; um ciclo visível/oculto prepara os recursos de texto antes do
-baseline principal. O perfil qualificado é aquecido e declara
-`cold_start_qualified=false`; não certifica o primeiro frame absoluto nem corrige
-a transição inicial de borda registrada no estudo NVIDIA/wgpu portable.
-A macro bloqueia input interativo somente no host privado, fecha menus/tooltip
-próprios, solicita ABOVE por EWMH (`wmctrl`/`xprop`) sem recriar a superfície
-Qt e exige dois renders/leitura de tela idênticos em até 0,5 s. Isso delimita
-apresentação sem reduzir os gates de imagem. Cleanup deve estabilizar em até
-5 s antes do gate idle original de 1,2 s. Requer WM X11 com suporte a ABOVE.
-O runner congela as três macros em `fixture/` antes de iniciar o host e grava
-um manifest SHA-256 por execução.
-O runner exige exatamente um resultado por processo, submissão física do backend
-e a política ativa pedida. Usa object/DPR 1 ou 2 (`QT_SCALE_FACTOR` forçado;
-não certifica troca de monitores/DPI físico distinto). AMD/Vulkan recebe sessão Xwayland
-privada; OpenGL e NVIDIA usam o desktop acelerado, porque a sessão headless
-desta máquina não prova DRI3 GL e o WM NVIDIA encerrou antes do host. Preferências são privadas em ambos os casos. Não usar um
-FreeCAD genérico sem esse patch como evidência da política portátil.
+The historical FreeCAD qualification required a private rebuilt host in
+`freecad-host/build`, using the archived per-viewport Qt patch at
+`examples/coinrender/freecad_sampling_policy.patch`. It uses the Boolean Qt
+property `coinRenderPortableSampling` and publishes
+`coinRenderActiveSamplingPolicy`; changing the property recreates the adapter.
+`freecad_sampling_policy.FCMacro` reapplies existing screen-content gates without
+reducing tolerances. The projective case uses a POT 256×256 image and quality 0.5
+to exercise NEAREST_MIPMAP_LINEAR/minification in the host, alongside its existing
+content. Two redraws establish the camera before the baseline; a visible/hidden
+cycle prepares text resources before the main baseline. The qualified profile
+is warmed and declares `cold_start_qualified=false`; it does not certify the
+absolute first frame or fix the initial border transition recorded in the
+NVIDIA/wgpu portable study.
 
-O build do host reaproveitado, seus comandos de compile/link, fonte alterada,
-patch, hashes e logs ficam no root de artefatos e no ledger versionado. O host e
-fonte FreeCAD originais não são modificados. A receita suplementar de build
-preserva o snapshot do CMake/objetos do host anterior e recompila Quarter;
-para outra árvore, reconfigure o host completo contra CoinRender antes de usar
-a macro. Não copiar apenas o executável sem Part/Material/lib/recursos/Pivy.
+The macro blocks interactive input only in the private host, closes its own
+menus/tooltips, requests ABOVE through EWMH (`wmctrl`/`xprop`) without recreating
+the Qt surface, and requires two identical render/screen-read results within
+0.5 seconds. This bounds presentation without weakening image gates. Cleanup
+must stabilize within 5 seconds before the original 1.2-second idle gate. It
+requires an X11 window manager with ABOVE support. The runner freezes three
+macros in `fixture/` before starting the host and records a SHA-256 manifest per
+run. It requires exactly one result per process, a physical backend submission
+and the requested active policy. It uses object/DPR 1 or 2 with forced
+QT_SCALE_FACTOR; this does not certify monitor changes or distinct physical DPI.
+AMD/Vulkan uses a private Xwayland session; OpenGL and NVIDIA use the accelerated
+desktop because the original machine's headless session does not prove DRI3 GL,
+and the NVIDIA window manager exited before the host. Preferences are private
+in both cases. A generic FreeCAD without this patch is not evidence for the
+portable policy.
 
-Contrato e resultados: [continuação Linux](../../../docs/coin-render-sampling-api-linux-20261008.md).
+The reused host build, compile/link commands, modified source, patch, hashes and
+logs are retained in the artifact root and original ledger. The original FreeCAD
+host and source are not modified. The supplementary build recipe preserves the
+previous host's CMake/object snapshot and rebuilds Quarter; another tree requires
+a full host reconfiguration against CoinRender before using the macro. Copying
+only the executable without Part/Material/libraries/resources/Pivy is insufficient.
+
+Original contract/results report:
+`docs/coin-render-sampling-api-linux-20261008.md`, preserved in the companion
+archive described by the [evidence guide](../../../docs/coin-render-evidence.md).

@@ -1,13 +1,16 @@
-# Coin/OpenGL: isolamento de sampling projetivo AMD
+# Coin/OpenGL: isolating AMD projective sampling
 
-Este reproducer compila fora do projeto principal. `coin-native-sampling` liga
-somente Coin e OpenGL/EGL; `pure-egl-sampling` não inclui nem liga Coin.
-`glx-visual-probe` consulta as ofertas GLX sem Coin. Nenhum alvo depende de
-CoinRender, BGFX, wgpu ou seus formatos intermediários.
+This reproducer builds outside the main project. `coin-native-sampling` links
+only Coin and OpenGL/EGL; `pure-egl-sampling` neither includes nor links Coin.
+`glx-visual-probe` queries GLX configurations without Coin. None of these targets
+depends on CoinRender, BGFX, wgpu or their intermediate formats.
 
-Build validado: Coin `master` em `01b360af32`, Linux, OpenGL 4.6 compatibility,
-AMD Renoir/Mesa 25.2.8 e NVIDIA RTX 3060 Laptop/610.57.04. Paths reais e hashes
-estão no relatório e manifest versionados. Exemplo portátil, a partir do checkout:
+Recorded validated build: Coin `master` at `01b360af32`, Linux, OpenGL 4.6
+compatibility, AMD Renoir/Mesa 25.2.8 and NVIDIA RTX 3060 Laptop/610.57.04.
+Actual paths and hashes are recorded in the original report and manifest. Dated
+reports are preserved at their original paths in the companion archive; see the
+[evidence guide](../../../docs/coin-render-evidence.md). Portable example,
+starting from the checkout:
 
 ```sh
 cmake -S . -B /path/to/build-coin -G Ninja \
@@ -22,30 +25,31 @@ python3 testsuite/reproducers/coin-sampling-amd-study/run.py \
 python3 testsuite/reproducers/coin-sampling-amd-study/analyze.py /path/to/permanent-results
 ```
 
-O runner seleciona dois vendors desta máquina por GLVND e verifica a identidade
-reportada em cada processo. Ele precisa do display/Xauthority do usuário. Não
-considerar exit 77 uma execução física; o runner exige exit 0 em todos os casos.
-Na NVIDIA, usa `SoGLRenderAction` em contexto EGL atual: a master falha antes do
-draw no bootstrap GLX do `SoOffscreenRenderer` (visuais single-buffer ausentes).
-O caminho GLX AMD e o EGL NVIDIA ficam identificados, sem chamar isso de PASS
-para o bootstrap GLX NVIDIA.
+The runner selects two vendors on the original machine through GLVND and checks
+the identity reported by each process. It needs the user's display/Xauthority.
+Exit 77 does not count as physical execution; every case must return 0.
+On NVIDIA, it uses `SoGLRenderAction` in the current EGL context: that master
+revision fails before drawing during `SoOffscreenRenderer` GLX bootstrap because
+single-buffer visuals are absent. AMD/GLX and NVIDIA/EGL are identified separately;
+this does not count as a PASS for NVIDIA GLX bootstrap.
 
-São duas qualidades (0,5/0,8) e três offsets (zero/-0,001/+0,001). Cada processo
-conserva RGB top-down 64×64, runtime, filtros, matriz e leitura dos oito mipmaps:
+The cases use two quality values (0.5/0.8) and three offsets (zero/-0.001/+0.001).
+Each process retains top-down 64×64 RGB, runtime identity, filters, matrix and
+readbacks of all eight mip levels:
 
-- `coin`: scene graph autoral; imagem, UV e matriz projetiva do Coin.
-- `fixed`: upload/mips e coordenadas S/T/Q por OpenGL direto.
-- `implicit`: shader OpenGL com `texture`, sem captura Coin.
-- `explicit-lod`: LOD por maior norma das derivadas fine, sampler nativo.
-- `fetch`: LOD calculado e seleção/bilinear por `texelFetch`.
-- `fetch-round256`: diagnóstico de round 1/256 texel antes do fetch nearest.
-- `query-lod`: consulta nativa; LOD codificado em dois canais a 1/4096.
-- `boundary-scan`: mip 3 fixo e coordenadas binárias exatas por fragmento.
-- `boundary-fetch`: mesma varredura, seleção por floor/fetch. As duas varreduras
-  só caracterizam nearest na qualidade 0,5; qualidade 0,8 é controle linear.
+- `coin`: authored scene graph, with Coin image, UV and projective matrix.
+- `fixed`: direct OpenGL upload/mips and S/T/Q coordinates.
+- `implicit`: OpenGL shader using `texture`, without Coin capture.
+- `explicit-lod`: LOD from the largest fine-derivative norm, with a native sampler.
+- `fetch`: computed LOD and selection/bilinear reconstruction through `texelFetch`.
+- `fetch-round256`: diagnostic 1/256-texel rounding before nearest fetch.
+- `query-lod`: native query, with LOD encoded into two channels at 1/4096.
+- `boundary-scan`: fixed mip 3 and exact binary coordinates per fragment.
+- `boundary-fetch`: the same scan with floor/fetch selection. Both scans
+  characterize nearest at quality 0.5 only; quality 0.8 is a linear control.
 
-`analyze.py` contém um oráculo de fórmula autoral independente, sem ler o IR ou
-código do sampler CoinRender. Comparações centrais usam os mesmos 100 pixels e
-MAE≤1,5/máximo≤4 do gate anterior. Varreduras verificam todos os 4.096 pixels,
-sem tolerância. Os modelos de precisão servem para caracterizar esta máquina;
-não são um contrato global de produção nem um teste de conformidade OpenGL.
+`analyze.py` uses an independent formula oracle without reading CoinRender IR or
+sampler code. Center comparisons use the same 100 pixels and MAE≤1.5/maximum≤4
+as the preceding gate. Scans check all 4,096 pixels with no tolerance. Precision
+models characterize this machine; they are neither a global production contract
+nor an OpenGL conformance test.
