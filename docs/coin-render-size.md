@@ -25,6 +25,32 @@ directories, examples, tests, build scripts and documentation are excluded.
 These are source-text counts, not compiled instruction counts or a complexity
 score. A single GPU build does not compile both backends.
 
+## Vendored dependencies and the complete diff
+
+The wgpu backend also carries complete local crate copies selected through
+`[patch.crates-io]`. Counting all tracked text files in `rust_bridge/vendor`
+gives the following separate totals:
+
+| Crate copy | Text lines |
+| --- | ---: |
+| Naga 24.0.0 | 90,703 |
+| wgpu-hal 24.0.4 | 40,796 |
+| wgpu-core 24.0.5 | 37,145 |
+| glow 0.16.0 | 54,009 |
+| **Total** | **222,653** |
+
+Of these, 220,765 lines are Rust source. The text totals include comments, blank
+lines, manifests, licenses and other text assets. None of these crate copies is
+included in the 68,010 first-party lines above. They contain local fixes, not
+222,653 newly authored renderer lines. Their packaging and maintenance remain
+open contribution questions.
+
+Relative to the historical Coin base `ca247c1321`, the complete branch diff adds
+approximately 469,000 text lines. That includes vendored code, tests, examples,
+documentation and changes to existing Coin files in addition to the renderer.
+A diff-line count therefore measures a different scope from the implementation
+table. The comparison base must be identified when quoting it.
+
 ## Removed duplication and inactive paths
 
 - Lines and points had two 516-line WGSL files with identical bodies. They now
