@@ -1,0 +1,712 @@
+diff --git a/src/gles/adapter.rs b/src/gles/adapter.rs
+index 55c7f3c..b4d5b2e 100644
+--- a/src/gles/adapter.rs
++++ b/src/gles/adapter.rs
+@@ -990,6 +990,7 @@ impl crate::Adapter for super::Adapter {
+             },
+             queue: super::Queue {
+                 shared: Arc::clone(&self.shared),
++                main_vao,
+                 features,
+                 draw_fbo: unsafe { gl.create_framebuffer() }
+                     .map_err(|_| crate::DeviceError::OutOfMemory)?,
+diff --git a/src/gles/command.rs b/src/gles/command.rs
+index 429fcae..93edabc 100644
+--- a/src/gles/command.rs
++++ b/src/gles/command.rs
+@@ -22,6 +22,7 @@ pub(super) struct State {
+     color_targets: ArrayVec<super::ColorTargetDesc, { crate::MAX_COLOR_ATTACHMENTS }>,
+     stencil: super::StencilState,
+     depth_bias: wgt::DepthBiasState,
++    sample_mask: Option<u64>,
+     alpha_to_coverage_enabled: bool,
+     samplers: [Option<glow::Sampler>; super::MAX_SAMPLERS],
+     texture_slots: [TextureSlotDesc; super::MAX_TEXTURE_SLOTS],
+@@ -51,6 +52,7 @@ impl Default for State {
+             color_targets: Default::default(),
+             stencil: Default::default(),
+             depth_bias: Default::default(),
++            sample_mask: None,
+             alpha_to_coverage_enabled: Default::default(),
+             samplers: Default::default(),
+             texture_slots: Default::default(),
+@@ -949,6 +951,10 @@ impl crate::CommandEncoder for super::CommandEncoder {
+             .push(C::ConfigureDepthStencil(aspects));
+ 
+         // set multisampling state
++        if self.state.sample_mask != Some(pipeline.sample_mask) {
++            self.state.sample_mask = Some(pipeline.sample_mask);
++            self.cmd_buffer.commands.push(C::SetSampleMask(pipeline.sample_mask));
++        }
+         if pipeline.alpha_to_coverage_enabled != self.state.alpha_to_coverage_enabled {
+             self.state.alpha_to_coverage_enabled = pipeline.alpha_to_coverage_enabled;
+             self.cmd_buffer
+diff --git a/src/gles/conv.rs b/src/gles/conv.rs
+index bae3af2..93196a5 100644
+--- a/src/gles/conv.rs
++++ b/src/gles/conv.rs
+@@ -421,8 +421,9 @@ pub(super) fn map_storage_access(access: wgt::StorageTextureAccess) -> u32 {
+ 
+ pub(super) fn is_layered_target(target: u32) -> bool {
+     match target {
+-        glow::TEXTURE_2D | glow::TEXTURE_CUBE_MAP => false,
+-        glow::TEXTURE_2D_ARRAY | glow::TEXTURE_CUBE_MAP_ARRAY | glow::TEXTURE_3D => true,
++        glow::TEXTURE_2D | glow::TEXTURE_2D_MULTISAMPLE | glow::TEXTURE_CUBE_MAP => false,
++        glow::TEXTURE_2D_ARRAY | glow::TEXTURE_2D_MULTISAMPLE_ARRAY |
++            glow::TEXTURE_CUBE_MAP_ARRAY | glow::TEXTURE_3D => true,
+         _ => unreachable!(),
+     }
+ }
+diff --git a/src/gles/device.rs b/src/gles/device.rs
+index c8b1e4e..808bb6c 100644
+--- a/src/gles/device.rs
++++ b/src/gles/device.rs
+@@ -1412,6 +1412,7 @@ impl crate::Device for super::Device {
+                 .depth_stencil
+                 .as_ref()
+                 .map(|ds| conv::map_stencil(&ds.stencil)),
++            sample_mask: desc.multisample.mask,
+             alpha_to_coverage_enabled: desc.multisample.alpha_to_coverage_enabled,
+         })
+     }
+diff --git a/src/gles/mod.rs b/src/gles/mod.rs
+index c1a4318..94582bd 100644
+--- a/src/gles/mod.rs
++++ b/src/gles/mod.rs
+@@ -310,6 +310,8 @@ pub struct ShaderClearProgram {
+ 
+ pub struct Queue {
+     shared: Arc<AdapterShared>,
++    // Borrowed from the owning Device, which outlives its queue.
++    main_vao: glow::VertexArray,
+     features: wgt::Features,
+     draw_fbo: glow::Framebuffer,
+     copy_fbo: glow::Framebuffer,
+@@ -433,6 +435,16 @@ impl Texture {
+             // doing `TEXTURE_2D` instead
+             wgt::TextureDimension::D1 => glow::TEXTURE_2D,
+             wgt::TextureDimension::D2 => {
++                // Multisampled textures are created only when sampled/copied;
++                // render-only attachments use renderbuffers. Their GL target
++                // must match tex_storage_2d_multisample and sampler2DMS.
++                if desc.sample_count > 1 {
++                    return if desc.size.depth_or_array_layers == 1 {
++                        glow::TEXTURE_2D_MULTISAMPLE
++                    } else {
++                        glow::TEXTURE_2D_MULTISAMPLE_ARRAY
++                    };
++                }
+                 // HACK: detect a cube map; forces cube compatible textures to be cube textures
+                 match (desc.is_cube_compatible(), desc.size.depth_or_array_layers) {
+                     (false, 1) => glow::TEXTURE_2D,
+@@ -456,7 +468,10 @@ impl Texture {
+             wgt::TextureViewDimension::D3 => glow::TEXTURE_3D,
+         };
+ 
+-        if expected_target == target {
++        if expected_target == target ||
++            (expected_target == glow::TEXTURE_2D && target == glow::TEXTURE_2D_MULTISAMPLE) ||
++            (expected_target == glow::TEXTURE_2D_ARRAY &&
++                target == glow::TEXTURE_2D_MULTISAMPLE_ARRAY) {
+             return;
+         }
+ 
+@@ -703,6 +718,7 @@ pub struct RenderPipeline {
+     depth: Option<DepthState>,
+     depth_bias: wgt::DepthBiasState,
+     stencil: Option<StencilState>,
++    sample_mask: u64,
+     alpha_to_coverage_enabled: bool,
+ }
+ 
+@@ -1002,6 +1018,7 @@ enum Command {
+     SetDepthBias(wgt::DepthBiasState),
+     ConfigureDepthStencil(crate::FormatAspects),
+     SetAlphaToCoverage(bool),
++    SetSampleMask(u64),
+     SetVertexAttribute {
+         buffer: Option<glow::Buffer>,
+         buffer_desc: VertexBufferDesc,
+diff --git a/src/gles/queue.rs b/src/gles/queue.rs
+index 0945cae..f363bc7 100644
+--- a/src/gles/queue.rs
++++ b/src/gles/queue.rs
+@@ -24,7 +24,7 @@ fn get_2d_target(target: u32, array_layer: u32) -> u32 {
+     ];
+ 
+     match target {
+-        glow::TEXTURE_2D => target,
++        glow::TEXTURE_2D | glow::TEXTURE_2D_MULTISAMPLE => target,
+         glow::TEXTURE_CUBE_MAP => CUBEMAP_FACES[array_layer as usize],
+         _ => unreachable!(),
+     }
+@@ -32,7 +32,8 @@ fn get_2d_target(target: u32, array_layer: u32) -> u32 {
+ 
+ fn get_z_offset(target: u32, base: &crate::TextureCopyBase) -> u32 {
+     match target {
+-        glow::TEXTURE_2D_ARRAY | glow::TEXTURE_CUBE_MAP_ARRAY => base.array_layer,
++        glow::TEXTURE_2D_ARRAY | glow::TEXTURE_2D_MULTISAMPLE_ARRAY |
++            glow::TEXTURE_CUBE_MAP_ARRAY => base.array_layer,
+         glow::TEXTURE_3D => base.origin.z,
+         _ => unreachable!(),
+     }
+@@ -74,6 +75,9 @@ impl super::Queue {
+     }
+ 
+     unsafe fn reset_state(&self, gl: &glow::Context) {
++        // Another logical device can bind or delete its VAO in this context.
++        // Restore our device's VAO before changing its element-buffer state.
++        unsafe { gl.bind_vertex_array(Some(self.main_vao)) };
+         unsafe { gl.use_program(None) };
+         unsafe { gl.bind_framebuffer(glow::FRAMEBUFFER, None) };
+         unsafe { gl.disable(glow::DEPTH_TEST) };
+@@ -1109,6 +1113,11 @@ impl super::Queue {
+                 ref dst,
+                 ref size,
+             } => {
++                // Resolves cover the whole attachment, independent of the last
++                // draw's scissor. This command ends a render pass; ResetFramebuffer
++                // resets state before the next pass and SetScissor enables its
++                // own rectangle before any subsequent scissored draw.
++                unsafe { gl.disable(glow::SCISSOR_TEST) };
+                 unsafe { gl.bind_framebuffer(glow::READ_FRAMEBUFFER, Some(self.draw_fbo)) };
+                 unsafe { gl.read_buffer(attachment) };
+                 unsafe { gl.bind_framebuffer(glow::DRAW_FRAMEBUFFER, Some(self.copy_fbo)) };
+@@ -1388,6 +1397,17 @@ impl super::Queue {
+                     unsafe { gl.disable(glow::SAMPLE_ALPHA_TO_COVERAGE) };
+                 }
+             }
++            C::SetSampleMask(mask) => {
++                if mask == !0 {
++                    unsafe { gl.disable(glow::SAMPLE_MASK) };
++                } else {
++                    unsafe { gl.enable(glow::SAMPLE_MASK) };
++                    unsafe { gl.sample_mask_i(0, mask as u32) };
++                    if unsafe { gl.get_parameter_i32(glow::MAX_SAMPLE_MASK_WORDS) } > 1 {
++                        unsafe { gl.sample_mask_i(1, (mask >> 32) as u32) };
++                    }
++                }
++            }
+             C::SetProgram(program) => {
+                 unsafe { gl.use_program(Some(program)) };
+             }
+@@ -1515,21 +1535,28 @@ impl super::Queue {
+                 unsafe { gl.active_texture(glow::TEXTURE0 + slot) };
+                 unsafe { gl.bind_texture(target, Some(texture)) };
+ 
+-                unsafe {
+-                    gl.tex_parameter_i32(target, glow::TEXTURE_BASE_LEVEL, mip_levels.start as i32)
+-                };
+-                unsafe {
+-                    gl.tex_parameter_i32(
+-                        target,
+-                        glow::TEXTURE_MAX_LEVEL,
+-                        (mip_levels.end - 1) as i32,
+-                    )
+-                };
++                // Multisample textures have exactly one level and reject
++                // TEXTURE_BASE_LEVEL/TEXTURE_MAX_LEVEL parameters.
++                if target != glow::TEXTURE_2D_MULTISAMPLE &&
++                    target != glow::TEXTURE_2D_MULTISAMPLE_ARRAY {
++                    unsafe {
++                        gl.tex_parameter_i32(target, glow::TEXTURE_BASE_LEVEL, mip_levels.start as i32)
++                    };
++                    unsafe {
++                        gl.tex_parameter_i32(
++                            target,
++                            glow::TEXTURE_MAX_LEVEL,
++                            (mip_levels.end - 1) as i32,
++                        )
++                    };
++                }
+ 
+                 let version = gl.version();
+                 let is_min_es_3_1 = version.is_embedded && (version.major, version.minor) >= (3, 1);
+                 let is_min_4_3 = !version.is_embedded && (version.major, version.minor) >= (4, 3);
+-                if is_min_es_3_1 || is_min_4_3 {
++                if (is_min_es_3_1 || is_min_4_3) &&
++                    target != glow::TEXTURE_2D_MULTISAMPLE &&
++                    target != glow::TEXTURE_2D_MULTISAMPLE_ARRAY {
+                     let mode = match aspects {
+                         crate::FormatAspects::DEPTH => Some(glow::DEPTH_COMPONENT),
+                         crate::FormatAspects::STENCIL => Some(glow::STENCIL_INDEX),
+diff --git a/src/vulkan/device.rs b/src/vulkan/device.rs
+index 61f4d52..bab3d74 100644
+--- a/src/vulkan/device.rs
++++ b/src/vulkan/device.rs
+@@ -592,13 +592,27 @@ impl super::Device {
+             info = info.push_next(&mut format_list_info);
+         }
+ 
++        let trace = super::wsi_trace_enabled();
++        if trace {
++            super::wsi_trace(format_args!("stage=vkCreateSwapchainKHR event=begin source=actual surface={:?} old_swapchain={:?} size={}x{} min_images={} present_mode={:?}",
++                surface.raw, old_swapchain, info.image_extent.width, info.image_extent.height,
++                info.min_image_count, info.present_mode));
++        }
++        let started = trace.then(std::time::Instant::now);
+         let result = {
+             profiling::scope!("vkCreateSwapchainKHR");
+             unsafe { functor.create_swapchain(&info, None) }
+         };
++        if let Some(started) = started {
++            super::wsi_trace(format_args!("stage=vkCreateSwapchainKHR event=end source=actual surface={:?} old_swapchain={:?} result={:?} elapsed_ms={:.6}",
++                surface.raw, old_swapchain, result, started.elapsed().as_secs_f64() * 1000.0));
++        }
+ 
+         // doing this before bailing out with error
+         if old_swapchain != vk::SwapchainKHR::null() {
++            if trace {
++                super::wsi_trace(format_args!("stage=vkDestroySwapchainKHR event=begin source=actual surface={:?} swapchain={:?}", surface.raw, old_swapchain));
++            }
+             unsafe { functor.destroy_swapchain(old_swapchain, None) }
+         }
+ 
+@@ -2596,6 +2610,7 @@ impl super::DeviceShared {
+         timeout_ns: u64,
+     ) -> Result<bool, crate::DeviceError> {
+         profiling::scope!("Device::wait");
++        let trace = super::wsi_trace_enabled();
+         match *fence {
+             super::Fence::TimelineSemaphore(raw) => {
+                 let semaphores = [raw];
+@@ -2603,6 +2618,10 @@ impl super::DeviceShared {
+                 let vk_info = vk::SemaphoreWaitInfo::default()
+                     .semaphores(&semaphores)
+                     .values(&values);
++                if trace {
++                    super::wsi_trace(format_args!("stage=vkWaitSemaphores event=begin source=actual semaphore={:?} value={} timeout_ns={}", raw, wait_value, timeout_ns));
++                }
++                let started = trace.then(std::time::Instant::now);
+                 let result = match self.extension_fns.timeline_semaphore {
+                     Some(super::ExtensionFn::Extension(ref ext)) => unsafe {
+                         ext.wait_semaphores(&vk_info, timeout_ns)
+@@ -2612,6 +2631,10 @@ impl super::DeviceShared {
+                     },
+                     None => unreachable!(),
+                 };
++                if let Some(started) = started {
++                    super::wsi_trace(format_args!("stage=vkWaitSemaphores event=end source=actual semaphore={:?} value={} result={:?} elapsed_ms={:.6}",
++                        raw, wait_value, result, started.elapsed().as_secs_f64() * 1000.0));
++                }
+                 match result {
+                     Ok(()) => Ok(true),
+                     Err(vk::Result::TIMEOUT) => Ok(false),
+@@ -2624,11 +2647,23 @@ impl super::DeviceShared {
+                 free: _,
+             } => {
+                 if wait_value <= last_completed {
++                    if trace {
++                        super::wsi_trace(format_args!("stage=wait_for_fence event=already_completed source=actual value={} last_completed={} vulkan_wait_called=0", wait_value, last_completed));
++                    }
+                     Ok(true)
+                 } else {
+                     match active.iter().find(|&&(value, _)| value >= wait_value) {
+                         Some(&(_, raw)) => {
+-                            match unsafe { self.raw.wait_for_fences(&[raw], true, timeout_ns) } {
++                            if trace {
++                                super::wsi_trace(format_args!("stage=vkWaitForFences event=begin source=actual fence={:?} value={} timeout_ns={}", raw, wait_value, timeout_ns));
++                            }
++                            let started = trace.then(std::time::Instant::now);
++                            let result = unsafe { self.raw.wait_for_fences(&[raw], true, timeout_ns) };
++                            if let Some(started) = started {
++                                super::wsi_trace(format_args!("stage=vkWaitForFences event=end source=actual fence={:?} value={} result={:?} elapsed_ms={:.6}",
++                                    raw, wait_value, result, started.elapsed().as_secs_f64() * 1000.0));
++                            }
++                            match result {
+                                 Ok(()) => Ok(true),
+                                 Err(vk::Result::TIMEOUT) => Ok(false),
+                                 Err(other) => Err(super::map_host_device_oom_and_lost_err(other)),
+diff --git a/src/vulkan/instance.rs b/src/vulkan/instance.rs
+index 7b0fa9f..a6b091c 100644
+--- a/src/vulkan/instance.rs
++++ b/src/vulkan/instance.rs
+@@ -6,6 +6,10 @@ use std::{
+     thread,
+ };
+ 
++#[cfg(all(target_os = "linux", not(target_os = "android")))]
++#[path = "x11_wsi.rs"]
++mod x11_wsi;
++
+ use arrayvec::ArrayVec;
+ use ash::{ext, khr, vk};
+ use parking_lot::RwLock;
+@@ -157,15 +161,22 @@ impl super::Swapchain {
+     /// - The device must have been made idle before calling this function.
+     unsafe fn release_resources(mut self, device: &ash::Device) -> Self {
+         profiling::scope!("Swapchain::release_resources");
++        let trace = super::wsi_trace_enabled();
++        if trace {
++            super::wsi_trace(format_args!("stage=release_swapchain event=begin source=actual swapchain={:?} semaphore_refs={:?}",
++                self.raw, self.surface_semaphores.iter().map(Arc::strong_count).collect::<Vec<_>>()));
++        }
+         {
+             profiling::scope!("vkDeviceWaitIdle");
+             // We need to also wait until all presentation work is done. Because there is no way to portably wait until
+             // the presentation work is done, we are forced to wait until the device is idle.
+-            let _ = unsafe {
+-                device
+-                    .device_wait_idle()
+-                    .map_err(super::map_host_device_oom_and_lost_err)
+-            };
++            let started = trace.then(std::time::Instant::now);
++            let result = unsafe { device.device_wait_idle() };
++            if let Some(started) = started {
++                super::wsi_trace(format_args!("stage=vkDeviceWaitIdle event=end source=actual swapchain={:?} result={:?} elapsed_ms={:.6}",
++                    self.raw, result, started.elapsed().as_secs_f64() * 1000.0));
++            }
++            let _ = result.map_err(super::map_host_device_oom_and_lost_err);
+         };
+ 
+         // We cannot take this by value, as the function returns `self`.
+@@ -178,6 +189,10 @@ impl super::Swapchain {
+             unsafe { mutex_removed.destroy(device) };
+         }
+ 
++        if trace {
++            super::wsi_trace(format_args!("stage=release_swapchain event=end source=actual swapchain={:?} semaphore_slots=0", self.raw));
++        }
++
+         self
+     }
+ }
+@@ -395,6 +410,9 @@ impl super::Instance {
+             )));
+         }
+ 
++        #[cfg(all(target_os = "linux", not(target_os = "android")))]
++        unsafe { x11_wsi::prepare(dpy.cast()) }.map_err(crate::InstanceError::new)?;
++
+         let surface = {
+             let xlib_loader =
+                 khr::xlib_surface::Instance::new(&self.shared.entry, &self.shared.raw);
+@@ -407,6 +425,10 @@ impl super::Instance {
+                 .expect("XlibSurface::create_xlib_surface() failed")
+         };
+ 
++        if super::wsi_trace_enabled() {
++            super::wsi_trace(format_args!("stage=vkCreateXlibSurfaceKHR event=end source=actual display={:?} window={:#x} surface={:?}",
++                dpy, window, surface));
++        }
+         Ok(self.create_surface_from_vk_surface_khr(surface))
+     }
+ 
+@@ -956,6 +978,10 @@ impl crate::Instance for super::Instance {
+ 
+ impl Drop for super::Surface {
+     fn drop(&mut self) {
++        if super::wsi_trace_enabled() {
++            super::wsi_trace(format_args!("stage=vkDestroySurfaceKHR event=begin source=actual surface={:?} swapchain_present={}",
++                self.raw, self.swapchain.read().is_some()));
++        }
+         unsafe { self.functor.destroy_surface(self.raw, None) };
+     }
+ }
+@@ -975,6 +1001,13 @@ impl crate::Surface for super::Surface {
+             .map(|sc| unsafe { sc.release_resources(&device.shared.raw) });
+ 
+         let swapchain = unsafe { device.create_swapchain(self, config, old)? };
++        if super::wsi_trace_enabled() {
++            super::wsi_trace(format_args!("stage=configure event=end source=actual surface={:?} swapchain={:?} images={:?} acquire_semaphores={:?} semaphore_slots={} size={}x{} present_mode={:?} maximum_frame_latency={}",
++                self.raw, swapchain.raw, swapchain.images,
++                swapchain.surface_semaphores.iter().map(|s| s.lock().acquire).collect::<Vec<_>>(),
++                swapchain.surface_semaphores.len(), config.extent.width, config.extent.height,
++                config.present_mode, config.maximum_frame_latency));
++        }
+         *swap_chain = Some(swapchain);
+ 
+         Ok(())
+@@ -984,6 +1017,9 @@ impl crate::Surface for super::Surface {
+         if let Some(sc) = self.swapchain.write().take() {
+             // SAFETY: `unconfigure`'s contract guarantees there are no resources derived from the swapchain in use.
+             let swapchain = unsafe { sc.release_resources(&device.shared.raw) };
++            if super::wsi_trace_enabled() {
++                super::wsi_trace(format_args!("stage=vkDestroySwapchainKHR event=begin source=actual surface={:?} swapchain={:?}", self.raw, swapchain.raw));
++            }
+             unsafe { swapchain.functor.destroy_swapchain(swapchain.raw, None) };
+         }
+     }
+@@ -1033,14 +1069,51 @@ impl crate::Surface for super::Surface {
+         // thus waited for `locked_swapchain_semaphores.acquire`, wait for all
+         // of them to finish, thus ensuring that it's okay to pass `acquire` to
+         // `vkAcquireNextImageKHR` again.
+-        swapchain.device.wait_for_fence(
++        let trace = super::wsi_trace_enabled();
++        if trace {
++            super::wsi_trace(format_args!("stage=acquire_fence_wait event=begin source=actual surface={:?} swapchain={:?} semaphore_slot={} acquire_semaphore={:?} semaphore_refs={} previous_submission={} fence={:?} timeout_ns={} images={} should_wait_for_acquire={} pending_present_semaphores={}",
++                self.raw, swapchain.raw, swapchain.next_semaphore_index,
++                locked_swapchain_semaphores.acquire, Arc::strong_count(&swapchain_semaphores_arc),
++                locked_swapchain_semaphores.previously_used_submission_index, fence, timeout_ns,
++                swapchain.images.len(), locked_swapchain_semaphores.should_wait_for_acquire,
++                locked_swapchain_semaphores.present_index));
++        }
++        let wait_started = trace.then(std::time::Instant::now);
++        let wait_result = swapchain.device.wait_for_fence(
+             fence,
+             locked_swapchain_semaphores.previously_used_submission_index,
+             timeout_ns,
+-        )?;
++        );
++        if let Some(started) = wait_started {
++            super::wsi_trace(format_args!("stage=acquire_fence_wait event=end source=actual surface={:?} swapchain={:?} result={:?} elapsed_ms={:.6}",
++                self.raw, swapchain.raw, wait_result, started.elapsed().as_secs_f64() * 1000.0));
++        }
++        let actual_completed = wait_result?;
++        // Force an incomplete result only after a successful real wait. A guard
++        // mutation can then call acquire safely during the adversarial test.
++        let injected = trace && actual_completed
++            && std::env::var("COIN_WGPU_TEST_ACQUIRE_FENCE_TIMEOUT").as_deref() == Ok("1");
++        let completed = actual_completed && !injected;
++        if !completed {
++            if trace {
++                super::wsi_trace(format_args!("stage=acquire_texture event=return source={} surface={:?} swapchain={:?} result=Timeout fence_completed={} wsi_called=0 semaphore_slot={} acquire_semaphore={:?}",
++                    if injected { "injected" } else { "actual" }, self.raw, swapchain.raw,
++                    actual_completed, swapchain.next_semaphore_index, locked_swapchain_semaphores.acquire));
++            }
++            // A pending submission may still wait on `acquire`. Reusing it in
++            // vkAcquireNextImageKHR violates VUID-semaphore-01779. Neither call
++            // WSI nor advance this semaphore slot until the wait completes.
++            return Ok(None);
++        }
+ 
+         // will block if no image is available
+-        let (index, suboptimal) = match unsafe {
++        if trace {
++            super::wsi_trace(format_args!("stage=vkAcquireNextImageKHR event=begin source=actual surface={:?} swapchain={:?} semaphore_slot={} acquire_semaphore={:?} timeout_ns={} wsi_called=1",
++                self.raw, swapchain.raw, swapchain.next_semaphore_index,
++                locked_swapchain_semaphores.acquire, timeout_ns));
++        }
++        let acquire_started = trace.then(std::time::Instant::now);
++        let raw_result = unsafe {
+             profiling::scope!("vkAcquireNextImageKHR");
+             swapchain.functor.acquire_next_image(
+                 swapchain.raw,
+@@ -1048,7 +1121,13 @@ impl crate::Surface for super::Surface {
+                 locked_swapchain_semaphores.acquire,
+                 vk::Fence::null(),
+             )
+-        } {
++        };
++        if let Some(started) = acquire_started {
++            super::wsi_trace(format_args!("stage=vkAcquireNextImageKHR event=end source=actual surface={:?} swapchain={:?} semaphore_slot={} result={:?} elapsed_ms={:.6} wsi_called=1",
++                self.raw, swapchain.raw, swapchain.next_semaphore_index, raw_result,
++                started.elapsed().as_secs_f64() * 1000.0));
++        }
++        let (index, suboptimal) = match raw_result {
+             // We treat `VK_SUBOPTIMAL_KHR` as `VK_SUCCESS` on Android.
+             // See the comment in `Queue::present`.
+             #[cfg(target_os = "android")]
+@@ -1078,6 +1157,11 @@ impl crate::Surface for super::Surface {
+         if swapchain.device.vendor_id == crate::auxil::db::intel::VENDOR && index > 0x100 {
+             return Err(crate::SurfaceError::Outdated);
+         }
++        if trace {
++            super::wsi_trace(format_args!("stage=acquire_texture event=return source=actual surface={:?} swapchain={:?} result=Ok image_index={} image={:?} next_semaphore_slot={} suboptimal={}",
++                self.raw, swapchain.raw, index, swapchain.images[index as usize],
++                swapchain.next_semaphore_index, suboptimal));
++        }
+ 
+         // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkRenderPassBeginInfo.html#VUID-VkRenderPassBeginInfo-framebuffer-03209
+         let raw_flags = if swapchain
+@@ -1114,5 +1198,10 @@ impl crate::Surface for super::Surface {
+         }))
+     }
+ 
+-    unsafe fn discard_texture(&self, _texture: super::SurfaceTexture) {}
++    unsafe fn discard_texture(&self, texture: super::SurfaceTexture) {
++        if super::wsi_trace_enabled() {
++            super::wsi_trace(format_args!("stage=discard_texture event=drop source=actual surface={:?} image_index={} image={:?} semaphore_refs={}",
++                self.raw, texture.index, texture.texture.raw, Arc::strong_count(&texture.surface_semaphores)));
++        }
++    }
+ }
+diff --git a/src/vulkan/mod.rs b/src/vulkan/mod.rs
+index 97c14a6..917721b 100644
+--- a/src/vulkan/mod.rs
++++ b/src/vulkan/mod.rs
+@@ -45,6 +45,21 @@ use ash::{ext, khr, vk};
+ use parking_lot::{Mutex, RwLock};
+ use wgt::InternalCounter;
+ 
++// Cache the process setting so normal rendering pays only a predictable branch.
++fn wsi_trace_enabled() -> bool {
++    static ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
++    *ENABLED.get_or_init(|| {
++        std::env::var_os("COIN_WGPU_TRACE_WSI").is_some()
++            || std::env::var_os("COIN_RENDER_TRACE_PHASES").is_some()
++            || std::env::var_os("COIN_WGPU_TRACE_PHASES").is_some()
++    })
++}
++
++fn wsi_trace(args: fmt::Arguments<'_>) {
++    eprintln!("COIN_WGPU_WSI pid={} thread={:?} {}",
++        std::process::id(), std::thread::current().id(), args);
++}
++
+ const MILLIS_TO_NANOS: u64 = 1_000_000;
+ const MAX_TOTAL_ATTACHMENTS: usize = crate::MAX_COLOR_ATTACHMENTS * 2 + 1;
+ 
+@@ -1270,12 +1285,22 @@ impl crate::Queue for Queue {
+         }
+ 
+         profiling::scope!("vkQueueSubmit");
+-        unsafe {
+-            self.device
+-                .raw
+-                .queue_submit(self.raw, &[vk_info], fence_raw)
+-                .map_err(map_host_device_oom_and_lost_err)?
++        let trace = wsi_trace_enabled() && !surface_textures.is_empty();
++        if trace {
++            wsi_trace(format_args!("stage=vkQueueSubmit event=begin source=actual queue={:?} fence={:?} signal_value={} surface_images={:?} wait_semaphores={:?} signal_semaphores={:?}",
++                self.raw, fence_raw, signal_value,
++                surface_textures.iter().map(|st| (st.index, st.texture.raw)).collect::<Vec<_>>(),
++                wait_semaphores, signal_semaphores));
++        }
++        let started = trace.then(std::time::Instant::now);
++        let result = unsafe {
++            self.device.raw.queue_submit(self.raw, &[vk_info], fence_raw)
+         };
++        if let Some(started) = started {
++            wsi_trace(format_args!("stage=vkQueueSubmit event=end source=actual queue={:?} result={:?} elapsed_ms={:.6}",
++                self.raw, result, started.elapsed().as_secs_f64() * 1000.0));
++        }
++        result.map_err(map_host_device_oom_and_lost_err)?;
+         Ok(())
+     }
+ 
+@@ -1290,10 +1315,11 @@ impl crate::Queue for Queue {
+ 
+         let swapchains = [ssc.raw];
+         let image_indices = [texture.index];
++        let present_wait_semaphores = swapchain_semaphores.get_present_wait_semaphores();
+         let vk_info = vk::PresentInfoKHR::default()
+             .swapchains(&swapchains)
+             .image_indices(&image_indices)
+-            .wait_semaphores(swapchain_semaphores.get_present_wait_semaphores());
++            .wait_semaphores(present_wait_semaphores);
+ 
+         let mut display_timing;
+         let present_times;
+@@ -1312,9 +1338,22 @@ impl crate::Queue for Queue {
+             vk_info
+         };
+ 
++        let trace = wsi_trace_enabled();
++        if trace {
++            wsi_trace(format_args!("stage=vkQueuePresentKHR event=begin source=actual surface={:?} swapchain={:?} queue={:?} image_index={} image={:?} wait_semaphores={:?} semaphore_refs={}",
++                surface.raw, ssc.raw, self.raw, texture.index, texture.texture.raw,
++                present_wait_semaphores,
++                Arc::strong_count(&texture.surface_semaphores)));
++        }
++        let started = trace.then(std::time::Instant::now);
+         let suboptimal = {
+             profiling::scope!("vkQueuePresentKHR");
+-            unsafe { self.swapchain_fn.queue_present(self.raw, &vk_info) }.map_err(|error| {
++            let result = unsafe { self.swapchain_fn.queue_present(self.raw, &vk_info) };
++            if let Some(started) = started {
++                wsi_trace(format_args!("stage=vkQueuePresentKHR event=end source=actual surface={:?} swapchain={:?} image_index={} result={:?} elapsed_ms={:.6} display_completion=unknown",
++                    surface.raw, ssc.raw, texture.index, result, started.elapsed().as_secs_f64() * 1000.0));
++            }
++            result.map_err(|error| {
+                 match error {
+                     vk::Result::ERROR_OUT_OF_DATE_KHR => crate::SurfaceError::Outdated,
+                     vk::Result::ERROR_SURFACE_LOST_KHR => crate::SurfaceError::Lost,
+diff --git a/src/vulkan/x11_wsi.rs b/src/vulkan/x11_wsi.rs
+new file mode 100644
+index 0000000..30c639b
+--- /dev/null
++++ b/src/vulkan/x11_wsi.rs
+@@ -0,0 +1,92 @@
++// Private Vulkan Xlib WSI admission; no connection identity survives this call.
++use std::ffi::{c_char, c_int, c_void};
++
++#[repr(C)]
++#[derive(Clone, Copy)]
++struct Cookie { sequence: u32 }
++#[repr(C)]
++struct ExtensionReply {
++    response: u8, pad: u8, sequence: u16, length: u32,
++    present: u8, opcode: u8, first_event: u8, first_error: u8,
++}
++#[repr(C)]
++struct VersionReply {
++    response: u8, pad: u8, sequence: u16, length: u32, major: u32, minor: u32,
++}
++#[repr(C)]
++struct VersionRequest { opcode: u8, minor: u8, length: u16, major: u32, version_minor: u32 }
++#[repr(C)]
++struct Request { count: usize, extension: *mut c_void, opcode: u8, is_void: u8 }
++#[repr(C)]
++struct IoVec { base: *mut c_void, len: usize }
++extern "C" { fn free(pointer: *mut c_void); }
++
++pub unsafe fn prepare(display: *mut c_void) -> Result<(), String> {
++    if display.is_null() { return Err("Vulkan X11 WSI requires a live Display".into()); }
++    // These libraries register no display close hooks; temporary loading retains
++    // neither the caller's Display nor its connection. No new link dependency.
++    let xlib = unsafe { libloading::Library::new("libX11.so.6") }
++        .map_err(|e| format!("Vulkan X11 WSI cannot load Xlib: {e}"))?;
++    let xlibxcb = unsafe { libloading::Library::new("libX11-xcb.so.1") }
++        .map_err(|e| format!("Vulkan X11 WSI cannot load Xlib/XCB support: {e}"))?;
++    let xcb = unsafe { libloading::Library::new("libxcb.so.1") }
++        .map_err(|e| format!("Vulkan X11 WSI cannot load XCB: {e}"))?;
++    unsafe {
++        let flush = xlib.get::<unsafe extern "C" fn(*mut c_void) -> c_int>(b"XFlush\0")
++            .map_err(|e| format!("Vulkan X11 WSI missing XFlush: {e}"))?;
++        let connection = xlibxcb.get::<unsafe extern "C" fn(*mut c_void) -> *mut c_void>(b"XGetXCBConnection\0")
++            .map_err(|e| format!("Vulkan X11 WSI missing XGetXCBConnection: {e}"))?;
++        let query = xcb.get::<unsafe extern "C" fn(*mut c_void, u16, *const c_char) -> Cookie>(b"xcb_query_extension\0")
++            .map_err(|e| format!("Vulkan X11 WSI missing extension query: {e}"))?;
++        let extension_reply = xcb.get::<unsafe extern "C" fn(*mut c_void, Cookie, *mut *mut c_void) -> *mut ExtensionReply>(b"xcb_query_extension_reply\0")
++            .map_err(|e| format!("Vulkan X11 WSI missing extension reply: {e}"))?;
++        let send = xcb.get::<unsafe extern "C" fn(*mut c_void, c_int, *mut IoVec, *const Request) -> u32>(b"xcb_send_request\0")
++            .map_err(|e| format!("Vulkan X11 WSI missing request support: {e}"))?;
++        let wait = xcb.get::<unsafe extern "C" fn(*mut c_void, u32, *mut *mut c_void) -> *mut VersionReply>(b"xcb_wait_for_reply\0")
++            .map_err(|e| format!("Vulkan X11 WSI missing reply support: {e}"))?;
++        flush(display);
++        let c = connection(display);
++        if c.is_null() { return Err("Vulkan X11 WSI has no XCB connection".into()); }
++        let mut error = std::ptr::null_mut();
++        let extension = extension_reply(c, query(c, 6, b"XFIXES".as_ptr().cast()), &mut error);
++        if !error.is_null() || extension.is_null() {
++            free(error); free(extension.cast());
++            return Err("Vulkan X11 WSI failed to query XFIXES extension".into());
++        }
++        let present = (*extension).present != 0;
++        let opcode = (*extension).opcode;
++        let valid_extension = (*extension).response == 1 && (*extension).length == 0
++            && (!present || opcode >= 128);
++        free(extension.cast());
++        // CoinRender's Vulkan Xlib presentation profile requires region-capable
++        // connections before hardware WSI. This is not a universal Vulkan rule.
++        if !valid_extension { return Err("Vulkan X11 WSI received an invalid XFIXES extension reply".into()); }
++        if !present {
++            return Err("CoinRender Vulkan Xlib presentation requires XFIXES version 2 (extension absent)".into());
++        }
++
++        // fixesproto section 4 requires negotiation on this actual connection.
++        // Never trust a driver cache keyed by a recycled XCB address.
++        let mut version = VersionRequest { opcode: 0, minor: 0, length: 0, major: 6, version_minor: 0 };
++        let mut vectors = [
++            IoVec { base: std::ptr::null_mut(), len: 0 },
++            IoVec { base: std::ptr::null_mut(), len: 0 },
++            IoVec { base: (&mut version as *mut VersionRequest).cast(), len: std::mem::size_of::<VersionRequest>() },
++            IoVec { base: std::ptr::null_mut(), len: 0 },
++        ];
++        let request = Request { count: 2, extension: std::ptr::null_mut(), opcode, is_void: 0 };
++        let sequence = send(c, 1 /* XCB_REQUEST_CHECKED */, vectors.as_mut_ptr().add(2), &request);
++        let reply = if sequence == 0 { std::ptr::null_mut() } else { wait(c, sequence, &mut error) };
++        if !error.is_null() || reply.is_null() {
++            free(error); free(reply.cast());
++            return Err("Vulkan X11 WSI XFIXES QueryVersion failed".into());
++        }
++        let valid_version = (*reply).response == 1 && (*reply).length == 0
++            && ((*reply).major < 6 || ((*reply).major == 6 && (*reply).minor == 0));
++        let regions = valid_version && (*reply).major >= 2;
++        free(reply.cast());
++        if !valid_version { return Err("Vulkan X11 WSI received an invalid XFIXES version reply".into()); }
++        if !regions { return Err("Vulkan X11 WSI requires XFIXES version 2 for region requests".into()); }
++    }
++    Ok(())
++}

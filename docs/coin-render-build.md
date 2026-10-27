@@ -19,7 +19,10 @@ ctest --test-dir build-recording --output-on-failure
 `RECORDING` builds without Rust or a GPU executor. It provides contract tests,
 logs and auxiliary software rasterization, not universal visual qualification.
 
-For wgpu, install Cargo/rustc and use the checked-in locked bridge dependencies:
+For wgpu, install Cargo/rustc and Git and use the checked-in locked bridge
+dependencies. The four corrected crates come from an external repository at a
+full commit, not local vendor copies. See the
+[external dependency guide](../cmake/patches/rust-dependencies/README.md).
 
 ```sh
 cmake -S . -B build-wgpu -DCMAKE_BUILD_TYPE=Release \
@@ -34,8 +37,14 @@ CARGO_TARGET_DIR="$PWD/build-wgpu/rust_target" \
 ```
 
 CMake supplies `CARGO_TARGET_DIR` inside its own build tree and invokes Cargo
-with `--locked`. Offline Cargo testing requires the dependencies to be available
-locally. Serialized Rust tests are the historical safe host recipe: the earlier
+with `--locked`. Offline Cargo testing requires both the registry crates and the
+pinned Git revision to be cached locally. Before an offline run, fetch online:
+
+```sh
+cargo fetch --locked --manifest-path src/rendering/coinwgpu/rust_bridge/Cargo.toml
+```
+
+Serialized Rust tests are the historical safe host recipe: the earlier
 parallel library suite passed 42 assertions but could crash at process shutdown,
 also with the untouched baseline. That result is historical, not a new claim
 that every current concurrency/platform profile passes.

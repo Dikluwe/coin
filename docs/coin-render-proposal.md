@@ -13,13 +13,14 @@ A brief overview of the current prototype:
   Rust and Cargo are required only for the wgpu backend.
 - **Dependencies:** BGFX with bx, bimg and shaderc, built separately at pinned
   revisions with manually applied platform/profile patches; or wgpu 24 from
-  crates.io, with four crates patched locally (see below). Rust dependency versions
+  crates.io, with four corrected crates fetched from an external Git repository
+  at a fixed commit (see below). Rust dependency versions
   are pinned by `Cargo.lock`. The changes need their own review and maintenance
   plan; they are detailed in the
   [dependency guide](https://github.com/Dikluwe/coin/blob/coin-render/cmake/patches/README.md).
 - **Size:** approximately 68,000 first-party source/shader lines across capture,
   shared code and both backends, plus 141,000 test/support lines. Counts include
-  comments and blank lines and exclude vendored dependencies.
+  comments and blank lines and exclude external dependencies.
 - **Coin 4 ABI:** not established. The prototype adds `SoBumpMapElement::source`
   to an existing class; I am treating this layout change as ABI-breaking for
   Coin 4 and would redesign it before proposing a compatible integration.
@@ -27,13 +28,15 @@ A brief overview of the current prototype:
   the consolidated revision still needs fresh GPU qualification, including
   Windows DirectX 12, Vulkan and OpenGL. CPU/shader checks are not GPU results.
 
-The wgpu backend currently vendors full copies of Naga, wgpu-hal, wgpu-core and
-glow (**about 222,700 text lines**) to carry local fixes through
-`[patch.crates-io]`. These copies are excluded from the first-party size above.
-The branch diff adds approximately 469,000 lines relative to its historical Coin
-base (`ca247c1321`), including these dependencies, tests, examples, documentation
-and integration changes; that is not 469,000 lines of first-party renderer code.
-Dependency packaging and long-term maintenance of the local fixes remain open.
+The four corrected packages (Naga, wgpu-hal, wgpu-core and glow) are hosted in
+[Dikluwe/coinrender-rust-deps](https://github.com/Dikluwe/coinrender-rust-deps),
+pinned to [`b39b068fe5aed4782790075866bee8d010bed3ec`](https://github.com/Dikluwe/coinrender-rust-deps/commit/b39b068fe5aed4782790075866bee8d010bed3ec).
+The Coin source tree contains compact patches for the local changes in **16
+files: 450 added and 104 removed lines**, rather than approximately 222,700 lines
+of complete dependency copies. The [patch and provenance guide](https://github.com/Dikluwe/coin/blob/coin-render/cmake/patches/rust-dependencies/README.md)
+describes the published versions and preserved corrections/adaptations. These
+changes are not all upstream-accepted fixes; their review and long-term maintenance
+remain part of the proposal. Earlier copies remain recoverable in Git history.
 
 ## How it works
 
@@ -92,8 +95,12 @@ simply moving all of that code into one PR.
 
 ## Validation and contribution scope
 
-The latest focused checks passed 50 CPU/contract CTests and eight Rust shader
-tests; the C++11 consumer and wgpu production library compiled. These checks do
+Earlier focused checks passed 50 CPU/contract CTests and eight Rust shader
+tests; the C++11 consumer and wgpu production library compiled. The external
+dependency separation additionally passed 71 Rust unit tests (four ignored),
+five shader integration tests, seven bridge ABI/build checks and the CTest
+check of resolved Git pins and patches. The production CoinRender library also
+compiled with the external sources. These checks do
 not replace fresh GPU qualification of the consolidated revision. Native surface
 teardown, Vulkan recovery/stale presentation, broader platform coverage and the
 Coin 4 ABI issue above remain open.

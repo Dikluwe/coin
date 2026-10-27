@@ -1,0 +1,38 @@
+diff --git a/src/back/glsl/mod.rs b/src/back/glsl/mod.rs
+index ea0a9e7..32a0b67 100644
+--- a/src/back/glsl/mod.rs
++++ b/src/back/glsl/mod.rs
+@@ -4258,8 +4258,18 @@ impl<'a, W: Write> Writer<'a, W> {
+                 };
+                 ("imageLoad", policy)
+             }
+-            // TODO: Is there even a function for this?
+-            crate::ImageClass::Depth { multi: _ } => {
++            // GLSL has no multisampled shadow sampler, but a depth attachment
++            // is readable through sampler2DMS and texelFetch returns its value
++            // in the first channel. Preserve the backend's unchecked policy
++            // on GLES, where textureSamples is unavailable before GLSL ES 3.20.
++            // Checked profiles use Restrict to avoid a vector-valued
++            // ReadZeroSkipWrite fallback for this scalar depth result.
++            crate::ImageClass::Depth { multi: true } => ("texelFetch",
++                match self.policies.image_load {
++                    proc::BoundsCheckPolicy::Unchecked => proc::BoundsCheckPolicy::Unchecked,
++                    _ => proc::BoundsCheckPolicy::Restrict,
++                }),
++            crate::ImageClass::Depth { multi: false } => {
+                 return Err(Error::Custom(
+                     "WGSL `textureLoad` from depth textures is not supported in GLSL".to_string(),
+                 ))
+@@ -4428,8 +4438,11 @@ impl<'a, W: Write> Writer<'a, W> {
+             self.write_expr(sample_or_level, ctx)?;
+         }
+ 
+-        // Close the image load function.
++        // Close the image load function and select depth from the multisample texel.
+         write!(self.out, ")")?;
++        if matches!(class, crate::ImageClass::Depth { multi: true }) {
++            write!(self.out, ".x")?;
++        }
+ 
+         // If we were using the `ReadZeroSkipWrite` policy we need to end the first branch
+         // (which is taken if the condition is `true`) with a colon (`:`) and write the

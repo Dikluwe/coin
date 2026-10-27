@@ -17,7 +17,7 @@ and package aliases are excluded from this contribution.
 | `testsuite/coinwgpu/rust/unit/` | Rust unit tests |
 | `testsuite/coinwgpu/rust/gouraud_shader.rs`, `shadow_shader.rs` | Rust shader integration tests |
 | `examples/coinrender/` | Standalone examples, benchmark clients and installed-SDK consumer |
-| `cmake/patches/` | Pinned external dependency patches and reproduction instructions |
+| `cmake/patches/` | BGFX and compact Rust dependency patches; corrected crates are external Git dependencies pinned by Cargo.toml/Cargo.lock |
 
 The auxiliary CPU rasterizer is compiled for RECORDING and test builds only;
 production BGFX/wgpu builds exclude it. Lines and points share one WGSL source,

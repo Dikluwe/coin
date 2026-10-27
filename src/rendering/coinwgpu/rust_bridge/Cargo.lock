@@ -241,6 +241,7 @@ dependencies = [
 [[package]]
 name = "glow"
 version = "0.16.0"
+source = "git+https://github.com/Dikluwe/coinrender-rust-deps?rev=b39b068fe5aed4782790075866bee8d010bed3ec#b39b068fe5aed4782790075866bee8d010bed3ec"
 dependencies = [
  "js-sys",
  "slotmap",
@@ -465,6 +466,7 @@ dependencies = [
 [[package]]
 name = "naga"
 version = "24.0.0"
+source = "git+https://github.com/Dikluwe/coinrender-rust-deps?rev=b39b068fe5aed4782790075866bee8d010bed3ec#b39b068fe5aed4782790075866bee8d010bed3ec"
 dependencies = [
  "arrayvec",
  "bit-set",
@@ -913,6 +915,7 @@ dependencies = [
 [[package]]
 name = "wgpu-core"
 version = "24.0.5"
+source = "git+https://github.com/Dikluwe/coinrender-rust-deps?rev=b39b068fe5aed4782790075866bee8d010bed3ec#b39b068fe5aed4782790075866bee8d010bed3ec"
 dependencies = [
  "arrayvec",
  "bit-vec",
@@ -936,6 +939,7 @@ dependencies = [
 [[package]]
 name = "wgpu-hal"
 version = "24.0.4"
+source = "git+https://github.com/Dikluwe/coinrender-rust-deps?rev=b39b068fe5aed4782790075866bee8d010bed3ec#b39b068fe5aed4782790075866bee8d010bed3ec"
 dependencies = [
  "android_system_properties",
  "arrayvec",

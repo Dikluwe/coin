@@ -396,7 +396,7 @@ pub(super) fn register_runtime_exit() -> Result<(), String> {
 
 pub(super) extern "C" fn shutdown_runtime_at_exit() {
     // Drop directly on the thread executing process exit: no transfer to a
-    // cleanup thread or native-context affinity change. The vendored wgpu-core
+    // cleanup thread or native-context affinity change. The pinned wgpu-core
     // tolerates unavailable diagnostic TLS during these late resource Drops.
     // Recover a poisoned lock so an earlier failed call cannot retain a device.
     let _ = std::panic::catch_unwind(|| {

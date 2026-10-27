@@ -69,6 +69,12 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderHotPathSourceGuards
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_hotpath_source_guards.py)
 	set_tests_properties(CoinRenderHotPathSourceGuards PROPERTIES TIMEOUT 30)
+	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+		add_test(NAME CoinRenderExternalDependencySources
+			COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/testsuite/coinwgpu/test_external_dependencies.py
+				--source-root ${PROJECT_SOURCE_DIR} --cargo ${CARGO_EXECUTABLE})
+		set_tests_properties(CoinRenderExternalDependencySources PROPERTIES TIMEOUT 60)
+	endif()
 
 	# Informational only: timings are reported for review and never gate CTest.
 	add_executable(CoinRenderHotPathBenchmark CoinRenderHotPathBenchmark.cpp)

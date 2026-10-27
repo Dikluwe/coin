@@ -29,14 +29,15 @@ path = "../../../../testsuite/coinwgpu/rust/shadow_shader.rs"
 naga = { version = "24", features = ["wgsl-in", "glsl-out"] }
 
 [patch.crates-io]
+# External corrected crate sources; update Cargo.lock and review the compact patches together.
 # Naga 24 already declares multisampled depth as sampler2DMS, but rejects
 # textureLoad in its GLSL writer. Keep this narrow fix until upstream supports
 # texelFetch for depth multisample textures.
-naga = { path = "vendor/naga-24.0.0" }
-wgpu-hal = { path = "vendor/wgpu-hal-24.0.4" }
+naga = { git = "https://github.com/Dikluwe/coinrender-rust-deps", rev = "b39b068fe5aed4782790075866bee8d010bed3ec" }
+wgpu-hal = { git = "https://github.com/Dikluwe/coinrender-rust-deps", rev = "b39b068fe5aed4782790075866bee8d010bed3ec" }
 # Permit same-thread teardown after diagnostic TLS has been destroyed.
-wgpu-core = { path = "vendor/wgpu-core-24.0.5" }
-glow = { path = "vendor/glow-0.16.0" }
+wgpu-core = { git = "https://github.com/Dikluwe/coinrender-rust-deps", rev = "b39b068fe5aed4782790075866bee8d010bed3ec" }
+glow = { git = "https://github.com/Dikluwe/coinrender-rust-deps", rev = "b39b068fe5aed4782790075866bee8d010bed3ec" }
 
 [[test]]
 name = "adapter_lifecycle"

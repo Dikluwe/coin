@@ -1,6 +1,10 @@
 # CoinRender dependency patches
 
-These patches modify external BGFX sources, not Coin's public API. Apply them
+Corrected Rust crates are now external Git dependencies pinned to full commits.
+Their provenance, compact patches and offline build instructions are in the
+[Rust dependency guide](rust-dependencies/README.md).
+
+The BGFX patches below modify external BGFX sources, not Coin's public API. Apply them
 only to a separate dependency checkout. Coin's CMake configuration does not
 apply them automatically.
 
@@ -154,9 +158,9 @@ negotiation enabled and disabled, and validate per-sample peeling, publication,
 resource recovery and the unaffected profiles against the chosen SDK build.
 
 
-## Vendored wgpu-hal GLES device state
+## Pinned wgpu-hal GLES device state
 
-The vendored wgpu-hal 24.0.4 queue restores its owning device's VAO at the start
+The externally pinned wgpu-hal 24.0.4 queue restores its owning device's VAO at the start
 of command-buffer execution, before resetting ELEMENT_ARRAY_BUFFER. Several
 logical devices share the adapter's GLES context. Binding a VAO only when opening
 a device leaves a different device's VAO active; destroying that device removes
@@ -165,7 +169,8 @@ the active binding and breaks subsequent draws from a surviving device.
 The queue borrows the handle; Device remains the sole owner and deletes it.
 wgpu-core keeps Device alive until its queue has been dropped. This changes no
 capability bits, creates no extra context and keeps no destroyed peer alive.
-The Rust bridge build tracks the modified GLES mod.rs, adapter.rs and queue.rs.
+Cargo.toml and Cargo.lock pin the external commit containing the modified GLES
+mod.rs, adapter.rs and queue.rs.
 The raw ABI61 cubemap regression includes creation, rendering and destruction of
 an independent device before consuming the surviving device's resource; its
 original ordering must be preserved. B72 in the feature matrix records the

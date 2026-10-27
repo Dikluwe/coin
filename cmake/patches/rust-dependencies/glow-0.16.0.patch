@@ -1,0 +1,43 @@
+diff --git a/src/lib.rs b/src/lib.rs
+index d499b38..9627492 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -1914,6 +1914,8 @@ pub trait HasContext: __private::Sealed {
+ 
+     unsafe fn sample_coverage(&self, value: f32, invert: bool);
+ 
++    unsafe fn sample_mask_i(&self, index: u32, mask: u32);
++
+     unsafe fn get_internal_format_i32_slice(
+         &self,
+         target: u32,
+diff --git a/src/native.rs b/src/native.rs
+index de664e6..4892bd1 100644
+--- a/src/native.rs
++++ b/src/native.rs
+@@ -4498,6 +4498,10 @@ impl HasContext for Context {
+         gl.SampleCoverage(value, invert as u8);
+     }
+ 
++    unsafe fn sample_mask_i(&self, index: u32, mask: u32) {
++        self.raw.SampleMaski(index, mask);
++    }
++
+     unsafe fn get_internal_format_i32_slice(
+         &self,
+         target: u32,
+diff --git a/src/web_sys.rs b/src/web_sys.rs
+index b53b301..686328c 100644
+--- a/src/web_sys.rs
++++ b/src/web_sys.rs
+@@ -6134,6 +6134,10 @@ impl HasContext for Context {
+         }
+     }
+ 
++    unsafe fn sample_mask_i(&self, _index: u32, _mask: u32) {
++        // WebGL exposes sample coverage but not an exact per-sample mask.
++    }
++
+     unsafe fn get_internal_format_i32_slice(
+         &self,
+         target: u32,

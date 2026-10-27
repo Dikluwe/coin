@@ -20,36 +20,42 @@ every remaining line is essential or that the whole tree belongs in one PR.
 
 Counts include comments and blank lines. They cover `.cpp`, `.h`, `.rs`, `.wgsl`,
 `.sc`, `.sh` and `.in` files in `src/rendering/coinrender`, `coinbgfx`, `coinwgpu`
-and `src/actions/CoinRender*`. Vendored dependencies, public headers outside those
+and `src/actions/CoinRender*`. External dependencies, public headers outside those
 directories, examples, tests, build scripts and documentation are excluded.
 These are source-text counts, not compiled instruction counts or a complexity
 score. A single GPU build does not compile both backends.
 
-## Vendored dependencies and the complete diff
+## External dependencies and the complete diff
 
-The wgpu backend also carries complete local crate copies selected through
-`[patch.crates-io]`. Counting all tracked text files in `rust_bridge/vendor`
-gives the following separate totals:
+The wgpu backend selects four corrected crates through `[patch.crates-io]`,
+using an external Git repository and a full commit pin. See the
+[dependency source and patch guide](../cmake/patches/rust-dependencies/README.md).
+There is no `rust_bridge/vendor` directory in the current source tree.
 
-| Crate copy | Text lines |
+Before this separation, the branch carried these full dependency copies:
+
+| Former crate copy | Text lines |
 | --- | ---: |
 | Naga 24.0.0 | 90,703 |
 | wgpu-hal 24.0.4 | 40,796 |
 | wgpu-core 24.0.5 | 37,145 |
 | glow 0.16.0 | 54,009 |
-| **Total** | **222,653** |
+| **Total removed from the Coin tree** | **222,653** |
 
-Of these, 220,765 lines are Rust source. The text totals include comments, blank
-lines, manifests, licenses and other text assets. None of these crate copies is
-included in the 68,010 first-party lines above. They contain local fixes, not
-222,653 newly authored renderer lines. Their packaging and maintenance remain
-open contribution questions.
+Of those lines, 220,765 were Rust source. The text totals include comments, blank
+lines, manifests, licenses and other assets. The 263 files were transferred
+byte-for-byte to the external repository. The actual local differences affect
+16 source files: 450 added and 104 removed lines. Compact patches remain in Coin
+so those changes can be reviewed independently of the complete upstream sources.
+This changes dependency packaging, not the 68,010 first-party source lines above.
 
-Relative to the historical Coin base `ca247c1321`, the complete branch diff adds
-approximately 469,000 text lines. That includes vendored code, tests, examples,
+The previous complete diff against the historical Coin base `ca247c1321` added
+approximately 469,000 lines, including those full copies. Removing the copies
+reduces the current diff to approximately 248,000 added lines after adding the
+compact patches and dependency checks. The remaining diff includes tests, examples,
 documentation and changes to existing Coin files in addition to the renderer.
-A diff-line count therefore measures a different scope from the implementation
-table. The comparison base must be identified when quoting it.
+The comparison base must be identified when quoting any complete diff count.
+Git history was not rewritten; older commits still contain the original copies.
 
 ## Removed duplication and inactive paths
 

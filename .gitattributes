@@ -1,5 +1,6 @@
 # Patch context preserves whitespace from external source trees.
 cmake/patches/*.patch -whitespace
+cmake/patches/rust-dependencies/*.patch -whitespace
 testsuite/reproducers/**/*.patch -whitespace
 examples/coinrender/*.patch -whitespace
 # Imported Windows receipts retain their original CRLF bytes.
