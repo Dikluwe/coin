@@ -5540,5 +5540,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderHighlightCompletionTests.cmake)
 # keep the legacy Coin language minimum.
 get_property(_coin_render_test_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
 foreach(_coin_render_test_target IN LISTS _coin_render_test_targets)
-  target_compile_features(${_coin_render_test_target} PRIVATE cxx_std_17)
+  if(NOT _coin_render_test_target STREQUAL "CoinRenderPortableConsumerCxx11")
+    target_compile_features(${_coin_render_test_target} PRIVATE cxx_std_17)
+  endif()
 endforeach()
