@@ -130,7 +130,7 @@ bool raw63(Run &run) {
   view = validMultipass;
   view.abi_version = 62;
   ok &= reject("obsolete protocol62");
-  view.abi_version = 67;
+  view.abi_version = COIN_WGPU_ABI_VERSION;
   view.struct_size = 496;
   ok &= reject("truncated pre-module frame layout");
   view.struct_size = sizeof(CoinWgpuFrameView);

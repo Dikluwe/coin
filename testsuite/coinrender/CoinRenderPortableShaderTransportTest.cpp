@@ -17,7 +17,8 @@ static_assert(sizeof(CoinWgpuPortableModule) == 56, "ABI67 module layout");
 static_assert(sizeof(CoinWgpuPortableRange) == 64,
               "ABI67 numeric range layout");
 static_assert(sizeof(CoinWgpuRenderState) == (COIN_WGPU_ABI_VERSION == 67 ? 2436 : 2564), "current ABI state layout");
-static_assert(sizeof(CoinWgpuFrameView) == (COIN_WGPU_ABI_VERSION == 69 ? 560 : 544), "current ABI frame layout");
+static_assert(COIN_WGPU_ABI_VERSION == 70 && sizeof(CoinWgpuFrameView) == 600,
+              "Protocol 70 frame layout");
 static_assert(offsetof(CoinWgpuRenderState, portable_shader_slot) == (COIN_WGPU_ABI_VERSION == 67 ? 2432 : 2560),
               "Current bridge state association offset");
 static_assert(offsetof(CoinWgpuFrameView, portable_modules) == 496,
@@ -105,7 +106,7 @@ CoinRenderFramePlan packet(const CoinRenderShaderInstance &s) {
 }
 bool transport(const CoinWgpuFrameView &v,
                const std::vector<CoinRenderShaderInstance> &expected) {
-  if (!check(v.abi_version == COIN_WGPU_ABI_VERSION && v.struct_size == (COIN_WGPU_ABI_VERSION == 69 ? 560 : 544) &&
+  if (!check(v.abi_version == COIN_WGPU_ABI_VERSION && v.struct_size == sizeof(CoinWgpuFrameView) &&
                  v.portable_module_count == expected.size() &&
                  v.portable_modules && v.states &&
                  v.state_count >= expected.size(),

@@ -3,6 +3,8 @@
 #include "CoinRenderVolumeSrgbOracle.h"
 #include <iostream>
 using Format=CoinRenderTextureFormat;
+static_assert(COIN_WGPU_ABI_VERSION == 70 && sizeof(CoinWgpuFrameView) == 600,
+              "Protocol 70 frame layout");
 static bool check(bool value,const char* text){if(!value)std::cerr<<"volume_srgb_core: "<<text<<'\n';return value;}
 static bool same(const CoinRenderTextureImageSnapshot&a,const CoinRenderTextureImageSnapshot&b){CoinRenderFramePlan x,y;x.textures.push_back(a);y.textures.push_back(b);return x.hasSamePayload(y);}
 static bool verify(unsigned w,unsigned h,unsigned d,const std::vector<uint8_t>& raw,unsigned components,bool mips,Format format) {
@@ -29,7 +31,7 @@ static bool packing(){bool ok=true;
 static bool transport(){bool ok=true;CoinRenderFramePlan frame;frame.revision=23123;CoinRenderTextureImageSnapshot image;auto raw=volume_oracle::authored(3,5,7);
   if(!check(CoinRenderTextureSamplingCore::packVolumeAtlas(raw,3,5,7,4,true,image,Format::RGBA8_SRGB),"transport source packs"))return false;
   frame.textures.push_back(image);CoinWgpuFfiFrame ffi;std::string error;
-  auto packet=[&](const CoinRenderFramePlan& input){if(!check(ffi.prepare(input,64,64,error),"same-revision valid FFI packet"))return false;const auto&v=ffi.getView();const auto&t=v.textures[0];const auto&i=input.textures[0];const unsigned flags=(i.volumeWidth-1)|((i.volumeHeight-1)<<8)|((i.volumeDepth-1)<<16)|(i.volumeMipmapped?1u<<24:0)|(i.format==Format::RGBA8_SRGB?1u<<25:0);return check(v.abi_version==COIN_WGPU_ABI_VERSION&&sizeof(CoinWgpuFrameView)==(COIN_WGPU_ABI_VERSION == 69 ? 560 : 544)&&v.texture_count==1&&t.format==11&&t.reserved==flags&&t.pixel_bytes_len==i.pixelsRgba.size()&&std::equal(i.pixelsRgba.begin(),i.pixelsRgba.end(),t.pixels),"current ABI format11 bit25 and exact authored/mip bytes");};
+  auto packet=[&](const CoinRenderFramePlan& input){if(!check(ffi.prepare(input,64,64,error),"same-revision valid FFI packet"))return false;const auto&v=ffi.getView();const auto&t=v.textures[0];const auto&i=input.textures[0];const unsigned flags=(i.volumeWidth-1)|((i.volumeHeight-1)<<8)|((i.volumeDepth-1)<<16)|(i.volumeMipmapped?1u<<24:0)|(i.format==Format::RGBA8_SRGB?1u<<25:0);return check(v.abi_version==COIN_WGPU_ABI_VERSION&&v.struct_size==sizeof(CoinWgpuFrameView)&&v.texture_count==1&&t.format==11&&t.reserved==flags&&t.pixel_bytes_len==i.pixelsRgba.size()&&std::equal(i.pixelsRgba.begin(),i.pixelsRgba.end(),t.pixels),"current ABI format11 bit25 and exact authored/mip bytes");};
   ok &=packet(frame);auto linear=frame;linear.textures[0].format=Format::RGBA8_LINEAR;ok &=check(!frame.hasSamePayload(linear),"format is part of payload identity")&&packet(linear)&&packet(frame);
   auto changed=frame;changed.textures[0].pixelsRgba[0]^=127;ok &=packet(changed)&&packet(frame);
   for(unsigned fault=0;fault<11;++fault){auto bad=frame;auto&i=bad.textures[0];if(fault==0)i.volumeWidth=257;if(fault==1)i.volumeHeight=0;if(fault==2)i.volumeColumns*=2;if(fault==3)i.width++;if(fault==4)i.height++;if(fault==5)i.pixelsRgba.pop_back();if(fault==6)i.pixelsRgba.push_back(0);if(fault==7)i.format=Format::RGBA16_FLOAT;if(fault==8)i.mipmapped=true;if(fault==9)i.volumeSourceComponents=5;if(fault==10)i.pixelsRgba.back()=1;
