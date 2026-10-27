@@ -8,6 +8,8 @@ reference for valid scenes. The experimental SDK requires explicit installation.
 Start with [build and tests](coin-render-build.md), [architecture](coin-render-architecture.md),
 [source layout](coin-render-source-layout.md), [compatibility policy](coin-render-compatibility-policy.md),
 and [current scope and qualification](coin-render-feature-matrix.md).
+The [proposal draft](coin-render-proposal.md) introduces the design, implementation
+inventory and contribution boundaries for maintainer discussion.
 [Evidence and archived documents](coin-render-evidence.md) explain the local
 companion archive and the distinction between historical receipts and current tests.
 
