@@ -52,15 +52,15 @@ pub(super) fn create_surface_sampling_profile_impl(device: &wgpu::Device, adapte
             &format!("{}{}",if bump_receiver { bump_receiver::eight_source() } else if shadow_multitexture { shadow_receiver::eight_map_multitexture_source() } else { shadow_receiver::eight_map_source() },weighted::FRAGMENT)).into()),
     }) };
     let line_shader = if portable_module.is_some() { shader.clone() } else { device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("coin_line.wgsl"),
+        label: Some("Coin line pipeline shader"),
         source: wgpu::ShaderSource::Wgsl(shader_source(
-            &format!("{}{}",WGSL_LINE_SHADER,weighted::FRAGMENT)).into()),
+            &format!("{}{}",WGSL_PRIMITIVE_SHADER,weighted::FRAGMENT)).into()),
     }) };
 
     let point_shader = if portable_module.is_some() { shader.clone() } else { device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("coin_point.wgsl"),
+        label: Some("Coin point pipeline shader"),
         source: wgpu::ShaderSource::Wgsl(shader_source(
-            &format!("{}{}",WGSL_POINT_SHADER,weighted::FRAGMENT)).into()),
+            &format!("{}{}",WGSL_PRIMITIVE_SHADER,weighted::FRAGMENT)).into()),
     }) };
 
     let storage_visibility = if device.limits().max_storage_buffers_per_shader_stage >= 1 {

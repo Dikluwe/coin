@@ -97,8 +97,7 @@
         for source in [without_shadows(include_str!("../../../../src/rendering/coinwgpu/shaders/coin_standard.wgsl")),
             super::super::shadow_receiver::four_map_source(),
             super::super::shadow_receiver::eight_map_source(),
-            include_str!("../../../../src/rendering/coinwgpu/shaders/coin_line.wgsl").to_owned(),
-            include_str!("../../../../src/rendering/coinwgpu/shaders/coin_point.wgsl").to_owned()] {
+            include_str!("../../../../src/rendering/coinwgpu/shaders/coin_primitive.wgsl").to_owned()] {
             assert_glsl(&depth_load_profile(&source, true), "fs_peel");
         }
     }
@@ -108,8 +107,7 @@
         let standard = include_str!("../../../../src/rendering/coinwgpu/shaders/coin_standard.wgsl");
         for source in [without_shadows(standard), super::super::shadow_receiver::four_map_source(),
             super::super::shadow_receiver::eight_map_source(),
-            include_str!("../../../../src/rendering/coinwgpu/shaders/coin_line.wgsl").to_owned(),
-            include_str!("../../../../src/rendering/coinwgpu/shaders/coin_point.wgsl").to_owned()] {
+            include_str!("../../../../src/rendering/coinwgpu/shaders/coin_primitive.wgsl").to_owned()] {
             let source = texture_specialization(&format!("{}{}", source, super::super::weighted::FRAGMENT));
             let module = naga::front::wgsl::parse_str(&source).expect("parse specialized profile");
             Validator::new(ValidationFlags::all(), Capabilities::all())
@@ -129,8 +127,7 @@
         let variants = [
             ("ordinary", without_shadows(standard)),
             ("instanced", super::super::instancing::shader_source()),
-            ("line", include_str!("../../../../src/rendering/coinwgpu/shaders/coin_line.wgsl").to_owned()),
-            ("point", include_str!("../../../../src/rendering/coinwgpu/shaders/coin_point.wgsl").to_owned()),
+            ("lines-and-points", include_str!("../../../../src/rendering/coinwgpu/shaders/coin_primitive.wgsl").to_owned()),
             ("four-shadow-maps", super::super::shadow_receiver::four_map_source()),
             ("eight-shadow-maps", super::super::shadow_receiver::eight_map_source()),
         ];

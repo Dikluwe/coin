@@ -20,8 +20,7 @@ fn standard_shader_preserves_vertex_lighting_outside_shadows() {
 #[test]
 fn all_polygon_bias_shader_variants_validate() {
     for source in [include_str!("../../../src/rendering/coinwgpu/shaders/coin_standard.wgsl"),
-                   include_str!("../../../src/rendering/coinwgpu/shaders/coin_line.wgsl"),
-                   include_str!("../../../src/rendering/coinwgpu/shaders/coin_point.wgsl")] {
+                   include_str!("../../../src/rendering/coinwgpu/shaders/coin_primitive.wgsl")] {
         let module = naga::front::wgsl::parse_str(source).expect("parse WGSL");
         Validator::new(ValidationFlags::all(), Capabilities::all())
             .validate(&module).expect("validate WGSL depth output variant");

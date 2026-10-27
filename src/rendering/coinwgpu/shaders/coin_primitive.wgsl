@@ -1,4 +1,4 @@
-// coin_line.wgsl - Gouraud-interpolated Blinn-Phong reflectance with 2D texture support for Coin3D WebGPU renderer
+// Shared Gouraud-interpolated lighting and texturing for line and point pipelines.
 
 struct GpuLight {
     position_type: vec4<f32>,

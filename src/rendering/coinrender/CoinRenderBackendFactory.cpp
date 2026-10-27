@@ -6,8 +6,6 @@
 
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
 #include "rendering/coinwgpu/CoinWgpuBackend.h"
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-#include "rendering/coinwgpu/CoinWgpuNativeBackend.h"
 #elif defined(HAVE_COIN_BGFX)
 #include "rendering/coinbgfx/CoinBgfxBackend.h"
 #elif defined(HAVE_COIN_RENDER_RECORDING)
@@ -21,8 +19,6 @@ CoinRenderTargetP::createBackend()
 {
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   return std::unique_ptr<CoinRenderBackend>(new CoinWgpuBackend());
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-  return std::unique_ptr<CoinRenderBackend>(new CoinWgpuNativeBackend());
 #elif defined(HAVE_COIN_BGFX)
   return std::unique_ptr<CoinRenderBackend>(new CoinBgfxBackend());
 #elif defined(HAVE_COIN_RENDER_RECORDING)
@@ -42,8 +38,6 @@ CoinRenderTargetP::isGpuBackendAvailable()
   caps.struct_size = sizeof(caps);
   return coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
     &caps, sizeof(caps)) == 0 && caps.gpu_available;
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-  return CoinWgpuNativeBackend::isAvailable();
 #else
   return false;
 #endif

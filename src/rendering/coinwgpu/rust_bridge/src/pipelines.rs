@@ -264,8 +264,7 @@ pub(super) fn get_or_create_pipeline<'a>(
         let mut profiles = profile.untextured_shaders.lock().map_err(|e| e.to_string())?;
         profiles.entry((topology, shadow_profile, eight_shadows)).or_insert_with(|| {
             let source = match topology {
-                1 => WGSL_LINE_SHADER.to_owned(),
-                2 => WGSL_POINT_SHADER.to_owned(),
+                1 | 2 => WGSL_PRIMITIVE_SHADER.to_owned(),
                 _ if eight_shadows => if profile.shadow_multitexture { shadow_receiver::eight_map_multitexture_source() } else { shadow_receiver::eight_map_source() },
                 _ if shadow_profile => if profile.shadow_multitexture { shadow_receiver::four_map_multitexture_source() } else { shadow_receiver::four_map_source() },
                 _ => shader_profile::without_shadows(WGSL_SHADER),

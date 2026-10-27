@@ -53,9 +53,6 @@ set(COIN_RENDER_SOURCES
 	CoinRenderRecordingBackend.cpp
 	CoinRenderCapabilities.cpp
 	CoinRenderSceneManager.cpp
-	# Auxiliary software reference is available to contract tests in GPU builds.
-	# CoinRenderBackendFactory selects it only for the explicit RECORDING build.
-	CoinRenderCpuReferenceBackend.cpp
 	CoinRenderRttExecution.cpp
 	CoinRenderTarget.cpp
 	${PROJECT_SOURCE_DIR}/src/actions/CoinRenderAction.cpp
@@ -65,10 +62,14 @@ set(COIN_RENDER_SOURCES
 	${PROJECT_SOURCE_DIR}/src/actions/CoinRenderActionRtt.cpp
 )
 
+# The CPU reference is an explicit RECORDING executor and a test control.
+# Production GPU builds do not carry this auxiliary rasterizer.
+if(COIN_BUILD_TESTS OR COIN_RENDER_BACKEND STREQUAL "RECORDING")
+	list(APPEND COIN_RENDER_SOURCES CoinRenderCpuReferenceBackend.cpp)
+endif()
+
 if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuPortableCore.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuShadowFrame.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuBackend.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuRuntime.cpp)
-elseif(COIN_RENDER_BACKEND STREQUAL "DAWN" OR COIN_RENDER_BACKEND STREQUAL "WGPU_NATIVE")
-	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuNativeBackend.cpp)
 elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxProgramCache.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxProgramSelection.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxRuntime.cpp)
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxShaderCompiler.cpp)

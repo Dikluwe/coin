@@ -905,8 +905,7 @@ impl GeometryCache {
 }
 
 static WGSL_SHADER: &str = include_str!("../../shaders/coin_standard.wgsl");
-static WGSL_LINE_SHADER: &str = include_str!("../../shaders/coin_line.wgsl");
-static WGSL_POINT_SHADER: &str = include_str!("../../shaders/coin_point.wgsl");
+static WGSL_PRIMITIVE_SHADER: &str = include_str!("../../shaders/coin_primitive.wgsl");
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 struct PipelineKey {

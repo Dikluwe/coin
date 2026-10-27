@@ -259,11 +259,6 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
     result.max_scene_texture_depth = 8;
     result.max_scene_texture_bytes_per_apply = UINT64_C(64) * 1024 * 1024;
   }
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-  result.backend = COIN_RENDER_EXPERIMENTAL_NATIVE_SPIKE;
-  result.probe_status = COIN_RENDER_PROBE_UNAVAILABLE;
-  setDiagnostic(result, "Native WebGPU spike has no established runtime rendering profile");
-  if (target == COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW) return 1;
 #elif defined(HAVE_COIN_BGFX)
   result.backend = COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION;
   result.features = COIN_RENDER_FEATURE_TRIANGLES |
