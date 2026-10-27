@@ -2,8 +2,7 @@
 
 Implemented on 2026-09-28: up to eight active planes per captured state/draw,
 for triangles, lines and points. BGFX/OpenGL, BGFX/Vulkan and Rust/wgpu execute
-the common contract. The Dawn/native prototype rejects clipped triangles before
-submission. Implementation support is separate from device qualification.
+the common contract. Implementation support is separate from device qualification.
 
 `SoClipPlane::doAction` adds the plane when `on` is active or ignored; its callback
 uses that path during capture. `SoClipPlaneElement::add` uses the model matrix

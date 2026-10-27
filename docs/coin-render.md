@@ -2,8 +2,8 @@
 
 CoinRender is an opt-in experimental renderer for Coin scene graphs. It captures
 Coin traversal into a common frame plan consumed by BGFX, Rust/wgpu, or the
-auxiliary RECORDING executor. CoinGL remains the historical compatibility
-reference for valid scenes. The experimental SDK requires explicit installation.
+auxiliary RECORDING executor. CoinGL is Coin's current OpenGL renderer and the
+compatibility reference for valid scenes. The experimental SDK requires explicit installation.
 
 Start with [build and tests](coin-render-build.md), [architecture](coin-render-architecture.md),
 [source layout](coin-render-source-layout.md), [compatibility policy](coin-render-compatibility-policy.md),

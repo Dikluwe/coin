@@ -4,7 +4,7 @@ CoinRender extends Coin rendering beyond CoinGL. `CoinRenderAction` captures sce
 semantics once into a common plan. Each executor consumes that contract rather
 than independently interpreting Coin nodes. Scene semantics, the chosen visual
 model and independent mathematical controls define the expected result;
-CoinGL provides historical compatibility evidence for valid inputs under the
+CoinGL, Coin's current OpenGL renderer, provides compatibility evidence for valid inputs under the
 [compatibility policy](coin-render-compatibility-policy.md).
 
 The public declarations live under `include/Inventor`, but remain experimental:
@@ -35,17 +35,17 @@ flowchart LR
 | Buffers, shaders, resources, passes, presentation and readback | BGFX or wgpu executor (Infra) |
 | Fixed raster coverage and driver implementation | Graphics API/driver/GPU unless the executor implements an explicit portable policy |
 | Expected result | Coin semantics, visual model and independent control for the tested property |
-| Historical visual compatibility | CoinGL in the same environment, with classified divergences |
+| Visual compatibility with the current Coin renderer | CoinGL in the same environment, with classified divergences |
 | Headless diagnostic log and software rasterization | Auxiliary RECORDING/CPU |
 
 RECORDING does not call CoinGL, is not the visual parity oracle and does not
 repair BGFX/wgpu output. Tests may instantiate it in GPU builds; that does not
 make it the selected executor for those builds. BGFX and wgpu are alternatives.
 OpenGL, Vulkan, D3D12 and Metal are graphics APIs used by an executor. Selecting
-OpenGL inside BGFX/wgpu does not select the legacy CoinGL traversal.
+OpenGL inside BGFX/wgpu does not select CoinGL's current rendering traversal.
 
 `COIN_RENDER_BACKEND` selects one executor per build: `BGFX`, `RUST_BRIDGE`
-(wgpu), `RECORDING`, or the `DAWN`/`WGPU_NATIVE` prototypes. The private
+(wgpu), or `RECORDING`. The private
 `CoinRenderBackendFactory` wires that executor and its runtime into the target.
 `CoinRenderOptions` may request a supported graphics API within the compiled
 GPU executor, without silent fallback. Dynamic executor loading and switching

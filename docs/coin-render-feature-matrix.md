@@ -120,7 +120,7 @@ with opportunistic reruns.
 | V10/V11 | Android Vulkan/physical ARM64 | AVD Vulkan driver failure; full physical APK/input/lifecycle/loss/performance qualification remains |
 | V12 | macOS AppKit/Metal | Selection/CAMetalLayer code exists; native build/link/SDK/render/resize/peers/recovery/performance pending |
 | V13/V14 | Wayland | wgpu Weston/recorded scale subsets; physical compositor/fractional scale/monitor broader matrix open. BGFX connector lacks Wayland mechanism |
-| V15 | Dawn/wgpu-native | Prototypes, not equivalents of qualified BGFX/Rust profiles |
+| V15 | Earlier Dawn/wgpu-native experiments | Preserved in Git history; excluded from the contribution build |
 
 Windows historical clean runs mainly used revision
 `2620d12da6064cbfc773ac8acfa05adbd7c1b1c9`, RECORDING repeat

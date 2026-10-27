@@ -1,9 +1,9 @@
 # CoinGL compatibility and bug handling
 
-Policy established on 2026-10-06 and refined on 2026-10-12: CoinGL is the
-historical compatibility reference for CoinRender, but does not alone determine
+Policy established on 2026-10-06 and refined on 2026-10-12: CoinGL is Coin's current
+OpenGL renderer and the compatibility reference for CoinRender, but does not alone determine
 correctness. Do not reproduce confirmed bugs, invalid accesses or undefined
-behavior merely to match a legacy image. Preserve valid scene semantics in
+behavior merely to match a reference image. Preserve valid scene semantics in
 BGFX and wgpu; CPU is an auxiliary test executor.
 
 ## Determining the expected result
@@ -88,7 +88,7 @@ Before classifying an edge or threshold anomaly:
    and its neighborhood. Keep an undiscriminated cause open if evidence cannot
    distinguish hypotheses.
 
-Do not turn an isolated legacy pixel into a contract, or move the input, reference
+Do not turn an isolated reference pixel into a contract, or move the input, reference
 or tolerance merely to pass a comparison. Diagnostic modifications are temporary;
 only justified fixes and relevant regressions belong in the product.
 

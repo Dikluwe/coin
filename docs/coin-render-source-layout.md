@@ -19,6 +19,11 @@ and package aliases are excluded from this contribution.
 | `examples/coinrender/` | Standalone examples, benchmark clients and installed-SDK consumer |
 | `cmake/patches/` | Pinned external dependency patches and reproduction instructions |
 
+The auxiliary CPU rasterizer is compiled for RECORDING and test builds only;
+production BGFX/wgpu builds exclude it. Lines and points share one WGSL source,
+while retaining their separate pipeline topologies and shader-module instances.
+See the [source-size breakdown](coin-render-size.md) for the contribution scope.
+
 Private headers stay beside implementations in `src`. Non-template bodies
 belong in `.cpp` files. Header definitions are appropriate for templates and
 small inline accessors whose contract requires visibility, without exposing

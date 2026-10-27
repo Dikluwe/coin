@@ -55,8 +55,9 @@ ctest --test-dir build-bgfx --output-on-failure
 
 The recovered Windows dependency patch reproduces its pinned SDK source hashes;
 it does not qualify a new Windows build or fix outstanding OpenGL/device issues.
-`DAWN` and `WGPU_NATIVE` are experimental prototypes requiring their corresponding
-SDKs; they are not substitutes for qualified BGFX/RUST_BRIDGE profiles.
+The contribution supports `RECORDING`, `RUST_BRIDGE` and `BGFX`. Earlier
+clear-only Dawn/wgpu-native experiments are preserved in Git history and are not
+build options in this contribution.
 
 To build the common window example or comparison tools, add
 `COIN_BUILD_RENDER_WINDOW_EXAMPLE=ON` or `COIN_BUILD_RENDER_BENCHMARKS=ON`.

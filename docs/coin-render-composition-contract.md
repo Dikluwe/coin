@@ -81,7 +81,7 @@ views or normal presentation.
 
 Admit both eyes/all producers before GPU work. A RIGHT-only authored failure
 preserves RGBA/depth/borrowed storage/serial/camera and permits retry. Contain authored
-exceptions long enough for legacy traversal cleanup, including temporary cameras;
+exceptions long enough for CoinGL traversal cleanup, including temporary cameras;
 restore prior mode/adjustment. Nonnotifying setters do not justify reusing another
 eye's capture. Prepare/finish/sensors/hooks belong to one public frame, whose
 publication serial advances once; queue serials/async tickets are separate domains.
