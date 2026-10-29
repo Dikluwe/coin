@@ -40,6 +40,7 @@
 #include "SbBasicP.h"
 
 #include <Inventor/elements/SoLightElement.h>
+#include <Inventor/elements/SoLightAttenuationElement.h>
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/lists/SbList.h>
 #include <Inventor/errors/SoDebugError.h>
@@ -90,7 +91,10 @@ SoLightElement::SoLightElement(void)
 */
 SoLightElement::~SoLightElement(void)
 {
-  if (this->didalloc.state) delete this->matrixlist;
+  if (this->didalloc.state) {
+    delete this->matrixlist;
+    delete this->attenuationlist;
+  }
 }
 
 
@@ -117,6 +121,10 @@ SoLightElement::add(SoState * const state, SoLight * const light,
       elem->matrixlist->append(matrix);
     else
       (*elem->matrixlist)[i] = matrix;
+    const SbVec3f attenuation = state->isElementEnabled(SoLightAttenuationElement::getClassStackIndex())
+      ? SoLightAttenuationElement::get(state) : SbVec3f(0, 0, 1);
+    if (i >= elem->attenuationlist->getLength()) elem->attenuationlist->append(attenuation);
+    else (*elem->attenuationlist)[i] = attenuation;
   }
 }
 
@@ -168,6 +176,7 @@ SoLightElement::init(SoState * state)
 {
   inherited::init(state);
   this->matrixlist = new SbList <SbMatrix>;
+  this->attenuationlist = new SbList<SbVec3f>;
   this->didalloc.state = TRUE;
 }
 
@@ -189,5 +198,16 @@ SoLightElement::push(SoState * state)
   for (i = 0; i < numLights; i++)
     this->lights.append(prev->lights[ i ]);
   this->matrixlist = prev->matrixlist; // just pass pointer to list
+  this->attenuationlist = prev->attenuationlist;
   this->copyNodeIds(prev);
+}
+
+// Captured with add(), so subsequent environment changes do not rewrite a light.
+const SbVec3f &
+SoLightElement::getAttenuation(SoState * state, int index)
+{
+  const auto * elem = static_cast<const SoLightElement *>(
+    SoElement::getConstElement(state, classStackIndex));
+  assert(elem && index >= 0 && index < elem->lights.getLength());
+  return elem->attenuationlist->getArrayPtr()[index];
 }

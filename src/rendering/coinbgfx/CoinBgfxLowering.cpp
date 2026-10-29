@@ -271,7 +271,7 @@ bool opaqueDrawCanBeGrouped(const CoinBgfxDraw & draw)
   // Non-default comparisons, disabled test/write, remapped depth ranges and
   // polygon offset make overlapping draws order-sensitive. In those cases a
   // pipeline/material sort can visibly differ from sequential GL traversal.
-  if (draw.bumpSlot || !draw.colorWrite || (draw.blend && !draw.deferred)) return false;
+  if (draw.pbr || draw.bumpSlot || !draw.colorWrite || (draw.blend && !draw.deferred)) return false;
   return draw.blend ||
     (draw.depthTest && draw.depthWrite &&
      draw.depthFunction == CoinRenderDepthFunction::LESS &&
@@ -307,6 +307,30 @@ bool sameVertexExceptMaterial(const CoinBgfxVertex & lhs,
   return std::memcmp(&a, &b, sizeof(a)) == 0;
 }
 
+}
+
+bool
+CoinBgfxLowering::instancePatchRanges(const CoinBgfxPlan & base,
+                                     const CoinBgfxPlan & updated,
+                                     std::vector<CoinBgfxVertexRange> & ranges)
+{
+  ranges.clear();
+  if (!base.usesInstancing || !updated.usesInstancing || base.instancedVertices.empty() ||
+      base.instancedVertices.size() != updated.instancedVertices.size() || base.indices.empty() ||
+      base.indices != updated.indices || base.instances.empty() || base.instances.size() != updated.instances.size() ||
+      std::memcmp(base.instancedVertices.data(), updated.instancedVertices.data(),
+                  base.instancedVertices.size() * sizeof(CoinBgfxInstancedVertex))) return false;
+  std::vector<CoinBgfxVertexRange> changed;
+  for (size_t i = 0; i < base.instances.size(); ++i) {
+    if (!std::memcmp(&base.instances[i], &updated.instances[i], sizeof(CoinBgfxInstance))) continue;
+    if (!changed.empty() && changed.back().first + changed.back().count == i) ++changed.back().count;
+    else {
+      if (changed.size() >= (1024u * 1024u) / sizeof(CoinBgfxVertexRange)) return false;
+      changed.push_back({static_cast<uint32_t>(i), 1});
+    }
+  }
+  ranges.swap(changed);
+  return true;
 }
 
 bool
@@ -387,7 +411,7 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   if (std::any_of(frame.bumpCoords.begin(),frame.bumpCoords.end(),[](const CoinRenderBumpCoordOverride & coord){return coord.imageSlot!=0;}))return decline("active bump stream");
   if (!frame.shadowGroups.empty()) return decline("shadow groups");
   if (!frame.textures.empty()) return decline("texture images");
-  if ((!preflight || !preflight->compositionFor(frame)) && !frame.isValid(&diagnostic)) return false;
+  if ((!preflight || !preflight->hasCompositionFor(frame)) && !frame.isValid(&diagnostic)) return false;
   CoinRenderCompositionScheduleView order("bgfx_instancing");
   if (!order.prepare(frame, diagnostic, preflight)) return false;
   if (order.size() != frame.draws.size()) return decline("composition count");
@@ -452,9 +476,10 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   uint32_t previousMesh = UINT32_MAX;
   for (size_t ordinal = 0; ordinal < order.size(); ++ordinal) {
     const auto drawBegin = traceInstancing ? Clock::now() : Clock::time_point{};
-    const auto & item = order[ordinal];
+    const auto & item = order.item(ordinal);
     const auto & sourceDraw = frame.draws[item.drawIndex];
     const auto & state = frame.renderStates[sourceDraw.renderStateSlot];
+    if (frame.materials[state.materialSlot].model == CoinRenderMaterialModel::PBR) return decline("PBR uniform draws");
     const auto & geometry = sourceDraw.geometry;
     const auto declineDraw = [&](const std::string & reason) {
       return decline("draw " + std::to_string(item.drawIndex) + ": " + reason);
@@ -476,7 +501,8 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
     if (sourceDraw.shadowLightSlot || sourceDraw.renderLayer != 0 || sourceDraw.clearDepthBefore ||
         sourceDraw.lineStripId || sourceDraw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST)
       return declineDraw("special draw/topology");
-    if (state.lightModel != CoinRenderLightModel::PHONG || state.hasTexture ||
+    if (state.lightModel != firstState.lightModel ||
+        (state.lightModel != CoinRenderLightModel::PHONG && state.lightModel != CoinRenderLightModel::BASE_COLOR) || state.hasTexture ||
         state.transparentMaterial || state.transparentTexture)
       return declineDraw("lightModel=" + std::to_string(static_cast<uint32_t>(state.lightModel)) +
                          " hasTexture=" + std::to_string(state.hasTexture) +
@@ -490,7 +516,7 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
                          " offset=" + std::to_string(state.polygonOffsetEnabled) +
                          " polygonPattern=" + std::to_string(state.polygonLinePattern) +
                          " linePattern=" + std::to_string(state.linePattern));
-    if (state.explicitDepthMask || !item.depthTest || !item.depthWrite ||
+    if ((state.explicitDepthMask & ~15u) || !item.depthTest || !item.depthWrite ||
         (item.depthFunction != CoinRenderDepthFunction::LESS && item.depthFunction != CoinRenderDepthFunction::LEQUAL) ||
         item.depthFunction != drawTemplate.depthFunction ||
         item.depthRange[0] != 0.0f || item.depthRange[1] != 1.0f)
@@ -638,7 +664,7 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
       instance.data[column][3] = mv[3][column];
     }
     instance.data[3][3] = material.shininess;
-    instance.data[4][3] = 1.0f;
+    instance.data[4][3] = state.lightModel == CoinRenderLightModel::PHONG ? 1.0f : 0.0f;
     std::memcpy(instance.data[6], material.diffuse, sizeof(material.diffuse));
     std::memcpy(instance.data[7], material.ambient, sizeof(material.ambient));
     std::memcpy(instance.data[8], material.specular, sizeof(material.specular));
@@ -847,7 +873,7 @@ CoinBgfxLowering::lowerImpl(const CoinRenderFramePlan & frame, int width, int he
     diagnostic = "BGFX shadow maps require a qualified shadow executor";
     return false;
   }
-  if ((!preflight || !preflight->compositionFor(frame)) && !frame.isValid(&diagnostic)) return false;
+  if ((!preflight || !preflight->hasCompositionFor(frame)) && !frame.isValid(&diagnostic)) return false;
   std::vector<CoinRenderCompositionItem> order;
   if (!coin_render_composition_schedule(frame, order, diagnostic, preflight))
     return false;
@@ -958,7 +984,7 @@ CoinBgfxLowering::lowerImpl(const CoinRenderFramePlan & frame, int width, int he
       diagnostic = "BGFX evaluation requires nonempty indexed triangles";
       return false;
     }
-    bool batchable = !state.portableShaderSlot && batchOpaque && frame.draws.size() >= 256 && frame.shadowGroups.empty() &&
+    bool batchable = frame.materials[state.materialSlot].model != CoinRenderMaterialModel::PBR && !state.portableShaderSlot && batchOpaque && frame.draws.size() >= 256 && frame.shadowGroups.empty() &&
       !item.blend && !item.screenDoor && draw.renderLayer == 0 && !draw.clearDepthBefore &&
       state.lightModel == CoinRenderLightModel::PHONG;
     float maxAlpha = 0.0f;
@@ -1009,6 +1035,22 @@ CoinBgfxLowering::lowerImpl(const CoinRenderFramePlan & frame, int width, int he
     const SbMatrix mvp = batchable ? projection * viewportTransform :
       modelView * projection * viewportTransform;
     CoinBgfxDraw lowered{};
+    const auto & surface = frame.materials[state.materialSlot];
+    lowered.pbr = surface.model == CoinRenderMaterialModel::PBR;
+    if (lowered.pbr) {
+      for (int c=0;c<3;++c) {
+        lowered.pbrBaseMetallic[c] = surface.pbr.baseColor[c];
+        lowered.pbrEmissionRoughness[c] = surface.pbr.emissive[c];
+      }
+      lowered.pbrBaseMetallic[3] = surface.pbr.metallic;
+      lowered.pbrEmissionRoughness[3] = surface.pbr.roughness;
+      lowered.pbrClearcoat[0] = surface.pbr.clearcoat;
+      lowered.pbrClearcoat[1] = surface.pbr.clearcoatRoughness;
+      lowered.pbrCamera[0] = frame.cameras[state.cameraSlot].isPerspective ? 1.f : 0.f;
+      lowered.pbrViewToWorld = state.view.inverse();
+      lowered.pbrModelView = modelView;
+      lowered.pbrNormalToView = modelView.inverse().transpose();
+    }
     lowered.sourceDrawSlot = item.drawIndex;
     lowered.multipassMask = draw.multipassMask;
     lowered.multipassRasterFixed = draw.multipassRasterFixed;
@@ -1206,6 +1248,15 @@ CoinBgfxLowering::lowerImpl(const CoinRenderFramePlan & frame, int width, int he
       for (float & q : packedQ) q = 1.0f;
     const auto setMaterial = [&](CoinBgfxVertex & vertex,
                                  const CoinRenderMaterialSnapshot & material) {
+      if (material.model == CoinRenderMaterialModel::PBR) {
+        const CoinRenderMaterialSnapshot canonical;
+        std::memcpy(vertex.color,canonical.diffuse,sizeof(vertex.color));
+        std::memcpy(vertex.ambient,canonical.ambient,sizeof(vertex.ambient));
+        std::memcpy(vertex.specular,canonical.specular,sizeof(vertex.specular));
+        std::memcpy(vertex.emission,canonical.emission,sizeof(vertex.emission));
+        vertex.material[0]=canonical.shininess;vertex.material[1]=1;
+        return;
+      }
       std::memcpy(vertex.color, material.diffuse, sizeof(vertex.color));
       std::memcpy(vertex.ambient, material.ambient, sizeof(vertex.ambient));
       std::memcpy(vertex.specular, material.specular, sizeof(vertex.specular));
@@ -1273,7 +1324,7 @@ CoinBgfxLowering::lowerImpl(const CoinRenderFramePlan & frame, int width, int he
         std::memcpy(previousNormal, source.normal, sizeof(previousNormal));
         normalCached = true;
       }
-      std::memcpy(vertex.viewNormal, previousViewNormal, sizeof(previousViewNormal));
+      std::memcpy(vertex.viewNormal, lowered.pbr ? source.normal : previousViewNormal, sizeof(previousViewNormal));
       if (state.hasTexture || state.portableShaderSlot) {
         SbVec4f transformed;
         state.textureMatrix.multVecMatrix(
@@ -1304,6 +1355,15 @@ CoinBgfxLowering::lowerImpl(const CoinRenderFramePlan & frame, int width, int he
         case 6: vertex.extraTextureQ[1][3] = uv[2]; break;
         case 7: vertex.texcoord[3] = uv[2]; break;
         }
+      }
+      if(lowered.pbr && (state.pbrNormalImageSlot!=UINT32_MAX || frame.materials[state.materialSlot].pbr.anisotropy>0)) {
+        const auto found=std::lower_bound(frame.pbrSurfaceVertices.begin(),frame.pbrSurfaceVertices.end(),sourceIndex,
+          [](const CoinRenderPbrSurfaceVertex & a,uint32_t index){return a.vertexIndex<index;});
+        if(found==frame.pbrSurfaceVertices.end()||found->vertexIndex!=sourceIndex){diagnostic="Missing PBR tangent corner";return false;}
+        std::copy_n(found->normalTangent,4,vertex.ambient);
+        std::copy_n(found->directionTangent,4,vertex.specular);
+        std::copy_n(found->normalUv,3,vertex.emission);
+        if(modelView.det4()<0){vertex.ambient[3]=-vertex.ambient[3];vertex.specular[3]=-vertex.specular[3];}
       }
       if (!draw.shadowLightSlot && bumpActive && bumpStream[sourceIndex].imageSlot) {
         const auto & bump=bumpStream[sourceIndex];
@@ -1551,6 +1611,7 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
                             std::vector<CoinBgfxInstance> * updatedInstances)
 {
   diagnostic.clear();
+  if (std::any_of(base.draws.begin(),base.draws.end(),[](const CoinBgfxDraw & d){return d.pbr;})) return false;
   if (base.usesInstancing) {
     const auto decline = [&](const char * reason) {
       diagnostic = std::string("BGFX instanced camera patch declined: ") + reason;
@@ -1594,7 +1655,8 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
           viewport.width != draw.viewport[2] || viewport.height != draw.viewport[3]) return decline("changed viewport");
       if (source.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || source.renderLayer != 0 ||
           source.clearDepthBefore || source.shadowLightSlot || source.lineStripId ||
-          source.geometry.indexCount != draw.indexCount || state.lightModel != CoinRenderLightModel::PHONG ||
+          source.geometry.indexCount != draw.indexCount || state.lightModel != firstState.lightModel ||
+          (state.lightModel != CoinRenderLightModel::PHONG && state.lightModel != CoinRenderLightModel::BASE_COLOR) ||
           !state.colorWrite || state.hasTexture || state.transparentMaterial || state.transparentTexture ||
           !state.clipPlanesWorld.empty() || state.fogMode != CoinRenderFogMode::NONE || state.shadowGroupSlot ||
           state.polygonOffsetEnabled || state.polygonLinePattern || state.linePattern != 0xffffu ||
@@ -1602,7 +1664,7 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
           state.alphaTestFunction != draw.alphaTestFunction ||
           state.textureProjection != draw.textureProjection ||
           std::memcmp(&state.alphaTestReference, &draw.alphaTestReference, sizeof(state.alphaTestReference)) != 0 ||
-          state.explicitDepthMask || state.cullMode != draw.cullMode || state.frontFace != draw.frontFace ||
+          (state.explicitDepthMask & ~15u) || state.cullMode != draw.cullMode || state.frontFace != draw.frontFace ||
           !state.depthTest || !state.depthWrite || state.depthFunction != draw.depthFunction ||
           state.depthRange[0] != draw.depthRange[0] || state.depthRange[1] != draw.depthRange[1])
         return decline("changed/unqualified non-camera state");
@@ -1654,7 +1716,7 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
           if (materialSlot >= frame.materials.size()) return decline("instance material slot");
           const auto & material = frame.materials[materialSlot];
           instance.data[3][3] = material.shininess;
-          instance.data[4][3] = 1.0f;
+          instance.data[4][3] = state.lightModel == CoinRenderLightModel::PHONG ? 1.0f : 0.0f;
           std::memcpy(instance.data[6], material.diffuse, sizeof(material.diffuse));
           std::memcpy(instance.data[7], material.ambient, sizeof(material.ambient));
           std::memcpy(instance.data[8], material.specular, sizeof(material.specular));

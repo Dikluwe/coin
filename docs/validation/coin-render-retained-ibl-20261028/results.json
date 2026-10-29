@@ -1,0 +1,324 @@
+{
+  "date": "2026-10-28",
+  "branch": "codex/coinrender-retained-integration",
+  "reference_revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+  "profile": "Native Vulkan offscreen opaque isotropic global IBL, same procedural packages and camera/geometry/materials, no direct lights",
+  "comparisons": {
+    "studio": {
+      "status": "PASS",
+      "paths": [
+        "current",
+        "retained",
+        "reference"
+      ],
+      "environment_sha256": "ed0d8f67fce21ebdafbe58dac8385a446b7ad32578828d0083ebff05eb7217d7",
+      "scenes": [
+        "materials",
+        "cad"
+      ],
+      "states": [
+        "base",
+        "rotated",
+        "dim",
+        "off",
+        "exposure"
+      ],
+      "dimensions": [
+        1200,
+        840
+      ],
+      "exact_buffers": 20,
+      "sha256": {
+        "cad-base.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+        "cad-base.rgba": "e79a582818fc61735322dcb9c3190ae1c8a7bc57442202c1adf752e70bc9bcc2",
+        "cad-dim.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+        "cad-dim.rgba": "f69ca90ada329b2eea68eedb818e4b6c5d8624b0ef6e513dbf7ea1e3c029b67e",
+        "cad-exposure.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+        "cad-exposure.rgba": "0d9010429c71e1615b34988ede1b44ed5374aa74078b5805687f36f869ecd4bc",
+        "cad-off.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+        "cad-off.rgba": "6bd62bf312a1033c5f82591b6e80b000492fd01939863789974d9cd96a4ca8eb",
+        "cad-rotated.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+        "cad-rotated.rgba": "777cc606b8063a5b057a478cc18f96e3bc9d3e04c38fade74e9b6b7c3189962b",
+        "materials-base.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+        "materials-base.rgba": "8ca347aab2c1189ed6e6c42466e2085db33e5028da2ba3ba153f33a9d8d0840a",
+        "materials-dim.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+        "materials-dim.rgba": "4d8bf6c897593c9c177f2b6191dbbefde2019838b8daf008e166731fefa2076f",
+        "materials-exposure.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+        "materials-exposure.rgba": "366c1715a2d762ea232c3df8487b4856c640b772513a9e0c7f971c890f8c9d47",
+        "materials-off.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+        "materials-off.rgba": "6bd62bf312a1033c5f82591b6e80b000492fd01939863789974d9cd96a4ca8eb",
+        "materials-rotated.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+        "materials-rotated.rgba": "24fdc63040ef38a8a575a5e6e00b2c95ff8c6d13cd0fe6f4674620a0386ba0f6"
+      },
+      "retained_reuse": {
+        "captures": 1,
+        "plans": 1,
+        "transport_builds": 1,
+        "environment_uploads": 1
+      },
+      "assertions": [
+        "Frozen source survives deletion",
+        "Scalar edits preserve depth",
+        "Intensity zero invents no lighting",
+        "Invalid parameters preserve configuration/publication",
+        "Restoration is byte-identical"
+      ]
+    },
+    "asymmetric": {
+      "status": "PASS",
+      "paths": [
+        "current",
+        "retained",
+        "reference"
+      ],
+      "environment_sha256": "c19b49b8110904e12fa24ae3ce4f893e039bacf69aa911995ee3e310d362a7e0",
+      "scenes": [
+        "materials",
+        "cad"
+      ],
+      "states": [
+        "base",
+        "rotated",
+        "dim",
+        "off",
+        "exposure"
+      ],
+      "dimensions": [
+        1200,
+        840
+      ],
+      "exact_buffers": 20,
+      "sha256": {
+        "cad-base.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+        "cad-base.rgba": "774231c5f57c1c68b5f53ba9c79292a3428ef4ef67a3834bd8e90a99e12230de",
+        "cad-dim.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+        "cad-dim.rgba": "5e578ee5ec0627a6de0d3b09d6dd3069067a0da922742a807646665805de3899",
+        "cad-exposure.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+        "cad-exposure.rgba": "131c33bb039c432afe7c7bd3ca5788e00d4e48f17e894835821d0642e29dc784",
+        "cad-off.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+        "cad-off.rgba": "6bd62bf312a1033c5f82591b6e80b000492fd01939863789974d9cd96a4ca8eb",
+        "cad-rotated.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+        "cad-rotated.rgba": "07754569c1f9073b3bf4fb215086142ef98a9a6f96a2cb1a8fb77e1cfbe7fb8b",
+        "materials-base.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+        "materials-base.rgba": "f431aa9bfacf6d14653fd8a3f27cd2131ed36235effd6b58a802c1dbff175bff",
+        "materials-dim.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+        "materials-dim.rgba": "1e047907da38e446fea3d93e424b7af6f15d55d48a666beec5f5b3af5088a565",
+        "materials-exposure.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+        "materials-exposure.rgba": "f03af776b892686cd14799e5e167887e286f3f76ce7a194b2304571c7c441377",
+        "materials-off.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+        "materials-off.rgba": "6bd62bf312a1033c5f82591b6e80b000492fd01939863789974d9cd96a4ca8eb",
+        "materials-rotated.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+        "materials-rotated.rgba": "bbc0d344e0d27f0807372d15f28dc1955e4855ec8143374559bcd9f24746b96c"
+      },
+      "retained_reuse": {
+        "captures": 1,
+        "plans": 1,
+        "transport_builds": 1,
+        "environment_uploads": 1
+      },
+      "assertions": [
+        "Frozen source survives deletion",
+        "Scalar edits preserve depth",
+        "Intensity zero invents no lighting",
+        "Invalid parameters preserve configuration/publication",
+        "Restoration is byte-identical"
+      ]
+    }
+  },
+  "exact_buffers_total": 40,
+  "tests": {
+    "ibl-tests.xml": {
+      "passed": 6,
+      "failed": 0,
+      "names": [
+        "CoinEnvironmentTest",
+        "CoinRenderIBLBake-studio",
+        "CoinRenderRetainedIBL-studio",
+        "CoinRenderIBLBake-asymmetric",
+        "CoinRenderRetainedIBL-asymmetric",
+        "CoinRenderRetainedIBLAdmissionTest"
+      ]
+    },
+    "regressions.xml": {
+      "passed": 7,
+      "failed": 0,
+      "names": [
+        "SoRetainedPBRTest",
+        "CoinRenderRetainedPBRGalleryTest",
+        "CoinRenderRetainedPBRGpuTest",
+        "CoinRenderRetainedCityTest",
+        "CoinRenderRetainedConnectorTest",
+        "CoinBgfxCoreTest",
+        "CoinBgfxInstancingTest"
+      ]
+    }
+  },
+  "source_imports": [
+    {
+      "path": "src/environment/CoinEnvironment.cpp",
+      "source_path": "src/environment/CoinEnvironment.cpp",
+      "revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+      "sha256": "d265bab8d89e6b5a57fdfea034b9e32258d5317fd14dec8f61d6553fe6b0d67e",
+      "same_bytes": true
+    },
+    {
+      "path": "src/environment/CoinEnvironmentRadiance.cpp",
+      "source_path": "src/environment/CoinEnvironmentRadiance.cpp",
+      "revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+      "sha256": "7edbcdb22229039f3e9122eabed9c8d7ba66f29cbb85525d2005d1788de5f5d8",
+      "same_bytes": true
+    },
+    {
+      "path": "src/environment/CoinEnvironmentExr.cpp",
+      "source_path": "src/environment/CoinEnvironmentExr.cpp",
+      "revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+      "sha256": "eca8382d2a8bbd1c8028ebeb38d14b162e4a50cc2fb28c37781ce886a5e9e208",
+      "same_bytes": true
+    },
+    {
+      "path": "src/environment/CoinEnvironmentExrP.h",
+      "source_path": "src/environment/CoinEnvironmentExrP.h",
+      "revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+      "sha256": "7ea467c708d5e46409c06cfc3fc71f40e4aa108c6343a334b67ca10a990211b7",
+      "same_bytes": true
+    },
+    {
+      "path": "testsuite/coinenvironment/CoinEnvironmentTest.cpp",
+      "source_path": "testsuite/coinenvironment/CoinEnvironmentTest.cpp",
+      "revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+      "sha256": "6a4cab483acc472401a93f60e4a0f7e8cb69d46fab9faba5b9e20aa6a8706b5f",
+      "same_bytes": true
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_ibl.sh",
+      "source_path": "src/rendering/coinbgfx/shaders/coin_pbr_ibl.sh",
+      "revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+      "sha256": "27db4cf16f3101159386f44a93cb5abe8ffb194950a26f492e0cee987ce342c0",
+      "same_bytes": true
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_environment.sh",
+      "source_path": "src/rendering/coinbgfx/shaders/coin_pbr_environment.sh",
+      "revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+      "sha256": "043f35526d4e955b1f8e4a9e45646076f4ac857feaea3e901f55b69304374a3b",
+      "same_bytes": true
+    },
+    {
+      "path": "include/Inventor/environment/CoinEnvironment.h",
+      "source_path": "experimental/include/Inventor/environment/CoinEnvironment.h",
+      "revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+      "sha256": "07926b8c0bc9970d019bad786758a13f6a5cab656bad7cece959c2c1bff12b6e",
+      "same_bytes": true
+    },
+    {
+      "path": "include/Inventor/environment/CoinEnvironmentHalf.h",
+      "source_path": "experimental/include/Inventor/environment/CoinEnvironmentHalf.h",
+      "revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+      "sha256": "9e997a9fd99fb56a967d725bc277eccf715d19fb220fd240e2707deefed5fa7a",
+      "same_bytes": true
+    },
+    {
+      "path": "include/Inventor/environment/CoinEnvironmentRadiance.h",
+      "source_path": "experimental/include/Inventor/environment/CoinEnvironmentRadiance.h",
+      "revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+      "sha256": "7f1183752d501c2085cc7b8ea6f17c6bc7ae5ae6036abd0de893eec3f1041830",
+      "same_bytes": true
+    },
+    {
+      "path": "include/Inventor/CoinEnvironmentExport.h",
+      "source_path": "experimental/include/Inventor/CoinEnvironmentExport.h",
+      "revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+      "sha256": "70c77bdaa4719a69350c7601e615d4ae4bf18810ee94bee7c7ef43ee006c4db5",
+      "same_bytes": true
+    }
+  ],
+  "local_sha256": {
+    "examples/coinrender/CoinRenderPbrGalleryScenes.h": "9e1cee435a908fcf1b8683902c37cacbc793aea89864732262f2da665808e7f8",
+    "examples/coinrender/coin_render_retained_ibl_gallery.cpp": "9982dd27c1be2ac9ca960becb30a00cea31ffb85cc53354b4ae8b5d3530b8a0a",
+    "examples/coinrender/coin_render_ibl_baker.cpp": "f33a42b27a47ad60a3c596737048bae9b2830d2af1ea2ab4239a56bb24cfb23d",
+    "src/rendering/coinbgfx/CoinBgfxPbrEnvironment.cpp": "1f4da532ac8b1aa5e66339948376df99ac8c99ae8d83437d5b5d48f3929e76a3",
+    "src/rendering/coinbgfx/CoinBgfxPbr.cpp": "57b0ec2618f1851df2bdb328fc644de6c81b89206328d7935fde3b4d061046b6",
+    "src/rendering/coinbgfx/CoinBgfxBackend.h": "c023f852874d224b51475c92ba8b03facbd809ca17dfcec3acd3ab61bb035b9b",
+    "src/rendering/coinbgfx/CoinBgfxLowering.h": "ddcbfff4ac2e01478fdcd6bc42ee06be76a93ac29e5838373b22766b23dd5b86",
+    "src/rendering/coinbgfx/CoinBgfxLowering.cpp": "2001d7fd69a9f803eb8d546ec041a6b862fe8ea47730d3795d9d2ce47de37134",
+    "src/rendering/coinrender/CoinRenderTarget.cpp": "edd5b435bf78a9137ed9e36fb9703eb31e8ea79f3a05d0534872564951f58d08",
+    "src/rendering/coinrender/CoinRenderTargetP.h": "b32ac98438dd103e535ef84bfe8601bdc1637940e77ec0a2b5ae52cac0d5f074",
+    "include/Inventor/rendering/CoinRenderOptions.h": "568daaab8916492b921cceded592ebc92ae03aa7c1c419b61963cff470e13bc4",
+    "include/Inventor/rendering/CoinRenderTarget.h": "6f982748c2288b8d99065de2950ca076c6573df3f7674772941c99b5c047a430",
+    "scripts/coinrender/run_retained_ibl_comparison.py": "270a9c28e16850452c1b1e1d3e544b121831dc0f9d96606a2e30f82115e0094f",
+    "scripts/coinrender/render_retained_ibl_gallery.py": "c0f3400491be24cdc1190728248d038e00cfc3084fbeaccb0f0962a08b0974b9",
+    "testsuite/coinrender/CoinRenderRetainedIBLAdmissionTest.cpp": "311187338462cee209af0fa92bf9ba309f631dd75372bf884f033bf8b3f8aa05"
+  },
+  "binary_sha256": {
+    "/tmp/coin-pbr-reference-ibl-gallery": "9dd233e53158026fce3425b90d562ff99afceb36d19c17516b165ecf251ee6df",
+    "/tmp/coin-pbr-reference-build/lib/libCoinRender.so": "ead6d13360c9f3ad19f87400463ecd40e72b18f7e2cb92c22921779b24ef0942",
+    "/tmp/coin-pbr-reference-build/lib/libCoinEnvironment.so": "771c4d98a7ac9402d6111c1cda6bd9699ba31fa2f95c7f47508988734a0c389c",
+    "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedIBLGallery": "a53dbeaf9b1c09b9ba6f1cbe68ebebc1239b7c055988d8ac5a539322c14ff084",
+    "/tmp/coin-retained-bgfx/bin/CoinRenderCurrentIBLGallery": "2f33af362f690fd9354ef6aba3bb6fb29afa653d7d48d16555d3ab75ce6b8175",
+    "/tmp/coin-retained-bgfx/lib/libCoinRender.so": "a25730665db6383e203e089b3bb107defb18e3c05533259bebad43956bc1c6a6",
+    "/tmp/coin-retained-bgfx/lib/libCoinEnvironment.so": "dcb8df25c54dbec86f9f02d3ede10ca90e795755abb983f3a1392cbb3c44cd29",
+    "/tmp/coin-retained-bgfx/bin/coin_render_ibl_baker": "d286043284b3b478c133a47248e8d21e4307ffe618094ace1eced0d11dd58559"
+  },
+  "previews": {
+    "asymmetric-cad-base.png": "82b449a811c5abf939f0e9b4a24b3dc86dfad0d17712570701d70770e496a0a7",
+    "asymmetric-cad-dim.png": "6ccb22fb3db0355eedb2606bc721e5c04b8a382b86266290af15d6a5f2202824",
+    "asymmetric-cad-exposure.png": "b3e30e2dfd854716f79f16749c7b9380d06406e25eed9c9a299effcc49032011",
+    "asymmetric-cad-off.png": "2ad776f5a3ba0614a5ea5700f79b49152e2a01a78a551668e05ed2a97e600313",
+    "asymmetric-cad-rotated.png": "bb0b916daf8ae297139ce752194c4fdfb37a48baa1bb9e58f12ef63631e49e48",
+    "asymmetric-materials-base.png": "bd174f314ce50b1c2c5d9983a6ab11a5949439dc3b5290320ddb4a1a1f3c9745",
+    "asymmetric-materials-dim.png": "1497289ff7d25315f797f117f407271e11a3b3bd85e823bbc03f0de2e5447bab",
+    "asymmetric-materials-exposure.png": "4f57ad95e5d10de58567dcdfe876fe14ae30632bfddf48de28a1afce6f20d2d0",
+    "asymmetric-materials-off.png": "2ad776f5a3ba0614a5ea5700f79b49152e2a01a78a551668e05ed2a97e600313",
+    "asymmetric-materials-rotated.png": "fbc09fffed59d498885197e136e31bc9f662e7dae3242963cf00ab28c072d023",
+    "ibl-environments-gallery.png": "068e6aced9fa580eb9f0585aba8ae5ba195751811dbc1165c9ffc21c7f627002",
+    "ibl-materials-gallery.png": "4b1773cb12a69a6293106b0678cfbd23190e148284a557f20895ef33c5c77381",
+    "studio-cad-base.png": "70b68bd6e160031b4f66c5aded6de72c52f60351311d8fcf37d7e5a183b150e9",
+    "studio-cad-dim.png": "7f72a4002faf4e5f6d547e16068e869706660a6f162b3023a39a602b1fbf6eb5",
+    "studio-cad-exposure.png": "446e2d7b0422c191e2e293186a8df812ba4c2f4067c725cd7ba9ed508909231d",
+    "studio-cad-off.png": "2ad776f5a3ba0614a5ea5700f79b49152e2a01a78a551668e05ed2a97e600313",
+    "studio-cad-rotated.png": "bc3269da58c2408491056ca051382c578c4b48cd8f9ba4f0f8d387237a02564f",
+    "studio-materials-base.png": "afa5ce83e83b9d7dceff21c7108d201b7277f81ddc4c4c257a1f3041d3077975",
+    "studio-materials-dim.png": "2860817b160086db8798c1d28457f2c4ad6c80afbff1e27dd10b05257d439274",
+    "studio-materials-exposure.png": "2a3da110c7d91e9f7db0ecabb23468a1318a59fb04b6ee9952ddd25d38c619f7",
+    "studio-materials-off.png": "2ad776f5a3ba0614a5ea5700f79b49152e2a01a78a551668e05ed2a97e600313",
+    "studio-materials-rotated.png": "6bbfa8eb572ea255f1fdfa67589cb192e15ac8b06cd6317c3f370e4fb2c348d2"
+  },
+  "bake": {
+    "size": 128,
+    "lut_size": 128,
+    "filter_samples": 128,
+    "lut_samples": 512,
+    "version": 1,
+    "packages": {
+      "studio": {
+        "sha256": "ed0d8f67fce21ebdafbe58dac8385a446b7ad32578828d0083ebff05eb7217d7",
+        "file_bytes": 1968484
+      },
+      "asymmetric": {
+        "sha256": "c19b49b8110904e12fa24ae3ce4f893e039bacf69aa911995ee3e310d362a7e0",
+        "file_bytes": 1968484
+      }
+    }
+  },
+  "ownership_assertions": [
+    "One native capture/plan/transport and one GPU environment upload per scene.",
+    "Target-owned immutable CPU snapshot survives source-file deletion.",
+    "Rotation/intensity/exposure preserve depth and exactly restore color.",
+    "Zero environment intensity creates no lighting in scenes without direct lights.",
+    "Corrupt package preserves prior publication; correcting it before snapshot acceptance can be retried.",
+    "Insufficient environment GPU budget refuses publication."
+  ],
+  "reference_configuration": "Unmodified pinned PBR library; isotropic non-array profile selected with pbrAnisotropicEnvironmentSamples=0. No authored anisotropy.",
+  "separation": {
+    "F10": "Coin-only CPU package/math module candidate requiring fork/API/consumer review.",
+    "C10": "Target snapshot and BGFX uploads/shader uniforms/execution. Native IR/planner unchanged."
+  },
+  "sdk_export_configure": "PASS; full install/build not asserted",
+  "limits": [
+    "Finite two-package scene matrix on the existing Vulkan test environment.",
+    "Skybox/background, local probes, anisotropic source arrays, shadows and bundle-swap API not connected.",
+    "OpenEXR not enabled.",
+    "No Android or million-building IBL measurement or performance gain claimed.",
+    "GPU byte budgets describe resource layout, not physical GPU residency."
+  ]
+}

@@ -154,6 +154,7 @@ private:
   static SoType classTypeId;
 
   friend class SoFullPathView;
+  friend class SoIRRenderAction;
   friend class SoFullPath;
   friend class SoNodeKitPath;
   friend class SoAction;

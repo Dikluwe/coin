@@ -59,6 +59,7 @@ public:
 
   void doAction(SoAction * action) override;
   void callback(SoCallbackAction * action) override;
+  void IRRender(SoIRRenderAction * action) override;
   void getBoundingBox(SoGetBoundingBoxAction * action) override;
   void GLRender(SoGLRenderAction * action) override;
   void pick(SoPickAction * action) override;

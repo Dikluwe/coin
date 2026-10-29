@@ -23,8 +23,10 @@ class CoinRenderFramePreflight;
 struct CoinRenderCompositionItem;
 
 #include <Inventor/rendering/CoinRenderOptions.h>
+#include "rendering/coinrender/CoinRenderPbrSurfaceCore.h"
 
 class CoinRenderFramePlanBuilder {
+  CoinRenderPbrSurfaceCore pbrSurfaces;
 public:
   CoinRenderFramePlanBuilder();
   ~CoinRenderFramePlanBuilder();

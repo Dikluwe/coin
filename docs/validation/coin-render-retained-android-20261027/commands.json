@@ -1,0 +1,149 @@
+[
+  {
+    "label": "prepare-directory",
+    "args": [
+      "shell",
+      "mkdir",
+      "-p",
+      "/data/local/tmp/coin-retained-20261027"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "push-libCoin.so",
+    "args": [
+      "push",
+      "/tmp/coin-retained-android-wgpu/lib/libCoin.so",
+      "/data/local/tmp/coin-retained-20261027/"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "/tmp/coin-retained-android-wgpu/lib/libCoin.so: 1 file pushed, 0 skipped. 9.0 MB/s (44601800 bytes in 4.734s)\n"
+  },
+  {
+    "label": "push-libCoinRender.so",
+    "args": [
+      "push",
+      "/tmp/coin-retained-android-wgpu/lib/libCoinRender.so",
+      "/data/local/tmp/coin-retained-20261027/"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "/tmp/coin-retained-android-wgpu/lib/libCoinRender.so: 1 file pushed, 0 skipped. 282.7 MB/s (41587040 bytes in 0.140s)\n"
+  },
+  {
+    "label": "push-libc++_shared.so",
+    "args": [
+      "push",
+      "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/libc++_shared.so",
+      "/data/local/tmp/coin-retained-20261027/"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/libc++_shared.so: 1 file pushed, 0 skipped. 248.3 MB/s (9091400 bytes in 0.035s)\n"
+  },
+  {
+    "label": "push-CoinRenderRetainedIncrementalTest",
+    "args": [
+      "push",
+      "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedIncrementalTest",
+      "/data/local/tmp/coin-retained-20261027/"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedIncrementalTest: 1 file pushed, 0 skipped. 146.8 MB/s (202720 bytes in 0.001s)\n"
+  },
+  {
+    "label": "push-CoinRenderRetainedConnectorTest",
+    "args": [
+      "push",
+      "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedConnectorTest",
+      "/data/local/tmp/coin-retained-20261027/"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedConnectorTest: 1 file pushed, 0 skipped. 155.2 MB/s (253704 bytes in 0.002s)\n"
+  },
+  {
+    "label": "push-CoinRenderRetainedBenchmark",
+    "args": [
+      "push",
+      "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedBenchmark",
+      "/data/local/tmp/coin-retained-20261027/"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedBenchmark: 1 file pushed, 0 skipped. 156.7 MB/s (243944 bytes in 0.001s)\n"
+  },
+  {
+    "label": "CoinRenderRetainedIncrementalTest-vulkan",
+    "args": [
+      "shell",
+      "env",
+      "LD_LIBRARY_PATH=/data/local/tmp/coin-retained-20261027",
+      "COIN_RETAINED_TEST_RENDERER=vulkan",
+      "COIN_WGPU_LOG=debug",
+      "/data/local/tmp/coin-retained-20261027/CoinRenderRetainedIncrementalTest"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "retained_test_renderer requested=1 observed=2 gpu_available=0 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Requested renderer does not match the active wgpu adapter; no fallback was applied\n"
+  },
+  {
+    "label": "CoinRenderRetainedConnectorTest-opengl",
+    "args": [
+      "shell",
+      "env",
+      "LD_LIBRARY_PATH=/data/local/tmp/coin-retained-20261027",
+      "COIN_RETAINED_TEST_RENDERER=opengl",
+      "COIN_WGPU_LOG=debug",
+      "/data/local/tmp/coin-retained-20261027/CoinRenderRetainedConnectorTest"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "retained_test_renderer requested=2 observed=2 gpu_available=1 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Rust/wgpu adapter probe succeeded\n"
+  },
+  {
+    "label": "CoinRenderRetainedIncrementalTest-opengl",
+    "args": [
+      "shell",
+      "env",
+      "LD_LIBRARY_PATH=/data/local/tmp/coin-retained-20261027",
+      "COIN_RETAINED_TEST_RENDERER=opengl",
+      "COIN_WGPU_LOG=debug",
+      "/data/local/tmp/coin-retained-20261027/CoinRenderRetainedIncrementalTest"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "retained_test_renderer requested=2 observed=2 gpu_available=1 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Rust/wgpu adapter probe succeeded\n"
+  },
+  {
+    "label": "CoinRenderRetainedConnectorTest-opengl-no-borrow",
+    "args": [
+      "shell",
+      "env",
+      "LD_LIBRARY_PATH=/data/local/tmp/coin-retained-20261027",
+      "COIN_RETAINED_TEST_RENDERER=opengl",
+      "COIN_WGPU_LOG=debug",
+      "COIN_RENDER_DISABLE_COMPOSITION_BORROW=1",
+      "/data/local/tmp/coin-retained-20261027/CoinRenderRetainedConnectorTest"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "retained_test_renderer requested=2 observed=2 gpu_available=1 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Rust/wgpu adapter probe succeeded\n"
+  },
+  {
+    "label": "wgpu-logcat",
+    "args": [
+      "logcat",
+      "-d",
+      "-s",
+      "CoinRenderWgpu:V"
+    ],
+    "exit": 0,
+    "stdout": "See wgpu-logcat.log.gz",
+    "stderr": ""
+  }
+]

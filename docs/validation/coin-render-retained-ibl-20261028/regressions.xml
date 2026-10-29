@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="7"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="46"
+	timestamp="2026-10-28T21:39:16"
+	>
+	<testcase name="SoRetainedPBRTest" classname="SoRetainedPBRTest" time="0.0122583" status="run">
+		<properties/>
+		<system-out>Native retained PBR: PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPBRGalleryTest" classname="CoinRenderRetainedPBRGalleryTest" time="2.80252" status="run">
+		<properties/>
+		<system-out>PBR gallery PASS: 2 scenes, 3 exposures, 12 exact buffers, 2 paths
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPBRGpuTest" classname="CoinRenderRetainedPBRGpuTest" time="29.4255" status="run">
+		<properties/>
+		<system-out>PBR comparison PASS: 54 scenes, 3 states, 324 exact buffers, 2 paths
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedCityTest" classname="CoinRenderRetainedCityTest" time="0.392179" status="run">
+		<properties/>
+		<system-out>city channels_different=0 maximum=0 depth_different=0
+commands=400 geometry=1 vertices=24 cameras=1
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedConnectorTest" classname="CoinRenderRetainedConnectorTest" time="0.327908" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxCoreTest" classname="CoinBgfxCoreTest" time="0.467793" status="run">
+		<properties/>
+		<system-out>CoinBgfxCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxInstancingTest" classname="CoinBgfxInstancingTest" time="13.3949" status="run">
+		<properties/>
+		<system-out>affine PHONG directional+point max_rgb_error=1 mean_rgb_error=1.01725e-05 changed_pixels=2 pixels_over_3=0 worst_xy=47,28 instanced_rgb=131,36,30 general_rgb=132,36,30
+classified camera update max_rgb_error=1 mean_rgb_error=5.08626e-06 changed_pixels=1 pixels_over_3=0 worst_xy=216,196 instanced_rgb=22,55,156 general_rgb=22,55,157
+classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+resized target max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from fog max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+re...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

@@ -1,0 +1,51 @@
+import FreeCAD as App
+import FreeCADGui as Gui
+import Part
+import os,json,traceback
+from pathlib import Path
+from PySide6 import QtCore,QtWidgets
+out=Path('/tmp/freecad-assembly-ibl')
+main=Gui.getMainWindow(); main.resize(1280,960);main.show()
+App.ParamGet('User parameter:BaseApp/Preferences/NotificationArea').SetBool('NotificationAreaEnabled',False)
+Gui.activateWorkbench('AssemblyWorkbench')
+doc=App.openDocument('/mnt/Laranja/Git/externos/freecad-source/data/examples/AssemblyExample.FCStd')
+doc.getObject('Group').ViewObject.Visibility=False
+view=Gui.activeDocument().activeView();view.viewAxonometric();view.fitAll()
+def run():
+    try:
+        Gui.activateView("Gui::View3DInventor",True)
+        area=main.findChild(QtWidgets.QMdiArea)
+        if area:
+            for window in area.subWindowList():
+                if "AssemblyExample" in window.windowTitle():area.setActiveSubWindow(window)
+        view.fitAll();Gui.updateGui()
+        camera=view.getCamera()
+        (out/'camera.iv').write_text(camera)
+        shapes=[]
+        with (out/'assembly.iv').open('w') as f:
+            f.write('#Inventor V2.1 ascii\nSeparator {\n')
+            f.write('\n'.join(line for line in camera.splitlines() if not line.startswith('#'))+'\n')
+            f.write('LightModel { model PHONG }\n')
+            for obj in doc.getObject('Assembly').Group:
+                if obj.TypeId!='App::Link' or not obj.ViewObject.Visibility:continue
+                shape=obj.Shape
+                vertices,triangles=shape.tessellate(0.2)
+                if not triangles:continue
+                try:color=tuple(obj.LinkedObject.ViewObject.ShapeColor[:3])
+                except Exception:color=(0.7,0.7,0.7)
+                f.write('Separator {\nSoPBRMaterial { baseColor %s metallic 0.65 roughness 0.35 }\n'%(' '.join(str(c) for c in color)))
+                f.write('ShapeHints { vertexOrdering COUNTERCLOCKWISE shapeType SOLID creaseAngle 0.6 }\nCoordinate3 { point [\n')
+                for v in vertices:f.write(f'{v.x:.9g} {v.y:.9g} {v.z:.9g},\n')
+                f.write('] }\nIndexedFaceSet { coordIndex [\n')
+                for a,b,c in triangles:f.write(f'{a},{b},{c},-1,\n')
+                f.write('] }\n}\n')
+                shapes.append(dict(name=obj.Name,vertices=len(vertices),triangles=len(triangles),bbox=[shape.BoundBox.XMin,shape.BoundBox.YMin,shape.BoundBox.ZMin,shape.BoundBox.XMax,shape.BoundBox.YMax,shape.BoundBox.ZMax]))
+            f.write('}\n')
+        view.saveImage(str(out/'freecad-gl-model.png'),1200,840,'Current')
+        main.screen().grabWindow(int(main.winId())).save(str(out/'freecad-viewport.png'))
+        result=dict(status='PASS',freecad=App.Version(),parts=shapes,camera=camera,native_viewport='FreeCAD bundled Coin/OpenGL; not retained BGFX PBR',pbr_preview='Exported link Shape tessellations; explicit metallic 0.65 roughness 0.35; source colors')
+        (out/'gui-results.json').write_text(json.dumps(result,indent=2))
+        print('ASSEMBLY_GUI_EXPORT_PASS',len(shapes),sum(s['triangles'] for s in shapes));QtCore.QCoreApplication.exit(0)
+    except Exception:
+        (out/'error.txt').write_text(traceback.format_exc());print(traceback.format_exc());QtCore.QCoreApplication.exit(1)
+QtCore.QTimer.singleShot(4000,run)

@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "paths": [
+    "current",
+    "retained",
+    "reference"
+  ],
+  "scenes": [
+    "materials",
+    "cad"
+  ],
+  "exposure_stops": [
+    -2,
+    0,
+    2
+  ],
+  "dimensions": [
+    1200,
+    840
+  ],
+  "exact_buffers": 12,
+  "sha256": {
+    "cad--2.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+    "cad--2.rgba": "140a41d8a169d1a82f3569332673ca4f6738f4a2ec8f1ba304698b4bfcca8f31",
+    "cad-0.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+    "cad-0.rgba": "9ab65ffb4325e7d5b7d590cc2b192aed3574fd7c6563d939c9f208b177a6ee1f",
+    "cad-2.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+    "cad-2.rgba": "a166268ba317a807308da39293f8a1c33e57de468263b0e65fc8414c4a0b892c",
+    "materials--2.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+    "materials--2.rgba": "6523a3e42027a851895a9f18f7ebbc5404f2e538fe56fbb587c77c9e6adf329f",
+    "materials-0.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+    "materials-0.rgba": "af2b55005555e86c97c3c7f2233c4196c9647f74303fbfdd5b54967553dd3f11",
+    "materials-2.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+    "materials-2.rgba": "17892dab02171475f03503fda57705e72765235839fb279f5a47c36aeda7e435"
+  },
+  "retained_reuse": {
+    "captures": 1,
+    "plans": 1,
+    "transport_builds": 1
+  },
+  "assertions": [
+    "Exposure changes/restores color",
+    "Exposure preserves depth",
+    "Invalid stops preserve configuration/publication"
+  ]
+}

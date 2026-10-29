@@ -83,6 +83,8 @@ CoinRenderSubmitResult
 CoinRenderRecordingBackend::submit(const CoinRenderFramePlan & frame,
                                CoinRenderTargetP & /*target*/)
 {
+  for (const auto & material:frame.materials) if(material.model==CoinRenderMaterialModel::PBR)
+    return {CoinRenderBackendStatus::UNSUPPORTED,"Recording does not execute PBR shading"};
   if (frame.hasPortableShaderDraws())
     return {CoinRenderBackendStatus::UNSUPPORTED,
             "Recording backend does not execute portable shader modules"};

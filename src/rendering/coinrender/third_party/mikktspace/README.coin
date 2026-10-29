@@ -1,0 +1,9 @@
+MikkTSpace by Morten S. Mikkelsen
+Source: https://github.com/mmikk/MikkTSpace
+Revision: 3e895b49d05ea07e4c2133156cfa94369e19e409
+License: zlib-style permission notice retained verbatim in both source files.
+Upstream files are unmodified. Coin compiles a private wrapper with renamed
+entry points; neither the header nor symbols form part of the installed SDK.
+Review scope: synchronous indexed-triangle callbacks, finite inputs, checked
+triangle count, per-corner results, no shared-index overwrites. Degenerate UV
+triangles are masked explicitly after generation. No upstream build scripts run.

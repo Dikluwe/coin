@@ -241,3 +241,6 @@ SoTexture2Transform::makeMatrix(SbMatrix & mat)
     mat.multRight(tmp);
   }
 }
+
+#include <Inventor/actions/SoIRRenderAction.h>
+void SoTexture2Transform::IRRender(SoIRRenderAction * action) { doAction(action); }

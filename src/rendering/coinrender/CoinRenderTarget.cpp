@@ -317,7 +317,7 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfile(const CoinRend
 
 const CoinRenderFramePreflight *
 CoinRenderTargetP::submissionPreflight(const CoinRenderFramePlan & frame) const {
-  return activePreflight && activePreflight->compositionFor(frame) ? activePreflight : nullptr;
+  return activePreflight && activePreflight->hasCompositionFor(frame) ? activePreflight : nullptr;
 }
 
 CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
@@ -327,9 +327,10 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     CoinRenderCompositionTransferTrace * transfers) {
   std::string volumeDiagnostic;
   std::string planDiag;
+  const auto * compactOrder = !deferUnresolvedAlpha && capturedPreflight ? capturedPreflight->compactCompositionFor(frame) : nullptr;
   const auto * capturedOrder = !deferUnresolvedAlpha && capturedPreflight
     ? capturedPreflight->compositionFor(frame) : nullptr;
-  if (!capturedOrder && !frame.isValid(&planDiag)) {
+  if (!capturedOrder && !compactOrder && !frame.isValid(&planDiag)) {
     const bool hasBumpPayload = !frame.bumpImages.empty() || !frame.bumpCoords.empty() ||
       !frame.bumpTransforms.empty() || !frame.bumpTangents.empty();
     if (hasBumpPayload)
@@ -351,7 +352,7 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
   std::vector<CoinRenderCompositionItem> compositionOrder;
   bool opaqueIdentity = false;
-  if (!capturedOrder &&
+  if (!capturedOrder && !compactOrder &&
       !coin_render_composition_order(frame, compositionOrder, planDiag, deferUnresolvedAlpha,
                                     preflight ? &opaqueIdentity : nullptr)) {
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::UNSUPPORTED, planDiag};
@@ -424,6 +425,13 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
 
   }
 
+  if (preflight && compactOrder) {
+    preflight->frame=&frame;preflight->revision=frame.revision;
+    preflight->transparency=frame.transparency;preflight->resolvedSchedule=true;
+    preflight->compactOrder=compactOrder;
+    preflight->opaqueIdentity=capturedPreflight->hasOpaqueCompositionFor(frame);
+    return {CoinRenderBackendStatus::SUCCESS,""};
+  }
   if (preflight) {
     const auto qualifyBegin = transfers ? transfers->begin() : CoinRenderCompositionTransferTrace::Clock::time_point{};
     const bool loan = capturedOrder && allowCompositionBorrow && coin_render_composition_borrow_enabled() &&
@@ -446,6 +454,7 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     preflight->revision = frame.revision;
     preflight->transparency = frame.transparency;
     preflight->opaqueIdentity = opaqueIdentity;
+    preflight->resolvedSchedule = capturedOrder && capturedPreflight->resolvedSchedule;
   }
   return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::SUCCESS, "");
 }
@@ -763,7 +772,19 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     this->options.maxTextureAnisotropy == oldOptions.maxTextureAnisotropy &&
     this->options.textureSamplingPolicy == oldOptions.textureSamplingPolicy &&
     this->options.rasterizationPolicy == oldOptions.rasterizationPolicy &&
-    this->options.sampleCount == oldOptions.sampleCount;
+    this->options.sampleCount == oldOptions.sampleCount &&
+    this->options.pbrExposureStops == oldOptions.pbrExposureStops &&
+    this->options.pbrEnvironmentBundle == oldOptions.pbrEnvironmentBundle &&
+    this->options.pbrEnvironmentRotation == oldOptions.pbrEnvironmentRotation &&
+    this->options.pbrEnvironmentIntensity == oldOptions.pbrEnvironmentIntensity &&
+    this->options.pbrEnvironmentBudgetBytes == oldOptions.pbrEnvironmentBudgetBytes &&
+    this->options.pbrEnergyCompensation == oldOptions.pbrEnergyCompensation &&
+    this->options.pbrAnisotropicEnvironmentSamples == oldOptions.pbrAnisotropicEnvironmentSamples &&
+    this->options.pbrAnisotropyProducts == oldOptions.pbrAnisotropyProducts &&
+    this->options.pbrAnisotropyCpuBudgetBytes == oldOptions.pbrAnisotropyCpuBudgetBytes &&
+    this->options.pbrSpecularFilterVariance == oldOptions.pbrSpecularFilterVariance &&
+    this->options.pbrSpecularFilterThreshold == oldOptions.pbrSpecularFilterThreshold &&
+    this->options.pbrEffects == oldOptions.pbrEffects;
   // A failed execution revokes the receipt; only target publication below
   // can renew it. Resource/device admission still executes on every frame.
   // Private revisions are hints, not proof that a transported atlas is intact.
@@ -847,12 +868,12 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     const CoinRenderFramePreflight * previous;
     ~PreflightScope() { active = previous; }
   } preflightScope{this->activePreflight, this->activePreflight};
-  this->activePreflight = preflight.compositionFor(frame) ? &preflight : nullptr;
+  this->activePreflight = preflight.hasCompositionFor(frame) ? &preflight : nullptr;
   const auto loanBegin = compositionTransfers.begin();
   if (!this->activePreflight && coin_render_composition_borrow_enabled() && capturedPreflight &&
-      capturedPreflight->opaqueCompositionFor(frame)) {
+      capturedPreflight->hasOpaqueCompositionFor(frame)) {
     this->activePreflight = capturedPreflight;
-    compositionTransfers.borrowedItems = capturedPreflight->opaqueCompositionFor(frame)->size();
+    compositionTransfers.borrowedItems = capturedPreflight->compositionSize(frame);
   }
   compositionTransfers.qualifyMs += compositionTransfers.elapsed(loanBegin);
   const auto phaseValidated = PhaseClock::now();
@@ -902,6 +923,10 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     }
   }
 
+#ifndef HAVE_COIN_BGFX
+  if(this->options.pbrEffects.planarReflection||this->options.pbrEffects.shadows||this->options.pbrEffects.ambientOcclusion||this->options.pbrEffects.background)
+    return {CoinRenderBackendStatus::UNSUPPORTED,"PBR viewport effects require the BGFX Vulkan executor"};
+#endif
   const auto multipassAdmission = this->backend->preflightMultipass(frame, this->size);
   if (multipassAdmission.status != CoinRenderBackendStatus::SUCCESS) return multipassAdmission;
   const auto phasePrepared = PhaseClock::now();
@@ -1050,6 +1075,35 @@ CoinRenderTarget::createWindow(const CoinRenderNativeSurfaceDescriptor& descript
 }
 
 const CoinRenderOptions& CoinRenderTarget::getOptions(void) const { return this->pimpl->options; }
+
+SbBool CoinRenderTarget::setPbrEffects(const CoinRenderPbrEffects & effects) {
+  std::string diagnostic;
+  if(!coin_render_valid_pbr_effects(effects,diagnostic)) {
+    this->pimpl->lastError=diagnostic.c_str();return FALSE;
+  }
+  this->pimpl->options.pbrEffects=effects;this->pimpl->lastError.clear();return TRUE;
+}
+
+SbBool CoinRenderTarget::setPbrExposureStops(float stops)
+{
+  if (!std::isfinite(stops) || stops < -16.0f || stops > 16.0f) {
+    this->pimpl->lastError = "PBR exposure requires finite stops in [-16,16]";
+    return FALSE;
+  }
+  this->pimpl->options.pbrExposureStops = stops;
+  this->pimpl->lastError.clear();
+  return TRUE;
+}
+
+SbBool CoinRenderTarget::setPbrEnvironmentParameters(float rotationRadians, float intensity)
+{
+  if (!std::isfinite(rotationRadians) || !std::isfinite(intensity) || intensity < 0 || intensity > 64) {
+    this->pimpl->lastError = "IBL rotation must be finite and intensity in [0,64]"; return FALSE;
+  }
+  this->pimpl->options.pbrEnvironmentRotation = rotationRadians;
+  this->pimpl->options.pbrEnvironmentIntensity = intensity;
+  this->pimpl->lastError.clear(); return TRUE;
+}
 
 CoinRenderTarget::Status
 CoinRenderTarget::getStatus(void) const

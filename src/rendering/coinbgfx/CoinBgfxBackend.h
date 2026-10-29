@@ -4,6 +4,7 @@
 #include "rendering/coinrender/CoinRenderBackend.h"
 #include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
+#include "rendering/coinrender/CoinRenderRoughPlanarCore.h"
 
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <bgfx/bgfx.h>
@@ -12,12 +13,30 @@
 #include <utility>
 #include <thread>
 
+class CoinEnvironment;
+class CoinEnvironmentAnisotropy;
 struct CoinRenderShadowPlan;
 
 /** Experimental BGFX renderer. Targets share an API-thread-owned device. */
 class CoinBgfxBackend : public CoinRenderBackend {
 public:
   static CoinRenderBackendRuntime & runtime();
+  uint64_t getPbrAnisotropyPreparationCount() const {return pbrAnisotropyPreparations;}
+  COIN_RENDER_DLL_API uint64_t getPbrAnisotropyProductBytes() const;
+  uint64_t getPbrReflectionRenderCount() const {return pbrReflectionRenders;}
+  uint64_t getPbrReflectionAttachmentBytes() const {return pbrReflectionBytes;}
+  bool getPbrRoughReflectionEnabled() const {return pbrRoughMapping.enabled;}
+  double getPbrRoughProxyHeight() const {return pbrRoughMapping.proxyHeight;}
+  uint64_t getPbrEnvironmentUploadCount() const { return this->pbrEnvironmentUploads; }
+  uint64_t getPbrEnvironmentGpuBytes() const { return this->pbrEnvironmentGpuBytes; }
+  uint64_t getPbrEffectAttachmentBytes() const {
+    return (bgfx::isValid(pbrShadowBuffer)?uint64_t(pbrShadowSize)*pbrShadowSize*4:0)+
+      (bgfx::isValid(pbrCameraDepthBuffer)?uint64_t(pbrDepthWidth)*pbrDepthHeight*4:0);
+  }
+  uint64_t getPbrStaticPresentationReuseCount() const { return pbrStaticPresentations; }
+  uint64_t getPbrShadedFrameCount() const { return pbrShadedFrames; }
+  uint64_t getPbrShadowPassCount() const { return this->pbrShadowPasses; }
+  uint64_t getPbrOcclusionDepthPassCount() const { return this->pbrCameraDepthPasses; }
   CoinBgfxBackend();
   ~CoinBgfxBackend() override;
   bool initializesCpuDepthBuffer() const override { return false; }
@@ -267,6 +286,66 @@ private:
   bgfx::VertexLayout instancedLayout;
   bgfx::VertexLayout instanceLayout;
   bool prepareBumpResources();
+  CoinRenderBackendStatus pbrPrepareStatus = CoinRenderBackendStatus::UNSUPPORTED;
+  bool preparePbr(const CoinRenderFramePlan &, CoinRenderTargetP &);
+  bool preparePbrEffects(const CoinRenderFramePlan &, CoinRenderTargetP &);
+  bgfx::ViewId encodePbrEffectDepths(bgfx::ViewId, const std::vector<CoinBgfxDraw> &,
+    bgfx::DynamicVertexBufferHandle,bgfx::DynamicIndexBufferHandle,const CoinRenderFramePlan &);
+  void bindPbrEffects(const CoinBgfxDraw &, bool reflected=false);
+  void destroyPbrEffects();
+  CoinRenderPbrEffects pbrEffects;
+  CoinRenderFrameBorrow::Identity pbrEffectIdentity;
+  SbMatrix pbrEffectProjection=SbMatrix::identity(),pbrEffectInverseProjection=SbMatrix::identity();
+  SbMatrix pbrShadowWorldToClip=SbMatrix::identity();
+  bgfx::ProgramHandle pbrDepthProgram=BGFX_INVALID_HANDLE;
+  bgfx::FrameBufferHandle pbrShadowBuffer=BGFX_INVALID_HANDLE,pbrCameraDepthBuffer=BGFX_INVALID_HANDLE;
+  uint32_t pbrShadowSize=0,pbrDepthWidth=0,pbrDepthHeight=0;
+  bool pbrShadowDirty=true,pbrCameraDepthDirty=true;
+  uint64_t pbrShadowPasses=0,pbrCameraDepthPasses=0;
+  bool preparePbrEnvironment(CoinRenderTargetP &, bool needsAnisotropy = false);
+  void bindPbrEnvironment(const CoinBgfxDraw &);
+  void destroyPbrEnvironment();
+  bgfx::ProgramHandle pbrIblProgram = BGFX_INVALID_HANDLE, pbrArrayIblProgram = BGFX_INVALID_HANDLE;
+  std::shared_ptr<const CoinEnvironmentAnisotropy> pbrAnisotropy;
+  bool pbrEnvironmentArray=false;
+  float pbrAnisotropyLayout[3][4]={}, pbrAnisoSampling[4]={};
+  bgfx::TextureHandle pbrSpecularCube = BGFX_INVALID_HANDLE, pbrDfgTexture = BGFX_INVALID_HANDLE,
+    pbrAverageTexture = BGFX_INVALID_HANDLE;
+  std::shared_ptr<const CoinEnvironment> pbrEnvironment;
+  uint64_t pbrAnisotropyPreparations=0;
+  uint64_t pbrEnvironmentUploads = 0, pbrEnvironmentGpuBytes = 0;
+  bool pbrIblActive = false;
+  float pbrIblParameters[4] = {}, pbrQuality[4] = {};
+  float pbrIrradiance[9][4] = {};
+  bgfx::FrameBufferHandle pbrReflectionBuffer=BGFX_INVALID_HANDLE;
+  int pbrReflectionWidth=0,pbrReflectionHeight=0;
+  uint64_t pbrReflectionRenders=0,pbrReflectionBytes=0;
+  std::vector<uint8_t> pbrReflectionReceivers;
+  CoinRenderRoughPlanar::Mapping pbrRoughMapping;
+  std::vector<CoinBgfxDraw> pbrReflectedDraws;
+  bool preparePbrReflection(const CoinRenderFramePlan &,const CoinRenderTargetP &);
+  bool encodePbrReflection(bgfx::ViewId &,const std::vector<CoinBgfxDraw> &,
+    bgfx::DynamicVertexBufferHandle,bgfx::DynamicIndexBufferHandle,const std::vector<bgfx::TextureHandle> &,const CoinRenderFramePlan &);
+  void destroyPbrReflection();
+  bool hasPbr(const CoinRenderFramePlan &) const;
+  void submitPbrDraw(bgfx::ViewId, const CoinBgfxDraw &, const CoinRenderFramePlan &, const std::vector<bgfx::TextureHandle> &, bool reflected=false);
+  void encodePbrOutput(bgfx::ViewId, bgfx::FrameBufferHandle);
+  void destroyPbr();
+  void encodeWindowScenePresent(bgfx::ViewId);
+  bool canReusePbrPresentation(const CoinRenderFramePlan &, const CoinRenderTargetP &,
+                               const CoinRenderFrameBorrow::Identity &) const;
+  CoinRenderSubmitResult reusePbrPresentation(const CoinRenderFramePlan &, CoinRenderTargetP &);
+  void rememberPbrPresentation(const CoinRenderFramePlan &, const CoinRenderTargetP &);
+  CoinRenderFrameBorrow::Identity pbrPresentationIdentity;
+  CoinRenderOptions pbrPresentationOptions;
+  uint64_t pbrPresentationGeneration=0, pbrPresentationSerial=0, pbrStaticPresentations=0, pbrShadedFrames=0;
+  int pbrPresentationWidth=0, pbrPresentationHeight=0;
+  bool pbrPresentationReuseEnabled=true;
+  bgfx::ProgramHandle pbrProgram = BGFX_INVALID_HANDLE, pbrOutputProgram = BGFX_INVALID_HANDLE;
+  bgfx::FrameBufferHandle pbrFrameBuffer = BGFX_INVALID_HANDLE;
+  int pbrWidth = 0, pbrHeight = 0;
+  float pbrExposureMultiplier = 1.0f;
+  std::map<std::string, bgfx::UniformHandle> pbrUniforms;
   bool prepareBumpPrograms();
   bool prepareBumpReceiverPrograms(const CoinBgfxDraw &draw, bool windowTarget,
                                    bgfx::TextureFormat::Enum colorFormat = bgfx::TextureFormat::RGBA8);

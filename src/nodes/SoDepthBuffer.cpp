@@ -67,6 +67,8 @@
 */
 
 #include <Inventor/nodes/SoDepthBuffer.h>
+#include "elements/SoRenderDepthPolicyElement.h"
+#include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/elements/SoGLDepthBufferElement.h>
 #include <Inventor/system/gl.h>
@@ -154,6 +156,7 @@ SoDepthBuffer::initClass(void)
   SO_NODE_INTERNAL_INIT_CLASS(SoDepthBuffer, SO_FROM_COIN_3_0);
 
   SO_ENABLE(SoGLRenderAction, SoGLDepthBufferElement);
+  SO_ENABLE(SoCallbackAction, SoDepthBufferElement);
 }
 
 /*!
@@ -184,6 +187,38 @@ SoDepthBuffer::SoDepthBuffer(void)
 */
 SoDepthBuffer::~SoDepthBuffer()
 {
+}
+
+void
+SoDepthBuffer::doAction(SoAction * action)
+{
+  SoState * state = action->getState();
+  if (state->isElementEnabled(SoRenderDepthPolicyElement::getClassStackIndex())) {
+    const uint32_t mask = (!test.isIgnored() ? 1u : 0u) | (!write.isIgnored() ? 2u : 0u) |
+      (!function.isIgnored() ? 4u : 0u) | (!range.isIgnored() ? 8u : 0u);
+    SoRenderDepthPolicyElement::add(state, mask);
+  }
+  SbBool testenable = this->test.getValue();
+  SbBool writeenable = this->write.getValue();
+  SoDepthBufferElement::DepthWriteFunction function =
+    static_cast<SoDepthBufferElement::DepthWriteFunction>(this->function.getValue());
+  SbVec2f depthrange = this->range.getValue();
+
+  if (this->test.isIgnored()) {
+    testenable = SoDepthBufferElement::getTestEnable(state);
+  }
+  if (this->write.isIgnored()) {
+    writeenable = SoDepthBufferElement::getWriteEnable(state);
+  }
+  if (this->function.isIgnored()) {
+    function = SoDepthBufferElement::getFunction(state);
+  }
+  if (this->range.isIgnored()) {
+    depthrange = SoDepthBufferElement::getRange(state);
+  }
+
+  SoDepthBufferElement::set(state, testenable, writeenable,
+                            function, depthrange);
 }
 
 // Doc from parent

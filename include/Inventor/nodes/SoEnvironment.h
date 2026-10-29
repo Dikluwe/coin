@@ -58,6 +58,7 @@ public:
 
   void GLRender(SoGLRenderAction * action) override;
   void callback(SoCallbackAction * action) override;
+  void IRRender(SoIRRenderAction * action) override;
 
   SoSFFloat ambientIntensity;
   SoSFColor ambientColor;

@@ -54,6 +54,7 @@ public:
   SoSFInt32 unit;
   SoSFEnum mappingMethod;
 
+  void IRRender(SoIRRenderAction * action) override;
   void doAction(SoAction * action) override;
   void callback(SoCallbackAction * action) override;
   void GLRender(SoGLRenderAction * action) override;

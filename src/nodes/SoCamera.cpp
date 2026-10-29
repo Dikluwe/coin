@@ -115,6 +115,7 @@
 */
 
 #include <Inventor/nodes/SoCamera.h>
+#include <Inventor/actions/SoIRRenderAction.h>
 
 #include <cfloat> // for FLT_EPSILON
 
@@ -1282,3 +1283,10 @@ BOOST_AUTO_TEST_CASE(getViewVolume_uses_input_viewport)
 }
 
 #endif // COIN_TEST_SUITE
+
+void
+SoCamera::IRRender(SoIRRenderAction * action)
+{
+  action->recordWorldStateDependency();
+  this->doAction(action);
+}

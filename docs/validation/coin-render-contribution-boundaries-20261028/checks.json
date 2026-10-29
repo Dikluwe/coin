@@ -1,0 +1,26 @@
+[
+  {
+    "name": "default-audit",
+    "exit": 0,
+    "expected_exit": 0,
+    "matched": "Retained contribution boundaries: PASS"
+  },
+  {
+    "name": "unclassified-control",
+    "exit": 1,
+    "expected_exit": 1,
+    "matched": "Changed file needs classification: src/rendering/coinrender/CoinRenderRetainedTransport.cpp"
+  },
+  {
+    "name": "native-dependency-control",
+    "exit": 1,
+    "expected_exit": 1,
+    "matched": "native candidate includes executor/integration header"
+  },
+  {
+    "name": "invalid-reference-control",
+    "exit": 1,
+    "expected_exit": 1,
+    "matched": "Pinned upstream commit is unavailable"
+  }
+]

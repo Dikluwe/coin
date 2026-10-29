@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-27",
+  "branch": "codex/coinrender-retained-integration",
+  "head": "e8c7003345a481a4d6d16bdec411ecf86f873d09",
+  "uncommitted_working_tree": true,
+  "fingerprint": "google/sdk_gphone64_x86_64/emu64xa:17/CE2A.260420.019/15611780:user/release-keys",
+  "api": 37,
+  "abi": "x86_64",
+  "emulator": "37.2.12.0 build 16428233",
+  "ndk": "30.0.16248370",
+  "minimum_api": 26,
+  "renderer_requested": "OPENGL",
+  "renderer_observed": "GLES 3.1 / wgpu Gl",
+  "emulated_gpu": "Android Emulator OpenGL ES Translator / AMD Radeon Graphics (radeonsi, renoir)",
+  "avd": "Medium_Phone_API_37.0",
+  "serial": "emulator-5580",
+  "ram_mb": 4096,
+  "vcpus": 4,
+  "kvm": true,
+  "read_only_avd": true,
+  "profile": "native ELF offscreen tests; no NativeActivity, window lifecycle or ARM device qualification",
+  "functional_passes": 4,
+  "benchmark_rows": 72,
+  "vulkan": "Not qualified: non-compliant Goldfish Vulkan adapter hidden; observed GL adapter rejected for explicit Vulkan request",
+  "bgfx": "CMake rejects Android; Linux and Windows only",
+  "hashes": {
+    "/tmp/coin-retained-android-wgpu/lib/libCoin.so": {
+      "sha256": "a9ac1d998bb63dc1db12266cefe83a481d38f3edaa8530f9aba9a63d4941eb20",
+      "bytes": 44601800
+    },
+    "/tmp/coin-retained-android-wgpu/lib/libCoinRender.so": {
+      "sha256": "49d85b6a7823f477454d01bd5049a0a05529d0dea146f3c8f2de14fe64bacefe",
+      "bytes": 41587040
+    },
+    "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedConnectorTest": {
+      "sha256": "1943f47589280b2a478a31672efcea08785dc23772ee583a5c3faa60c611ace3",
+      "bytes": 253704
+    },
+    "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedIncrementalTest": {
+      "sha256": "fef6373484bdc02df68deb24f238bcb5880e9d6db1a170a3948568522d978bb6",
+      "bytes": 202720
+    },
+    "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedBenchmark": {
+      "sha256": "7d042863f45808f50351d3543e1c1a6cdf19b70afef16ac21b045ea2f22c63ac",
+      "bytes": 243944
+    },
+    "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/testsuite/coinrender/CoinRenderRetainedTestRenderer.h": {
+      "sha256": "c5eef0d84ca8d5c1912efa0c446b6bf601af5011c5b2088543933107bbe4a88a",
+      "bytes": 1390
+    },
+    "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/testsuite/coinrender/CoinRenderRetainedConnectorTest.cpp": {
+      "sha256": "66d52c18f23e43dc02bade27c21d3e561e0a84756e516afae0eb8756e82af72c",
+      "bytes": 11022
+    },
+    "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/testsuite/coinrender/CoinRenderRetainedIncrementalTest.cpp": {
+      "sha256": "0060f41705af683e225a0ef92d6729bc8ee663fec02f8cd324045aa6e5c3fa2d",
+      "bytes": 10448
+    },
+    "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/testsuite/coinrender/CoinRenderRetainedBenchmark.cpp": {
+      "sha256": "f367cd72b479c40c95d339adddd738563b68b666c4ec3ab3d7c6973b11c13581",
+      "bytes": 8907
+    },
+    "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/src/rendering/coinrender/CoinRenderRetainedBackend.cpp": {
+      "sha256": "76dab06ed8c8e372f8aae1b8ce6d92bd12c909d618d8d083c984752cab97b272",
+      "bytes": 22370
+    },
+    "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/src/rendering/coinrender/CoinRenderRetainedRenderer.cpp": {
+      "sha256": "b97ca35abb9bb6a6c5ac6db8420ac937c582cd8f1824ebdc75dd82e6a1fc1a3c",
+      "bytes": 10153
+    },
+    "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/src/actions/SoIRRenderAction.cpp": {
+      "sha256": "99b60a47762011269bf9ec023caed49914fd2e6437567ddc28e5d33b5a0b9aaa",
+      "bytes": 45280
+    },
+    "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/src/rendering/SoRetainedUpdater.cpp": {
+      "sha256": "02d9f2cb4fa90cdf50c299c57e5d3720ec896edfd9af3d544cb97fab5f74eef5",
+      "bytes": 6218
+    },
+    "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/src/rendering/SoRenderPlan.cpp": {
+      "sha256": "1cbd69e849cc0d220a01cff00d42f851d463768c5fc7a8517106c59352fa973c",
+      "bytes": 9628
+    }
+  }
+}

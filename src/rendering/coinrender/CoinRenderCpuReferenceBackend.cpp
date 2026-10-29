@@ -802,6 +802,8 @@ CoinRenderCpuReferenceBackend::preflightRtt(const CoinRenderRttPlan & graph,
 CoinRenderSubmitResult
 CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
+  for (const auto & material:frame.materials) if(material.model==CoinRenderMaterialModel::PBR)
+    return {CoinRenderBackendStatus::UNSUPPORTED,"CPU reference does not execute PBR shading"};
   static std::atomic<uint64_t> globalCpuSerial(1);
   if (!CoinRenderCubeTextureCore::validate(frame, this->lastError) ||
       !CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))

@@ -1,0 +1,111 @@
+{
+  "summary": {
+    "current": {
+      "first_render_ms": 9714.631,
+      "steady_median_ms": 19.8288835,
+      "steady_p90_ms": 20.776711,
+      "sampled_peak_rss_kib": 5215584,
+      "memory": {
+        "reported_pss_kib": 3874304,
+        "rss_kib": 3995224,
+        "swap_kib": 47,
+        "native_alloc_kib": 3845624
+      }
+    },
+    "retained": {
+      "first_render_ms": 4354.441,
+      "steady_median_ms": 19.687738,
+      "steady_p90_ms": 20.917825,
+      "sampled_peak_rss_kib": 4265344,
+      "memory": {
+        "reported_pss_kib": 3866103,
+        "rss_kib": 3989380,
+        "swap_kib": 0,
+        "native_alloc_kib": 3831389
+      }
+    }
+  },
+  "equivalence": [
+    {
+      "trial": 1,
+      "mode": "current",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    },
+    {
+      "trial": 2,
+      "mode": "retained",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    },
+    {
+      "trial": 3,
+      "mode": "retained",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    },
+    {
+      "trial": 4,
+      "mode": "current",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    },
+    {
+      "trial": 5,
+      "mode": "current",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    },
+    {
+      "trial": 6,
+      "mode": "retained",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    }
+  ],
+  "sha256": {
+    "1-current/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "1-current/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "1-current/frame.times": "1c80c16413cf3c4ec69d847054067bbc7242dc67c10742314d744fae7620b7d7",
+    "2-retained/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "2-retained/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "2-retained/frame.times": "87dc54a42890016116e4af11e519ce615027d609c9668b6a23fbdb7b9badca8b",
+    "3-retained/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "3-retained/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "3-retained/frame.times": "3bc72fa22719ef04c397b09c68e7599c734f867b1d1805441472c0cfa7747e20",
+    "4-current/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "4-current/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "4-current/frame.times": "3356e8247487226662513d56c8269c6cd51fa082d1b066c2872f4a5933245a99",
+    "5-current/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "5-current/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "5-current/frame.times": "02b07e488b1b2614cf24a90ff601793f38b6a136d34e80def2ae10e6a2d1ebb5",
+    "6-retained/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "6-retained/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "6-retained/frame.times": "9e3d31174c418cc5d27dd2f91f6dac5f5e1b2b322d97e270962ad0937b4e6491",
+    "coin-render-million-ab.apk": "d4aab9a24c4763ee565aa44c4035b1fb1bc1a0c141546b8ad8aa961a0a5f9e4a"
+  }
+}

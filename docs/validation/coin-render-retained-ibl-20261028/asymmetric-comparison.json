@@ -1,0 +1,60 @@
+{
+  "status": "PASS",
+  "paths": [
+    "current",
+    "retained",
+    "reference"
+  ],
+  "environment_sha256": "c19b49b8110904e12fa24ae3ce4f893e039bacf69aa911995ee3e310d362a7e0",
+  "scenes": [
+    "materials",
+    "cad"
+  ],
+  "states": [
+    "base",
+    "rotated",
+    "dim",
+    "off",
+    "exposure"
+  ],
+  "dimensions": [
+    1200,
+    840
+  ],
+  "exact_buffers": 20,
+  "sha256": {
+    "cad-base.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+    "cad-base.rgba": "774231c5f57c1c68b5f53ba9c79292a3428ef4ef67a3834bd8e90a99e12230de",
+    "cad-dim.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+    "cad-dim.rgba": "5e578ee5ec0627a6de0d3b09d6dd3069067a0da922742a807646665805de3899",
+    "cad-exposure.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+    "cad-exposure.rgba": "131c33bb039c432afe7c7bd3ca5788e00d4e48f17e894835821d0642e29dc784",
+    "cad-off.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+    "cad-off.rgba": "6bd62bf312a1033c5f82591b6e80b000492fd01939863789974d9cd96a4ca8eb",
+    "cad-rotated.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+    "cad-rotated.rgba": "07754569c1f9073b3bf4fb215086142ef98a9a6f96a2cb1a8fb77e1cfbe7fb8b",
+    "materials-base.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+    "materials-base.rgba": "f431aa9bfacf6d14653fd8a3f27cd2131ed36235effd6b58a802c1dbff175bff",
+    "materials-dim.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+    "materials-dim.rgba": "1e047907da38e446fea3d93e424b7af6f15d55d48a666beec5f5b3af5088a565",
+    "materials-exposure.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+    "materials-exposure.rgba": "f03af776b892686cd14799e5e167887e286f3f76ce7a194b2304571c7c441377",
+    "materials-off.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+    "materials-off.rgba": "6bd62bf312a1033c5f82591b6e80b000492fd01939863789974d9cd96a4ca8eb",
+    "materials-rotated.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+    "materials-rotated.rgba": "bbc0d344e0d27f0807372d15f28dc1955e4855ec8143374559bcd9f24746b96c"
+  },
+  "retained_reuse": {
+    "captures": 1,
+    "plans": 1,
+    "transport_builds": 1,
+    "environment_uploads": 1
+  },
+  "assertions": [
+    "Frozen source survives deletion",
+    "Scalar edits preserve depth",
+    "Intensity zero invents no lighting",
+    "Invalid parameters preserve configuration/publication",
+    "Restoration is byte-identical"
+  ]
+}

@@ -1,0 +1,3913 @@
+{
+  "status": "PASS",
+  "records": [
+    {
+      "status": "ok",
+      "id": 2,
+      "width": 1234,
+      "height": 886,
+      "serial": 2,
+      "captures": 1,
+      "plans": 1,
+      "incremental_updates": 0,
+      "transport_builds": 1,
+      "copied_vertices": 184278,
+      "environment_uploads": 1,
+      "anisotropy_preparations": 1,
+      "anisotropy_product_bytes": 1050624,
+      "environment_gpu_bytes": 3418080,
+      "reflection_passes": 1,
+      "reflection_attachment_bytes": 3279972,
+      "static_reuses": 1,
+      "shaded_frames": 1,
+      "shadow_passes": 1,
+      "ao_depth_passes": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "tessellation_attempts": 15,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "reflection-on",
+      "session": "industrial-session",
+      "camera": [
+        1,
+        990.7005004882812,
+        636.4349365234375,
+        963.7679443359375,
+        0.25620660185813904,
+        0.49544891715049744,
+        0.7372509837150574,
+        0.38124731183052063,
+        1.0,
+        5000.0,
+        1588.238037109375,
+        0.75
+      ],
+      "rotation": 0.6,
+      "intensity": 0.85,
+      "exposure": -0.25,
+      "effects": {
+        "planarReflection": true,
+        "reflectionScale": 2,
+        "reflectionPlane": [
+          0.0,
+          0.0,
+          1.0,
+          363.768005
+        ],
+        "reflectionBudgetBytes": 67108864,
+        "reflectionPlaneTolerance": 0.0001,
+        "shadows": true,
+        "ambientOcclusion": true,
+        "background": true,
+        "occlusionRadius": 18.0,
+        "occlusionStrength": 0.9,
+        "shadowMapSize": 2048,
+        "shadowBias": 0.00015,
+        "resourceBudgetBytes": 134217728,
+        "backgroundTop": [
+          0.22,
+          0.27,
+          0.34
+        ],
+        "backgroundBottom": [
+          0.68,
+          0.71,
+          0.75
+        ]
+      },
+      "surface_maps": {
+        "Bucket": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink2": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink1": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BoomCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "StickCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        }
+      },
+      "materials": {
+        "BasePin": {
+          "baseColor": [
+            0.48,
+            0.52,
+            0.57
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.22,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Base": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Boom": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Stick": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Bucket": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink2": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink1": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BoomCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BoomCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BucketCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        }
+      }
+    },
+    {
+      "status": "ok",
+      "id": 3,
+      "width": 1234,
+      "height": 886,
+      "serial": 3,
+      "captures": 1,
+      "plans": 1,
+      "incremental_updates": 0,
+      "transport_builds": 1,
+      "copied_vertices": 184278,
+      "environment_uploads": 1,
+      "anisotropy_preparations": 1,
+      "anisotropy_product_bytes": 1050624,
+      "environment_gpu_bytes": 3418080,
+      "reflection_passes": 1,
+      "reflection_attachment_bytes": 0,
+      "static_reuses": 1,
+      "shaded_frames": 2,
+      "shadow_passes": 1,
+      "ao_depth_passes": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "tessellation_attempts": 15,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "reflection-off",
+      "session": "industrial-session",
+      "camera": [
+        1,
+        990.7005004882812,
+        636.4349365234375,
+        963.7679443359375,
+        0.25620660185813904,
+        0.49544891715049744,
+        0.7372509837150574,
+        0.38124731183052063,
+        1.0,
+        5000.0,
+        1588.238037109375,
+        0.75
+      ],
+      "rotation": 0.6,
+      "intensity": 0.85,
+      "exposure": -0.25,
+      "effects": {
+        "planarReflection": false,
+        "reflectionScale": 2,
+        "reflectionPlane": [
+          0.0,
+          0.0,
+          1.0,
+          363.768005
+        ],
+        "reflectionBudgetBytes": 67108864,
+        "reflectionPlaneTolerance": 0.0001,
+        "shadows": true,
+        "ambientOcclusion": true,
+        "background": true,
+        "occlusionRadius": 18.0,
+        "occlusionStrength": 0.9,
+        "shadowMapSize": 2048,
+        "shadowBias": 0.00015,
+        "resourceBudgetBytes": 134217728,
+        "backgroundTop": [
+          0.22,
+          0.27,
+          0.34
+        ],
+        "backgroundBottom": [
+          0.68,
+          0.71,
+          0.75
+        ]
+      },
+      "surface_maps": {
+        "Bucket": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink2": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink1": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BoomCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "StickCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        }
+      },
+      "materials": {
+        "BasePin": {
+          "baseColor": [
+            0.48,
+            0.52,
+            0.57
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.22,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Base": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Boom": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Stick": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Bucket": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink2": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink1": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BoomCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BoomCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BucketCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        }
+      }
+    },
+    {
+      "status": "ok",
+      "id": 4,
+      "width": 1234,
+      "height": 886,
+      "serial": 4,
+      "captures": 1,
+      "plans": 1,
+      "incremental_updates": 0,
+      "transport_builds": 1,
+      "copied_vertices": 184278,
+      "environment_uploads": 1,
+      "anisotropy_preparations": 1,
+      "anisotropy_product_bytes": 1050624,
+      "environment_gpu_bytes": 3418080,
+      "reflection_passes": 2,
+      "reflection_attachment_bytes": 823176,
+      "static_reuses": 1,
+      "shaded_frames": 3,
+      "shadow_passes": 1,
+      "ao_depth_passes": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "tessellation_attempts": 15,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "quarter-resolution",
+      "session": "industrial-session",
+      "camera": [
+        1,
+        990.7005004882812,
+        636.4349365234375,
+        963.7679443359375,
+        0.25620660185813904,
+        0.49544891715049744,
+        0.7372509837150574,
+        0.38124731183052063,
+        1.0,
+        5000.0,
+        1588.238037109375,
+        0.75
+      ],
+      "rotation": 0.6,
+      "intensity": 0.85,
+      "exposure": -0.25,
+      "effects": {
+        "planarReflection": true,
+        "reflectionScale": 4,
+        "reflectionPlane": [
+          0.0,
+          0.0,
+          1.0,
+          363.768005
+        ],
+        "reflectionBudgetBytes": 67108864,
+        "reflectionPlaneTolerance": 0.0001,
+        "shadows": true,
+        "ambientOcclusion": true,
+        "background": true,
+        "occlusionRadius": 18.0,
+        "occlusionStrength": 0.9,
+        "shadowMapSize": 2048,
+        "shadowBias": 0.00015,
+        "resourceBudgetBytes": 134217728,
+        "backgroundTop": [
+          0.22,
+          0.27,
+          0.34
+        ],
+        "backgroundBottom": [
+          0.68,
+          0.71,
+          0.75
+        ]
+      },
+      "surface_maps": {
+        "Bucket": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink2": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink1": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BoomCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "StickCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        }
+      },
+      "materials": {
+        "BasePin": {
+          "baseColor": [
+            0.48,
+            0.52,
+            0.57
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.22,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Base": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Boom": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Stick": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Bucket": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink2": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink1": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BoomCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BoomCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BucketCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        }
+      }
+    },
+    {
+      "status": "ok",
+      "id": 5,
+      "width": 1234,
+      "height": 886,
+      "serial": 5,
+      "captures": 1,
+      "plans": 1,
+      "incremental_updates": 0,
+      "transport_builds": 1,
+      "copied_vertices": 184278,
+      "environment_uploads": 1,
+      "anisotropy_preparations": 1,
+      "anisotropy_product_bytes": 1050624,
+      "environment_gpu_bytes": 3418080,
+      "reflection_passes": 3,
+      "reflection_attachment_bytes": 13119888,
+      "static_reuses": 1,
+      "shaded_frames": 4,
+      "shadow_passes": 1,
+      "ao_depth_passes": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "tessellation_attempts": 15,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "full-resolution",
+      "session": "industrial-session",
+      "camera": [
+        1,
+        990.7005004882812,
+        636.4349365234375,
+        963.7679443359375,
+        0.25620660185813904,
+        0.49544891715049744,
+        0.7372509837150574,
+        0.38124731183052063,
+        1.0,
+        5000.0,
+        1588.238037109375,
+        0.75
+      ],
+      "rotation": 0.6,
+      "intensity": 0.85,
+      "exposure": -0.25,
+      "effects": {
+        "planarReflection": true,
+        "reflectionScale": 1,
+        "reflectionPlane": [
+          0.0,
+          0.0,
+          1.0,
+          363.768005
+        ],
+        "reflectionBudgetBytes": 67108864,
+        "reflectionPlaneTolerance": 0.0001,
+        "shadows": true,
+        "ambientOcclusion": true,
+        "background": true,
+        "occlusionRadius": 18.0,
+        "occlusionStrength": 0.9,
+        "shadowMapSize": 2048,
+        "shadowBias": 0.00015,
+        "resourceBudgetBytes": 134217728,
+        "backgroundTop": [
+          0.22,
+          0.27,
+          0.34
+        ],
+        "backgroundBottom": [
+          0.68,
+          0.71,
+          0.75
+        ]
+      },
+      "surface_maps": {
+        "Bucket": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink2": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink1": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BoomCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "StickCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        }
+      },
+      "materials": {
+        "BasePin": {
+          "baseColor": [
+            0.48,
+            0.52,
+            0.57
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.22,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Base": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Boom": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Stick": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Bucket": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink2": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink1": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BoomCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BoomCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BucketCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        }
+      }
+    },
+    {
+      "status": "ok",
+      "id": 6,
+      "width": 1234,
+      "height": 886,
+      "serial": 6,
+      "captures": 1,
+      "plans": 1,
+      "incremental_updates": 0,
+      "transport_builds": 1,
+      "copied_vertices": 184278,
+      "environment_uploads": 1,
+      "anisotropy_preparations": 1,
+      "anisotropy_product_bytes": 1050624,
+      "environment_gpu_bytes": 3418080,
+      "reflection_passes": 4,
+      "reflection_attachment_bytes": 3279972,
+      "static_reuses": 1,
+      "shaded_frames": 5,
+      "shadow_passes": 1,
+      "ao_depth_passes": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "tessellation_attempts": 15,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "restored",
+      "session": "industrial-session",
+      "camera": [
+        1,
+        990.7005004882812,
+        636.4349365234375,
+        963.7679443359375,
+        0.25620660185813904,
+        0.49544891715049744,
+        0.7372509837150574,
+        0.38124731183052063,
+        1.0,
+        5000.0,
+        1588.238037109375,
+        0.75
+      ],
+      "rotation": 0.6,
+      "intensity": 0.85,
+      "exposure": -0.25,
+      "effects": {
+        "planarReflection": true,
+        "reflectionScale": 2,
+        "reflectionPlane": [
+          0.0,
+          0.0,
+          1.0,
+          363.768005
+        ],
+        "reflectionBudgetBytes": 67108864,
+        "reflectionPlaneTolerance": 0.0001,
+        "shadows": true,
+        "ambientOcclusion": true,
+        "background": true,
+        "occlusionRadius": 18.0,
+        "occlusionStrength": 0.9,
+        "shadowMapSize": 2048,
+        "shadowBias": 0.00015,
+        "resourceBudgetBytes": 134217728,
+        "backgroundTop": [
+          0.22,
+          0.27,
+          0.34
+        ],
+        "backgroundBottom": [
+          0.68,
+          0.71,
+          0.75
+        ]
+      },
+      "surface_maps": {
+        "Bucket": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink2": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink1": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BoomCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "StickCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        }
+      },
+      "materials": {
+        "BasePin": {
+          "baseColor": [
+            0.48,
+            0.52,
+            0.57
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.22,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Base": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Boom": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Stick": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Bucket": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink2": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink1": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BoomCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BoomCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BucketCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        }
+      }
+    },
+    {
+      "status": "ok",
+      "id": 7,
+      "width": 1234,
+      "height": 886,
+      "serial": 7,
+      "captures": 1,
+      "plans": 1,
+      "incremental_updates": 1,
+      "transport_builds": 1,
+      "copied_vertices": 184278,
+      "environment_uploads": 1,
+      "anisotropy_preparations": 1,
+      "anisotropy_product_bytes": 1050624,
+      "environment_gpu_bytes": 3418080,
+      "reflection_passes": 5,
+      "reflection_attachment_bytes": 3279972,
+      "static_reuses": 1,
+      "shaded_frames": 6,
+      "shadow_passes": 2,
+      "ao_depth_passes": 2,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "tessellation_attempts": 15,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "selected",
+      "session": "industrial-session",
+      "camera": [
+        1,
+        990.7005004882812,
+        636.4349365234375,
+        963.7679443359375,
+        0.25620660185813904,
+        0.49544891715049744,
+        0.7372509837150574,
+        0.38124731183052063,
+        1.0,
+        5000.0,
+        1588.238037109375,
+        0.75
+      ],
+      "rotation": 0.6,
+      "intensity": 0.85,
+      "exposure": -0.25,
+      "effects": {
+        "planarReflection": true,
+        "reflectionScale": 2,
+        "reflectionPlane": [
+          0.0,
+          0.0,
+          1.0,
+          363.768005
+        ],
+        "reflectionBudgetBytes": 67108864,
+        "reflectionPlaneTolerance": 0.0001,
+        "shadows": true,
+        "ambientOcclusion": true,
+        "background": true,
+        "occlusionRadius": 18.0,
+        "occlusionStrength": 0.9,
+        "shadowMapSize": 2048,
+        "shadowBias": 0.00015,
+        "resourceBudgetBytes": 134217728,
+        "backgroundTop": [
+          0.22,
+          0.27,
+          0.34
+        ],
+        "backgroundBottom": [
+          0.68,
+          0.71,
+          0.75
+        ]
+      },
+      "surface_maps": {
+        "Bucket": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink2": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink1": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BoomCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "StickCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        }
+      },
+      "materials": {
+        "BasePin": {
+          "baseColor": [
+            0.48,
+            0.52,
+            0.57
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.22,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Base": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Boom": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Stick": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Bucket": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink2": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink1": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BoomCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BoomCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BucketCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        }
+      }
+    },
+    {
+      "status": "ok",
+      "id": 8,
+      "width": 1234,
+      "height": 886,
+      "serial": 8,
+      "captures": 1,
+      "plans": 1,
+      "incremental_updates": 2,
+      "transport_builds": 1,
+      "copied_vertices": 184278,
+      "environment_uploads": 1,
+      "anisotropy_preparations": 1,
+      "anisotropy_product_bytes": 1050624,
+      "environment_gpu_bytes": 3418080,
+      "reflection_passes": 6,
+      "reflection_attachment_bytes": 3279972,
+      "static_reuses": 1,
+      "shaded_frames": 7,
+      "shadow_passes": 3,
+      "ao_depth_passes": 3,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "tessellation_attempts": 15,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "moved",
+      "session": "industrial-session",
+      "camera": [
+        1,
+        990.7005004882812,
+        636.4349365234375,
+        963.7679443359375,
+        0.25620660185813904,
+        0.49544891715049744,
+        0.7372509837150574,
+        0.38124731183052063,
+        1.0,
+        5000.0,
+        1588.238037109375,
+        0.75
+      ],
+      "rotation": 0.6,
+      "intensity": 0.85,
+      "exposure": -0.25,
+      "effects": {
+        "planarReflection": true,
+        "reflectionScale": 2,
+        "reflectionPlane": [
+          0.0,
+          0.0,
+          1.0,
+          363.768005
+        ],
+        "reflectionBudgetBytes": 67108864,
+        "reflectionPlaneTolerance": 0.0001,
+        "shadows": true,
+        "ambientOcclusion": true,
+        "background": true,
+        "occlusionRadius": 18.0,
+        "occlusionStrength": 0.9,
+        "shadowMapSize": 2048,
+        "shadowBias": 0.00015,
+        "resourceBudgetBytes": 134217728,
+        "backgroundTop": [
+          0.22,
+          0.27,
+          0.34
+        ],
+        "backgroundBottom": [
+          0.68,
+          0.71,
+          0.75
+        ]
+      },
+      "surface_maps": {
+        "Bucket": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink2": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink1": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BoomCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "StickCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        }
+      },
+      "materials": {
+        "BasePin": {
+          "baseColor": [
+            0.48,
+            0.52,
+            0.57
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.22,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Base": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Boom": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Stick": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Bucket": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink2": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink1": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BoomCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BoomCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BucketCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        }
+      }
+    },
+    {
+      "status": "ok",
+      "id": 9,
+      "width": 1234,
+      "height": 886,
+      "serial": 9,
+      "captures": 2,
+      "plans": 2,
+      "incremental_updates": 2,
+      "transport_builds": 2,
+      "copied_vertices": 368556,
+      "environment_uploads": 1,
+      "anisotropy_preparations": 1,
+      "anisotropy_product_bytes": 1050624,
+      "environment_gpu_bytes": 3418080,
+      "reflection_passes": 7,
+      "reflection_attachment_bytes": 3279972,
+      "static_reuses": 1,
+      "shaded_frames": 8,
+      "shadow_passes": 4,
+      "ao_depth_passes": 4,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "tessellation_attempts": 15,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "interaction-restored",
+      "session": "industrial-session",
+      "camera": [
+        1,
+        990.7005004882812,
+        636.4349365234375,
+        963.7679443359375,
+        0.25620660185813904,
+        0.49544891715049744,
+        0.7372509837150574,
+        0.38124731183052063,
+        1.0,
+        5000.0,
+        1588.238037109375,
+        0.75
+      ],
+      "rotation": 0.6,
+      "intensity": 0.85,
+      "exposure": -0.25,
+      "effects": {
+        "planarReflection": true,
+        "reflectionScale": 2,
+        "reflectionPlane": [
+          0.0,
+          0.0,
+          1.0,
+          363.768005
+        ],
+        "reflectionBudgetBytes": 67108864,
+        "reflectionPlaneTolerance": 0.0001,
+        "shadows": true,
+        "ambientOcclusion": true,
+        "background": true,
+        "occlusionRadius": 18.0,
+        "occlusionStrength": 0.9,
+        "shadowMapSize": 2048,
+        "shadowBias": 0.00015,
+        "resourceBudgetBytes": 134217728,
+        "backgroundTop": [
+          0.22,
+          0.27,
+          0.34
+        ],
+        "backgroundBottom": [
+          0.68,
+          0.71,
+          0.75
+        ]
+      },
+      "surface_maps": {
+        "Bucket": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink2": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink1": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BoomCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "StickCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        }
+      },
+      "materials": {
+        "BasePin": {
+          "baseColor": [
+            0.48,
+            0.52,
+            0.57
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.22,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Base": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Boom": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Stick": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Bucket": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink2": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink1": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BoomCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BoomCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BucketCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        }
+      }
+    },
+    {
+      "status": "ok",
+      "id": 10,
+      "width": 1234,
+      "height": 886,
+      "serial": 10,
+      "captures": 2,
+      "plans": 2,
+      "incremental_updates": 2,
+      "transport_builds": 2,
+      "copied_vertices": 368556,
+      "environment_uploads": 1,
+      "anisotropy_preparations": 1,
+      "anisotropy_product_bytes": 1050624,
+      "environment_gpu_bytes": 3418080,
+      "reflection_passes": 7,
+      "reflection_attachment_bytes": 3279972,
+      "static_reuses": 2,
+      "shaded_frames": 8,
+      "shadow_passes": 4,
+      "ao_depth_passes": 4,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "tessellation_attempts": 15,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "static-restored",
+      "session": "industrial-session",
+      "camera": [
+        1,
+        990.7005004882812,
+        636.4349365234375,
+        963.7679443359375,
+        0.25620660185813904,
+        0.49544891715049744,
+        0.7372509837150574,
+        0.38124731183052063,
+        1.0,
+        5000.0,
+        1588.238037109375,
+        0.75
+      ],
+      "rotation": 0.6,
+      "intensity": 0.85,
+      "exposure": -0.25,
+      "effects": {
+        "planarReflection": true,
+        "reflectionScale": 2,
+        "reflectionPlane": [
+          0.0,
+          0.0,
+          1.0,
+          363.768005
+        ],
+        "reflectionBudgetBytes": 67108864,
+        "reflectionPlaneTolerance": 0.0001,
+        "shadows": true,
+        "ambientOcclusion": true,
+        "background": true,
+        "occlusionRadius": 18.0,
+        "occlusionStrength": 0.9,
+        "shadowMapSize": 2048,
+        "shadowBias": 0.00015,
+        "resourceBudgetBytes": 134217728,
+        "backgroundTop": [
+          0.22,
+          0.27,
+          0.34
+        ],
+        "backgroundBottom": [
+          0.68,
+          0.71,
+          0.75
+        ]
+      },
+      "surface_maps": {
+        "Bucket": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink2": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketLink1": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BoomCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "StickCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        },
+        "BucketCylinderInner": {
+          "directionS": [
+            0.02,
+            0.006,
+            0.013
+          ],
+          "directionT": [
+            -0.004,
+            0.018,
+            0.009
+          ]
+        }
+      },
+      "materials": {
+        "BasePin": {
+          "baseColor": [
+            0.48,
+            0.52,
+            0.57
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.22,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Base": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Boom": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Stick": {
+          "baseColor": [
+            0.78,
+            0.42,
+            0.025
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.28,
+          "clearcoat": 0.55,
+          "clearcoatRoughness": 0.16,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "Bucket": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink2": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketLink1": {
+          "baseColor": [
+            0.23,
+            0.26,
+            0.3
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BoomCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BoomCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "StickCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        },
+        "BucketCylinderInner": {
+          "baseColor": [
+            0.68,
+            0.71,
+            0.74
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 1.0,
+          "roughness": 0.32,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.18,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.85,
+          "anisotropyRotation": 0.3
+        },
+        "BucketCylinderOuter": {
+          "baseColor": [
+            0.025,
+            0.032,
+            0.043
+          ],
+          "emissive": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "metallic": 0.0,
+          "roughness": 0.3,
+          "clearcoat": 0.35,
+          "clearcoatRoughness": 0.2,
+          "normalScale": 1.0,
+          "normalYFlip": false,
+          "anisotropy": 0.0,
+          "anisotropyRotation": 0.0
+        }
+      }
+    }
+  ],
+  "scope": "Native BGFX smooth planar reflection and VNDF IBL; same Assembly/camera; no CAD data saved",
+  "exact_offscreen_comparisons": [
+    {
+      "file": "frame-1.rgba",
+      "bytes": 4373296,
+      "sha256": "f665cbe8965d67d1c966cacd09805a316fdc5b72dbe6a9d37d9cfb23342f395f"
+    },
+    {
+      "file": "frame-1.depth",
+      "bytes": 4373296,
+      "sha256": "1c19e1042fd755592c7b5b491d9de05088f933ec9164e047703758d39543bd8b"
+    },
+    {
+      "file": "frame-2.rgba",
+      "bytes": 4373296,
+      "sha256": "f665cbe8965d67d1c966cacd09805a316fdc5b72dbe6a9d37d9cfb23342f395f"
+    },
+    {
+      "file": "frame-2.depth",
+      "bytes": 4373296,
+      "sha256": "1c19e1042fd755592c7b5b491d9de05088f933ec9164e047703758d39543bd8b"
+    },
+    {
+      "file": "frame-3.rgba",
+      "bytes": 4373296,
+      "sha256": "56c441c0f25feda4c86bd6c540b727d7f231fb9be86c8fba5861781eae8785b9"
+    },
+    {
+      "file": "frame-3.depth",
+      "bytes": 4373296,
+      "sha256": "1c19e1042fd755592c7b5b491d9de05088f933ec9164e047703758d39543bd8b"
+    },
+    {
+      "file": "frame-4.rgba",
+      "bytes": 4373296,
+      "sha256": "30d9ce137ee851f26f764d9d328a7464117f87632566c1056ecdea85056fd1f3"
+    },
+    {
+      "file": "frame-4.depth",
+      "bytes": 4373296,
+      "sha256": "1c19e1042fd755592c7b5b491d9de05088f933ec9164e047703758d39543bd8b"
+    },
+    {
+      "file": "frame-5.rgba",
+      "bytes": 4373296,
+      "sha256": "c3809600f8342f3d678d7397e8d0fa88802b77db4fd0ce52b597ab0b5b18d812"
+    },
+    {
+      "file": "frame-5.depth",
+      "bytes": 4373296,
+      "sha256": "1c19e1042fd755592c7b5b491d9de05088f933ec9164e047703758d39543bd8b"
+    },
+    {
+      "file": "frame-6.rgba",
+      "bytes": 4373296,
+      "sha256": "f665cbe8965d67d1c966cacd09805a316fdc5b72dbe6a9d37d9cfb23342f395f"
+    },
+    {
+      "file": "frame-6.depth",
+      "bytes": 4373296,
+      "sha256": "1c19e1042fd755592c7b5b491d9de05088f933ec9164e047703758d39543bd8b"
+    },
+    {
+      "file": "frame-7.rgba",
+      "bytes": 4373296,
+      "sha256": "02d17069617426f8f3a6fae5c726cda63c11f4cd676a0740a513ee40a9f408ab"
+    },
+    {
+      "file": "frame-7.depth",
+      "bytes": 4373296,
+      "sha256": "1c19e1042fd755592c7b5b491d9de05088f933ec9164e047703758d39543bd8b"
+    },
+    {
+      "file": "frame-8.rgba",
+      "bytes": 4373296,
+      "sha256": "a5508611464d51353d07eda4262d0429a613624bb7364ec2792261ebf88ccc77"
+    },
+    {
+      "file": "frame-8.depth",
+      "bytes": 4373296,
+      "sha256": "f2a3a1f7212c0756112e12185d81c9b74f7fccc736dca3bfe71867710ecf1cd9"
+    },
+    {
+      "file": "frame-9.rgba",
+      "bytes": 4373296,
+      "sha256": "f665cbe8965d67d1c966cacd09805a316fdc5b72dbe6a9d37d9cfb23342f395f"
+    },
+    {
+      "file": "frame-9.depth",
+      "bytes": 4373296,
+      "sha256": "1c19e1042fd755592c7b5b491d9de05088f933ec9164e047703758d39543bd8b"
+    },
+    {
+      "file": "frame-10.rgba",
+      "bytes": 4373296,
+      "sha256": "f665cbe8965d67d1c966cacd09805a316fdc5b72dbe6a9d37d9cfb23342f395f"
+    },
+    {
+      "file": "frame-10.depth",
+      "bytes": 4373296,
+      "sha256": "1c19e1042fd755592c7b5b491d9de05088f933ec9164e047703758d39543bd8b"
+    }
+  ],
+  "native_control_differences": [
+    {
+      "stage": "reflection-on",
+      "equal": true,
+      "mean_absolute_channel_error": 0.0,
+      "maximum_channel_error": 0,
+      "sha256": "f665cbe8965d67d1c966cacd09805a316fdc5b72dbe6a9d37d9cfb23342f395f"
+    },
+    {
+      "stage": "reflection-off",
+      "equal": true,
+      "mean_absolute_channel_error": 0.0,
+      "maximum_channel_error": 0,
+      "sha256": "56c441c0f25feda4c86bd6c540b727d7f231fb9be86c8fba5861781eae8785b9"
+    },
+    {
+      "stage": "quarter-resolution",
+      "equal": true,
+      "mean_absolute_channel_error": 0.0,
+      "maximum_channel_error": 0,
+      "sha256": "30d9ce137ee851f26f764d9d328a7464117f87632566c1056ecdea85056fd1f3"
+    },
+    {
+      "stage": "full-resolution",
+      "equal": true,
+      "mean_absolute_channel_error": 0.0,
+      "maximum_channel_error": 0,
+      "sha256": "c3809600f8342f3d678d7397e8d0fa88802b77db4fd0ce52b597ab0b5b18d812"
+    },
+    {
+      "stage": "restored",
+      "equal": true,
+      "mean_absolute_channel_error": 0.0,
+      "maximum_channel_error": 0,
+      "sha256": "f665cbe8965d67d1c966cacd09805a316fdc5b72dbe6a9d37d9cfb23342f395f"
+    },
+    {
+      "stage": "selected",
+      "equal": true,
+      "mean_absolute_channel_error": 0.0,
+      "maximum_channel_error": 0,
+      "sha256": "02d17069617426f8f3a6fae5c726cda63c11f4cd676a0740a513ee40a9f408ab"
+    },
+    {
+      "stage": "moved",
+      "equal": true,
+      "mean_absolute_channel_error": 0.0,
+      "maximum_channel_error": 0,
+      "sha256": "a5508611464d51353d07eda4262d0429a613624bb7364ec2792261ebf88ccc77"
+    },
+    {
+      "stage": "interaction-restored",
+      "equal": true,
+      "mean_absolute_channel_error": 0.0,
+      "maximum_channel_error": 0,
+      "sha256": "f665cbe8965d67d1c966cacd09805a316fdc5b72dbe6a9d37d9cfb23342f395f"
+    },
+    {
+      "stage": "static-restored",
+      "equal": true,
+      "mean_absolute_channel_error": 0.0,
+      "maximum_channel_error": 0,
+      "sha256": "f665cbe8965d67d1c966cacd09805a316fdc5b72dbe6a9d37d9cfb23342f395f"
+    }
+  ],
+  "sha256": {
+    "worker": "1d96dfa89a184e7cf3414dbf4b21e7832314739e812ea7da4d83f69e76183cf6",
+    "environment": "ed0d8f67fce21ebdafbe58dac8385a446b7ad32578828d0083ebff05eb7217d7",
+    "scene": "3406ecdcff3eb6ce6789c671131a52e99bc523ef38c48e1c44c7392f91b5fe5a"
+  }
+}

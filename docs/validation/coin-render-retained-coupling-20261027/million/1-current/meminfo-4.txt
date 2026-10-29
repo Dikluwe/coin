@@ -1,0 +1,64 @@
+Applications Memory Usage (in Kilobytes):
+Uptime: 3929833 Realtime: 3929833
+
+** MEMINFO in pid 6345 [org.coin3d.coinrender.retainedmillion] **
+                   Pss  Private  Private  SwapPss      Rss     Heap     Heap     Heap
+                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free
+                ------   ------   ------   ------   ------   ------   ------   ------
+  Native Heap  3620956  3620884        8   212320  3624708  4028264  3845631   179193
+  Dalvik Heap      648      484       12        0     8616     3751     1876     1875
+ Dalvik Other     4566      724        4      244     9028                           
+        Stack      368      348       20      300      376                           
+    Other dev        5        0        4        0      308                           
+     .so mmap    20580      732    17852      428    57840                           
+    .jar mmap     2719        0      324        0    45864                           
+    .apk mmap      203        0       64        0     1872                           
+    .ttf mmap       82        0        0        0      432                           
+    .dex mmap       15        0        0        0      712                           
+    .oat mmap       25        0        0        0     1408                           
+    .art mmap     2125     1708       88     5992    18332                           
+   Other mmap     2025        4        0        0     4980                           
+        Memfd       10        0        0        0      592                           
+      Unknown      592      576        4       88     2004                           
+        TOTAL  3874291  3625460    18380   219372  3777072  4032015  3847507   181068
+ 
+ App Summary
+                       Pss(KB)                        Rss(KB)
+                        ------                         ------
+           Java Heap:     2280                          26948
+         Native Heap:  3620884                        3624708
+                Code:    19000                         115816
+               Stack:      348                            376
+            Graphics:        0                              0
+       Private Other:     1328
+              System:   230451
+             Unknown:                                    9224
+ 
+           TOTAL PSS:  3874291            TOTAL RSS:  3777072       TOTAL SWAP PSS:   219372
+ 
+ Objects
+               Views:       11         ViewRootImpl:        1
+         AppContexts:        5           Activities:        1
+              Assets:       21        AssetManagers:        0
+       Local Binders:       14        Proxy Binders:       53
+       Parcel memory:        6         Parcel count:       24
+    Death Recipients:        0             WebViews:        0
+ 
+ Native Allocations
+                         Count                       Total(kB)
+                        ------                         ------
+    Other (malloced):      335                             30
+ Other (nonmalloced):       75                             56
+   Bitmap (malloced):        6                            355
+ 
+ Mapped Bitmaps
+                         Count                       Size(KB)
+                        ------                         ------
+              Mapped:        0                              0
+              Unique:        0                              0
+ 
+ SQL
+         MEMORY_USED:        0
+  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
+ 
+ 

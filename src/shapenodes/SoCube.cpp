@@ -67,6 +67,10 @@
 */
 
 #include <Inventor/nodes/SoCube.h>
+#include <Inventor/actions/SoIRRenderAction.h>
+#include "elements/SoPBRMaterialElement.h"
+#include <Inventor/elements/SoBumpMapElement.h>
+#include "rendering/SoRenderIRP.h"
 #include "coindefs.h"
 
 #include <Inventor/SbPlane.h>
@@ -259,4 +263,67 @@ SoCube::getPrimitiveCount(SoGetPrimitiveCountAction * action)
   if (!this->shouldPrimitiveCount(action)) return;
 
   action->addNumTriangles(12);
+}
+
+SbBool SoCube::generateRetainedPrimitives(SoIRRenderAction * action)
+{
+  const auto * pbr=SoPBRMaterialElement::get(action->getState());
+  if(pbr && pbr->model==SoRenderMaterialModel::PBR &&
+     (pbr->material.anisotropy>0 || pbr->material.baseColorTextureUnit>=0 || pbr->material.ormTextureUnit>=0 || pbr->material.emissiveTextureUnit>=0 ||
+      SoBumpMapElement::getSource(action->getState())))return FALSE;
+
+  if (SoMaterialBindingElement::get(action->getState()) != SoMaterialBindingElement::OVERALL)
+    return FALSE;
+  // Match generate_cube's face corners, normals and UVs, retaining its triangle
+  // order while indexing the four distinct vertices of each face. A million
+  // instances must not run 36 vertex invocations where 24 suffice.
+  const uint64_t key = reinterpret_cast<uintptr_t>(this);
+  const uint64_t revision = this->getNodeId();
+  SoGeometryDesc geometry;
+  const auto handle = action->findGeometrySource(key, revision);
+  const auto * resource = action->getDrawList().getGeometryResource(handle);
+  if (resource) geometry = resource->geometry;
+  else {
+    static const int corners[24] = {0,1,3,2, 5,4,6,7, 1,5,7,3,
+                                    4,0,2,6, 4,5,1,0, 2,3,7,6};
+    static const float normals[6][3] = {{0,0,1},{0,0,-1},{-1,0,0},
+                                       {1,0,0},{0,1,0},{0,-1,0}};
+    static const float uv[4][2] = {{1,1},{0,1},{0,0},{1,0}};
+    static const uint32_t triangles[6] = {0,1,2,0,2,3};
+    const float half[3] = {width.getValue()*.5f,height.getValue()*.5f,depth.getValue()*.5f};
+    auto * positions = static_cast<float *>(action->allocateGeometryStorage(24*3*sizeof(float)));
+    auto * vertexNormals = static_cast<float *>(action->allocateGeometryStorage(24*3*sizeof(float)));
+    auto * texcoords = static_cast<float *>(action->allocateGeometryStorage(24*4*sizeof(float)));
+    auto * indices = static_cast<uint32_t *>(action->allocateGeometryStorage(36*sizeof(uint32_t)));
+    for (int face=0; face<6; ++face) {
+      for (int v=0; v<4; ++v) {
+        const int i=face*4+v, corner=corners[i];
+        for (int axis=0; axis<3; ++axis) {
+          positions[i*3+axis]=(corner & (1<<axis)) ? -half[axis] : half[axis];
+          vertexNormals[i*3+axis]=normals[face][axis];
+        }
+        texcoords[i*4]=uv[v][0]; texcoords[i*4+1]=uv[v][1];
+        texcoords[i*4+2]=0; texcoords[i*4+3]=1;
+      }
+      for (int t=0; t<6; ++t) indices[face*6+t]=face*4+triangles[t];
+    }
+    geometry.vertexCount=geometry.normalCount=24; geometry.indexCount=36;
+    geometry.positions=positions; geometry.normals=vertexNormals;
+    geometry.texcoords=texcoords; geometry.indices=indices;
+    geometry.vertexStride=3*sizeof(float); geometry.texcoordStride=4*sizeof(float);
+    geometry.cacheKey=key; geometry.revision=revision;
+  }
+  SoRenderCommand command;
+  command.geometry=geometry;
+  SoRenderIR::fillCommandStateFromAction(action,command,0);
+  SoRenderIR::finalizeCommand(command);
+  if (resource) command.pick.useResourceElementRanges=true;
+  else for (int face=0; face<6; ++face) {
+    SoRenderElementRange range; range.type=SO_PICK_FACE; range.elementIndex=face;
+    range.drawStart=face*6; range.drawCount=6;
+    command.pick.elementRanges.push_back(range);
+  }
+  action->applyRenderStage(command); command.userData=this;
+  action->addCommand(std::move(command));
+  return TRUE;
 }

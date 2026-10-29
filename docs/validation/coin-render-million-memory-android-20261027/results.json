@@ -1,0 +1,172 @@
+{
+  "date": "2026-10-27",
+  "branch": "codex/coinrender-retained-integration",
+  "avd": "Medium_Phone_API_37.0",
+  "api": 37,
+  "abi": "x86_64",
+  "avd_ram_mb": 8192,
+  "vcpus": 4,
+  "renderer": "wgpu/GLES; emulator AMD host",
+  "viewport": [
+    1080,
+    2400
+  ],
+  "samples_per_process": 5,
+  "buildings": 1000000,
+  "triangles": 12000012,
+  "checksum_both": "067c1efbc25642eb",
+  "render_path_both": "CoinRenderAction; not CoinRenderRetainedRenderer",
+  "results": [
+    {
+      "name": "previous",
+      "package": "org.coin3d.coinrender.p23",
+      "apk": "/mnt/Laranja/Git/externos/coin/build-android-current-20261023/apk/coin-render-p23-x86_64.apk",
+      "pid": 4683,
+      "observed_until_sampling_complete_seconds": 10.878274233022239,
+      "sampled_startup_peak_rss_kib": 4276324,
+      "samples": [
+        {
+          "reported_total_pss_kib": 4266001,
+          "rss_kib": 3545664,
+          "swap_or_swap_pss_kib": 843448,
+          "native_heap_allocated_kib": 4149029,
+          "native_heap_size_kib": 4319564,
+          "file": "previous-meminfo-0.txt"
+        },
+        {
+          "reported_total_pss_kib": 4246041,
+          "rss_kib": 3532512,
+          "swap_or_swap_pss_kib": 837212,
+          "native_heap_allocated_kib": 4119220,
+          "native_heap_size_kib": 4308136,
+          "file": "previous-meminfo-1.txt"
+        },
+        {
+          "reported_total_pss_kib": 4337669,
+          "rss_kib": 3624208,
+          "swap_or_swap_pss_kib": 837192,
+          "native_heap_allocated_kib": 4223920,
+          "native_heap_size_kib": 4342072,
+          "file": "previous-meminfo-2.txt"
+        },
+        {
+          "reported_total_pss_kib": 4333705,
+          "rss_kib": 3620252,
+          "swap_or_swap_pss_kib": 837184,
+          "native_heap_allocated_kib": 4318145,
+          "native_heap_size_kib": 4342072,
+          "file": "previous-meminfo-3.txt"
+        },
+        {
+          "reported_total_pss_kib": 4322749,
+          "rss_kib": 3609296,
+          "swap_or_swap_pss_kib": 837184,
+          "native_heap_allocated_kib": 4291162,
+          "native_heap_size_kib": 4342072,
+          "file": "previous-meminfo-4.txt"
+        }
+      ],
+      "median_kib": {
+        "reported_total_pss_kib": 4322749,
+        "rss_kib": 3609296,
+        "swap_or_swap_pss_kib": 837192,
+        "native_heap_allocated_kib": 4223920,
+        "native_heap_size_kib": 4342072
+      },
+      "apk_sha256": "dd75a2bc7fa07ebaaa6875a82fb8585bb3c8188dac62cebf73c77d03b5fd0f51",
+      "note": "Single fresh process per build; five live samples; Android paging not normalized."
+    },
+    {
+      "name": "branch",
+      "package": "org.coin3d.coinrender.retainedmillion",
+      "apk": "/tmp/coin-retained-million-visible/coin-render-million-branch.apk",
+      "pid": 6605,
+      "observed_until_sampling_complete_seconds": 53.33136962301796,
+      "sampled_startup_peak_rss_kib": 4504008,
+      "samples": [
+        {
+          "reported_total_pss_kib": 4193696,
+          "rss_kib": 4317520,
+          "swap_or_swap_pss_kib": 0,
+          "native_heap_allocated_kib": 4119236,
+          "native_heap_size_kib": 4302248,
+          "file": "branch-meminfo-0.txt"
+        },
+        {
+          "reported_total_pss_kib": 4150108,
+          "rss_kib": 4274252,
+          "swap_or_swap_pss_kib": 0,
+          "native_heap_allocated_kib": 4119226,
+          "native_heap_size_kib": 4302248,
+          "file": "branch-meminfo-1.txt"
+        },
+        {
+          "reported_total_pss_kib": 4150103,
+          "rss_kib": 4274312,
+          "swap_or_swap_pss_kib": 0,
+          "native_heap_allocated_kib": 4119227,
+          "native_heap_size_kib": 4302248,
+          "file": "branch-meminfo-2.txt"
+        },
+        {
+          "reported_total_pss_kib": 4150100,
+          "rss_kib": 4274308,
+          "swap_or_swap_pss_kib": 0,
+          "native_heap_allocated_kib": 4119228,
+          "native_heap_size_kib": 4302248,
+          "file": "branch-meminfo-3.txt"
+        },
+        {
+          "reported_total_pss_kib": 4150100,
+          "rss_kib": 4274308,
+          "swap_or_swap_pss_kib": 0,
+          "native_heap_allocated_kib": 4119227,
+          "native_heap_size_kib": 4302248,
+          "file": "branch-meminfo-4.txt"
+        }
+      ],
+      "median_kib": {
+        "reported_total_pss_kib": 4150103,
+        "rss_kib": 4274308,
+        "swap_or_swap_pss_kib": 0,
+        "native_heap_allocated_kib": 4119227,
+        "native_heap_size_kib": 4302248
+      },
+      "apk_sha256": "d421ac60c265caf77f892d23422d231e443c8d90cb65168590a7f43f73a6aedc",
+      "note": "Single fresh process per build; five live samples; Android paging not normalized."
+    }
+  ],
+  "metrics": {
+    "reported_total_pss_kib": {
+      "previous_gib": 4.122494697570801,
+      "branch_gib": 3.9578466415405273,
+      "change_percent": -3.9938937005132624
+    },
+    "rss_kib": {
+      "previous_gib": 3.4420928955078125,
+      "branch_gib": 4.076297760009766,
+      "change_percent": 18.424978167487517
+    },
+    "swap_or_swap_pss_kib": {
+      "previous_gib": 0.7984085083007812,
+      "branch_gib": 0.0,
+      "change_percent": -100.0
+    },
+    "native_heap_allocated_kib": {
+      "previous_gib": 4.0282440185546875,
+      "branch_gib": 3.928400993347168,
+      "change_percent": -2.478574404818268
+    },
+    "native_heap_size_kib": {
+      "previous_gib": 4.140922546386719,
+      "branch_gib": 4.102943420410156,
+      "change_percent": -0.9171658139247807
+    }
+  },
+  "limits": [
+    "Two different full builds, not isolated FreeCAD fork ablation",
+    "Single launch per build; allocator/paging exposure differ",
+    "Android memory reports do not represent all host GPU/QEMU memory",
+    "Startup peak is sampled RSS, not an exhaustive peak allocator trace"
+  ]
+}

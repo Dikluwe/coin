@@ -58,6 +58,7 @@ protected:
   virtual ~SoFaceSet();
 
   void generatePrimitives(SoAction * action) override;
+  SbBool generateRetainedPrimitives(SoIRRenderAction * action) override;
   void computeBBox(SoAction * action, SbBox3f & box, SbVec3f & center) override;
   SbBool generateDefaultNormals(SoState *, SoNormalCache *) override;
 

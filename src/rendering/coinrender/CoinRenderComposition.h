@@ -13,6 +13,7 @@
 #include "rendering/coinrender/CoinRenderPhaseTimer.h"
 #include "rendering/coinrender/CoinRenderFloatCore.h"
 #include <memory>
+#include <iterator>
 #include <unordered_map>
 
 struct CoinRenderCompositionItem {
@@ -33,9 +34,36 @@ struct CoinRenderCompositionItem {
   enum TransparencyStrategy { OBJECT, WEIGHTED_OIT, SORTED_LAYERS } transparencyStrategy = OBJECT;
 };
 
+// Some executor resource-admission paths inspect composition without a Target
+// receipt parameter. Lend the same resolved schedule for that lexical call,
+// rather than let those paths classify/sort the frame again. Authority is
+// restricted to the connector's owned, validated, immutable snapshot.
+class CoinRenderResolvedCompositionScope {
+  friend class CoinRenderRetainedTransport;
+public:
+  ~CoinRenderResolvedCompositionScope();
+  static const std::vector<CoinRenderCompositionItem> * forFrame(const CoinRenderFramePlan &);
+  static const std::vector<uint32_t> * compactForFrame(const CoinRenderFramePlan &);
+private:
+  CoinRenderResolvedCompositionScope(const CoinRenderFramePlan &,
+                                    const std::vector<CoinRenderCompositionItem> &);
+  CoinRenderResolvedCompositionScope(const CoinRenderFramePlan &, const std::vector<uint32_t> &);
+  CoinRenderResolvedCompositionScope(const CoinRenderResolvedCompositionScope &) = delete;
+  CoinRenderResolvedCompositionScope & operator=(const CoinRenderResolvedCompositionScope &) = delete;
+  static thread_local const CoinRenderResolvedCompositionScope * active;
+  const CoinRenderResolvedCompositionScope * previous;
+  const CoinRenderFramePlan * frame;
+  uint64_t revision;
+  const std::vector<CoinRenderCompositionItem> * order = nullptr;
+  const std::vector<uint32_t> * compactOrder = nullptr;
+};
+
 // This option revokes both submission-local loans; the literal owned paths
 // remain available for ablation and for every composition outside the profile.
 COIN_RENDER_DLL_API bool coin_render_composition_borrow_enabled();
+#ifdef COIN_WGPU_TEST_HOOKS
+COIN_RENDER_DLL_API uint64_t coin_render_composition_classification_count_for_tests();
+#endif
 COIN_RENDER_DLL_API bool coin_render_scene_layers_valid(const CoinRenderFramePlan &, std::string &);
 
 // Logical payload transfers, not vector capacity or allocator traffic. Clock
@@ -67,13 +95,28 @@ COIN_RENDER_DLL_API bool coin_render_capture_preflight_eligible(const CoinRender
 class CoinRenderFramePreflight {
   friend class CoinRenderTargetP;
   friend class CoinRenderFramePlanBuilder;
+  friend class CoinRenderRetainedTransport;
 public:
   CoinRenderFramePreflight() = default;
   COIN_RENDER_DLL_API void invalidate();
+  COIN_RENDER_DLL_API bool hasCompositionFor(const CoinRenderFramePlan &) const;
+  bool hasOpaqueCompositionFor(const CoinRenderFramePlan & f) const { return opaqueIdentity && hasCompositionFor(f); }
+  const std::vector<uint32_t> * compactCompositionFor(const CoinRenderFramePlan & f) const {
+    return resolvedSchedule && hasCompositionFor(f) ? compactOrder : nullptr;
+  }
+  size_t compositionSize(const CoinRenderFramePlan & f) const {
+    return compactOrder ? (compactOrder->empty() ? f.draws.size() : compactOrder->size()) : order.size();
+  }
   COIN_RENDER_DLL_API const std::vector<CoinRenderCompositionItem> * compositionFor(
       const CoinRenderFramePlan & candidate) const;
   COIN_RENDER_DLL_API const std::vector<CoinRenderCompositionItem> * opaqueCompositionFor(
       const CoinRenderFramePlan & candidate) const;
+  // Already resolved by the upstream retained planner. Executors must not
+  // classify or sort this schedule again, including under ablation switches.
+  const std::vector<CoinRenderCompositionItem> * resolvedCompositionFor(
+      const CoinRenderFramePlan & candidate) const {
+    return resolvedSchedule ? compositionFor(candidate) : nullptr;
+  }
 private:
   CoinRenderFramePreflight(const CoinRenderFramePreflight &) = delete;
   CoinRenderFramePreflight & operator=(const CoinRenderFramePreflight &) = delete;
@@ -81,7 +124,9 @@ private:
   uint64_t revision = 0;
   CoinRenderTransparencyOptions transparency;
   bool opaqueIdentity = false;
+  bool resolvedSchedule = false;
   std::vector<CoinRenderCompositionItem> order;
+  const std::vector<uint32_t> * compactOrder = nullptr;
 };
 
 namespace coin_render_composition_detail {
@@ -143,16 +188,36 @@ public:
   CoinRenderCompositionScheduleView & operator=(CoinRenderCompositionScheduleView &&) = delete;
   COIN_RENDER_DLL_API bool prepare(const CoinRenderFramePlan & frame, std::string & diagnostic,
                                   const CoinRenderFramePreflight * preflight = nullptr);
-  size_t size() const { return items->size(); }
-  const CoinRenderCompositionItem & front() const { return items->front(); }
-  const CoinRenderCompositionItem & operator[](size_t index) const { return (*items)[index]; }
-  std::vector<CoinRenderCompositionItem>::const_iterator begin() const { return items->begin(); }
-  std::vector<CoinRenderCompositionItem>::const_iterator end() const { return items->end(); }
-  bool borrowed() const { return items != &owned; }
+  size_t size() const { return compact ? (compact->empty() ? source->draws.size() : compact->size()) : items->size(); }
+  // Legacy literal loans retain reference identity; compact schedules use
+  // value access and value iterators, without materializing an item array.
+  const CoinRenderCompositionItem & front() const { return (*this)[0]; }
+  const CoinRenderCompositionItem & operator[](size_t index) const { return items->at(index); }
+  COIN_RENDER_DLL_API CoinRenderCompositionItem item(size_t index) const;
+  class Iterator {
+  public:
+    using iterator_category=std::forward_iterator_tag;
+    using value_type=CoinRenderCompositionItem;
+    using difference_type=std::ptrdiff_t;
+    using pointer=void;
+    using reference=CoinRenderCompositionItem;
+    Iterator(const CoinRenderCompositionScheduleView * v,size_t i):view(v),index(i){}
+    value_type operator*() const { return view->item(index); }
+    Iterator & operator++(){++index;return *this;}
+    Iterator operator++(int){auto old=*this;++*this;return old;}
+    bool operator==(const Iterator & other)const{return view==other.view && index==other.index;}
+    bool operator!=(const Iterator & other)const{return !(*this==other);}
+  private: const CoinRenderCompositionScheduleView * view;size_t index;
+  };
+  Iterator begin() const { return Iterator(this,0); }
+  Iterator end() const { return Iterator(this,size()); }
+  bool borrowed() const { return compact || items != &owned; }
 private:
   CoinRenderCompositionTransferTrace trace;
   std::vector<CoinRenderCompositionItem> owned;
   const std::vector<CoinRenderCompositionItem> * items;
+  const CoinRenderFramePlan * source = nullptr;
+  const std::vector<uint32_t> * compact = nullptr;
 };
 
 #endif // COIN_RENDER_COMPOSITION_H

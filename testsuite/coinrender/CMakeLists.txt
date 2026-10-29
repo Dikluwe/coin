@@ -1,5 +1,199 @@
 # CoinRender-specific tests, kept separate from the general testsuite.
 if(COIN_BUILD_RENDER)
+	if(NOT COIN_RENDER_BACKEND STREQUAL "BGFX")
+		add_executable(CoinRenderRetainedPBRBoundaryTest CoinRenderRetainedPBRBoundaryTest.cpp)
+		target_compile_definitions(CoinRenderRetainedPBRBoundaryTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+		target_include_directories(CoinRenderRetainedPBRBoundaryTest PRIVATE
+			${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+			${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+		target_link_libraries(CoinRenderRetainedPBRBoundaryTest CoinRender Coin)
+		add_test(NAME CoinRenderRetainedPBRBoundaryTest COMMAND CoinRenderRetainedPBRBoundaryTest)
+		set_tests_properties(CoinRenderRetainedPBRBoundaryTest PROPERTIES TIMEOUT 30)
+	endif()
+	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+        add_executable(CoinRenderRoughPlanarReference CoinRenderRoughPlanarReference.cpp)
+        target_compile_definitions(CoinRenderRoughPlanarReference PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+        target_include_directories(CoinRenderRoughPlanarReference PRIVATE
+            ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src ${PROJECT_BINARY_DIR})
+        target_link_libraries(CoinRenderRoughPlanarReference CoinRender Coin)
+        add_test(NAME CoinRenderRoughPlanarReference COMMAND CoinRenderRoughPlanarReference)
+        add_executable(CoinRenderRetainedReflectionTest CoinRenderRetainedReflectionTest.cpp)
+        target_compile_definitions(CoinRenderRetainedReflectionTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+        target_include_directories(CoinRenderRetainedReflectionTest PRIVATE
+          ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+        target_link_libraries(CoinRenderRetainedReflectionTest CoinRender Coin ${COIN_RENDER_LINK_LIBRARIES})
+        add_test(NAME CoinRenderRetainedReflectionTest COMMAND CoinRenderRetainedReflectionTest)
+        set_tests_properties(CoinRenderRetainedReflectionTest PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE)
+        add_executable(CoinRenderRetainedAnisotropyTest CoinRenderRetainedAnisotropyTest.cpp)
+        target_compile_definitions(CoinRenderRetainedAnisotropyTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+        target_include_directories(CoinRenderRetainedAnisotropyTest PRIVATE
+          ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+        target_link_libraries(CoinRenderRetainedAnisotropyTest CoinRender Coin)
+		add_executable(CoinRenderFreeCADViewportWorker ${PROJECT_SOURCE_DIR}/examples/coinrender/coin_render_freecad_viewport.cpp)
+		target_compile_definitions(CoinRenderFreeCADViewportWorker PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+		target_include_directories(CoinRenderFreeCADViewportWorker PRIVATE
+			${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+		target_link_libraries(CoinRenderFreeCADViewportWorker CoinRender Coin ${COIN_RENDER_LINK_LIBRARIES})
+		foreach(_ibl_path Retained Current)
+			add_executable(CoinRender${_ibl_path}IBLGallery ${PROJECT_SOURCE_DIR}/examples/coinrender/coin_render_retained_ibl_gallery.cpp)
+			target_compile_definitions(CoinRender${_ibl_path}IBLGallery PRIVATE COIN_INTERNAL HAVE_CONFIG_H COIN_PBR_IBL_TELEMETRY)
+			target_include_directories(CoinRender${_ibl_path}IBLGallery PRIVATE ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+			target_link_libraries(CoinRender${_ibl_path}IBLGallery CoinRender Coin CoinEnvironment ${COIN_RENDER_LINK_LIBRARIES})
+		endforeach()
+		target_compile_definitions(CoinRenderCurrentIBLGallery PRIVATE COIN_PBR_GALLERY_CURRENT)
+		foreach(_gallery_path Retained Current)
+			add_executable(CoinRender${_gallery_path}PBRGallery
+				${PROJECT_SOURCE_DIR}/examples/coinrender/coin_render_retained_pbr_gallery.cpp)
+			target_include_directories(CoinRender${_gallery_path}PBRGallery PRIVATE
+				${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+			target_link_libraries(CoinRender${_gallery_path}PBRGallery CoinRender Coin)
+		endforeach()
+		target_compile_definitions(CoinRenderCurrentPBRGallery PRIVATE COIN_PBR_GALLERY_CURRENT)
+		add_executable(CoinRenderRetainedPBRCompare CoinRenderRetainedPBRCompare.cpp)
+		target_compile_definitions(CoinRenderRetainedPBRCompare PRIVATE COIN_RETAINED_PBR_COMPARE)
+		target_include_directories(CoinRenderRetainedPBRCompare PRIVATE
+			${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+		target_link_libraries(CoinRenderRetainedPBRCompare CoinRender Coin)
+		add_executable(CoinRenderCurrentPBRCompare CoinRenderRetainedPBRCompare.cpp)
+		target_include_directories(CoinRenderCurrentPBRCompare PRIVATE
+			${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+		target_link_libraries(CoinRenderCurrentPBRCompare CoinRender Coin)
+		find_package(Python3 COMPONENTS Interpreter REQUIRED)
+        add_test(NAME CoinRenderFreeCADMeshExportTest COMMAND ${Python3_EXECUTABLE}
+          ${PROJECT_SOURCE_DIR}/testsuite/coinrender/test_freecad_mesh_export.py)
+        set_tests_properties(CoinRenderFreeCADMeshExportTest PROPERTIES TIMEOUT 30)
+
+		file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ibl-environments)
+		foreach(_environment studio asymmetric)
+			add_test(NAME CoinRenderIBLBake-${_environment} COMMAND coin_render_ibl_baker ${_environment}
+				${CMAKE_CURRENT_BINARY_DIR}/ibl-environments/${_environment}.cibl)
+			set_tests_properties(CoinRenderIBLBake-${_environment} PROPERTIES TIMEOUT 120 FIXTURES_SETUP IBL-${_environment})
+			add_test(NAME CoinRenderRetainedIBL-${_environment} COMMAND ${Python3_EXECUTABLE}
+				${PROJECT_SOURCE_DIR}/scripts/coinrender/run_retained_ibl_comparison.py
+				--current $<TARGET_FILE:CoinRenderCurrentIBLGallery> --retained $<TARGET_FILE:CoinRenderRetainedIBLGallery>
+				--environment ${CMAKE_CURRENT_BINARY_DIR}/ibl-environments/${_environment}.cibl
+				--output ${CMAKE_CURRENT_BINARY_DIR}/ibl-${_environment})
+			set_tests_properties(CoinRenderRetainedIBL-${_environment} PROPERTIES TIMEOUT 400 RUN_SERIAL TRUE FIXTURES_REQUIRED IBL-${_environment})
+		endforeach()
+        foreach(_surface Current Retained)
+            add_executable(CoinRender${_surface}SurfaceImage CoinRenderPbrSurfaceReference.cpp)
+            target_include_directories(CoinRender${_surface}SurfaceImage PRIVATE ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+            target_link_libraries(CoinRender${_surface}SurfaceImage CoinRender Coin)
+        endforeach()
+        target_compile_definitions(CoinRenderRetainedSurfaceImage PRIVATE COIN_RETAINED_SURFACE_REFERENCE)
+        add_executable(CoinRenderRetainedSurfaceTest CoinRenderRetainedSurfaceTest.cpp)
+        target_compile_definitions(CoinRenderRetainedSurfaceTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+        target_include_directories(CoinRenderRetainedSurfaceTest PRIVATE ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+        target_link_libraries(CoinRenderRetainedSurfaceTest CoinRender Coin ${COIN_RENDER_LINK_LIBRARIES})
+        add_test(NAME CoinRenderRetainedSurfacesTest COMMAND ${Python3_EXECUTABLE}
+          ${PROJECT_SOURCE_DIR}/scripts/coinrender/run_retained_pbr_surfaces.py
+          --retained $<TARGET_FILE:CoinRenderRetainedSurfaceImage> --current $<TARGET_FILE:CoinRenderCurrentSurfaceImage>
+          --updates $<TARGET_FILE:CoinRenderRetainedSurfaceTest>
+          --environment ${CMAKE_CURRENT_BINARY_DIR}/ibl-environments/studio.cibl
+          --output ${CMAKE_CURRENT_BINARY_DIR}/retained-pbr-surfaces)
+        set_tests_properties(CoinRenderRetainedSurfacesTest PROPERTIES TIMEOUT 300 RUN_SERIAL TRUE FIXTURES_REQUIRED IBL-studio)
+        add_test(NAME CoinRenderAnisotropyBake COMMAND coin_render_ibl_baker anisotropy ${CMAKE_CURRENT_BINARY_DIR}/ibl-environments/albedo.cani)
+        set_tests_properties(CoinRenderAnisotropyBake PROPERTIES FIXTURES_SETUP Anisotropy-albedo TIMEOUT 120 RUN_SERIAL TRUE)
+        add_test(NAME CoinRenderRetainedAnisotropyTest COMMAND ${Python3_EXECUTABLE}
+          ${PROJECT_SOURCE_DIR}/scripts/coinrender/run_retained_pbr_anisotropy.py
+          --retained $<TARGET_FILE:CoinRenderRetainedSurfaceImage> --current $<TARGET_FILE:CoinRenderCurrentSurfaceImage>
+          --updates $<TARGET_FILE:CoinRenderRetainedAnisotropyTest>
+          --environment ${CMAKE_CURRENT_BINARY_DIR}/ibl-environments/studio.cibl
+          --products ${CMAKE_CURRENT_BINARY_DIR}/ibl-environments/albedo.cani
+          --output ${CMAKE_CURRENT_BINARY_DIR}/retained-pbr-anisotropy)
+        set_tests_properties(CoinRenderRetainedAnisotropyTest PROPERTIES TIMEOUT 300 RUN_SERIAL TRUE FIXTURES_REQUIRED "IBL-studio;Anisotropy-albedo")
+
+
+		add_executable(CoinRenderPbrEffectsTest CoinRenderPbrEffectsTest.cpp)
+        target_compile_definitions(CoinRenderPbrEffectsTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+        target_include_directories(CoinRenderPbrEffectsTest PRIVATE ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+        target_link_libraries(CoinRenderPbrEffectsTest CoinRender Coin ${COIN_RENDER_LINK_LIBRARIES})
+        add_test(NAME CoinRenderPbrEffectsTest COMMAND CoinRenderPbrEffectsTest ${CMAKE_CURRENT_BINARY_DIR}/ibl-environments/studio.cibl)
+        set_tests_properties(CoinRenderPbrEffectsTest PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE FIXTURES_REQUIRED IBL-studio)
+		add_executable(CoinRenderRetainedIBLAdmissionTest CoinRenderRetainedIBLAdmissionTest.cpp)
+		target_compile_definitions(CoinRenderRetainedIBLAdmissionTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+		target_include_directories(CoinRenderRetainedIBLAdmissionTest PRIVATE ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+		target_link_libraries(CoinRenderRetainedIBLAdmissionTest CoinRender Coin ${COIN_RENDER_LINK_LIBRARIES})
+		add_test(NAME CoinRenderRetainedIBLAdmissionTest COMMAND CoinRenderRetainedIBLAdmissionTest
+			${CMAKE_CURRENT_BINARY_DIR}/ibl-environments/studio.cibl ${CMAKE_CURRENT_BINARY_DIR}/ibl-environments)
+		set_tests_properties(CoinRenderRetainedIBLAdmissionTest PROPERTIES TIMEOUT 90 RUN_SERIAL TRUE FIXTURES_REQUIRED IBL-studio)
+
+		add_test(NAME CoinRenderRetainedPBRGalleryTest COMMAND ${Python3_EXECUTABLE}
+			${PROJECT_SOURCE_DIR}/scripts/coinrender/run_retained_pbr_gallery.py
+			--current $<TARGET_FILE:CoinRenderCurrentPBRGallery>
+			--retained $<TARGET_FILE:CoinRenderRetainedPBRGallery>
+			--output ${CMAKE_CURRENT_BINARY_DIR}/retained-pbr-gallery)
+		set_tests_properties(CoinRenderRetainedPBRGalleryTest PROPERTIES TIMEOUT 400 RUN_SERIAL TRUE)
+		add_test(NAME CoinRenderRetainedPBRGpuTest COMMAND ${Python3_EXECUTABLE}
+			${PROJECT_SOURCE_DIR}/scripts/coinrender/run_retained_pbr_comparison.py
+			--current $<TARGET_FILE:CoinRenderCurrentPBRCompare>
+			--retained $<TARGET_FILE:CoinRenderRetainedPBRCompare>
+			--output ${CMAKE_CURRENT_BINARY_DIR}/retained-pbr-comparison)
+		set_tests_properties(CoinRenderRetainedPBRGpuTest PROPERTIES TIMEOUT 400 RUN_SERIAL TRUE)
+	endif()
+	add_executable(CoinRenderRetainedFeaturesTest CoinRenderRetainedFeaturesTest.cpp)
+	target_compile_definitions(CoinRenderRetainedFeaturesTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+	target_include_directories(CoinRenderRetainedFeaturesTest PRIVATE
+		${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	target_link_libraries(CoinRenderRetainedFeaturesTest CoinRender Coin)
+	add_test(NAME CoinRenderRetainedFeaturesTest COMMAND CoinRenderRetainedFeaturesTest)
+	set_tests_properties(CoinRenderRetainedFeaturesTest PROPERTIES TIMEOUT 180 RUN_SERIAL TRUE)
+	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE" OR COIN_RENDER_BACKEND STREQUAL "BGFX")
+		add_test(NAME CoinRenderRetainedMsaaTest COMMAND CoinRenderRetainedFeaturesTest --msaa4)
+		set_tests_properties(CoinRenderRetainedMsaaTest PROPERTIES TIMEOUT 180 RUN_SERIAL TRUE)
+		foreach(policy Portable Canonical Srgb Weighted Peeling)
+			string(TOLOWER "${policy}" policy_argument)
+			add_test(NAME CoinRenderRetained${policy}Test COMMAND CoinRenderRetainedFeaturesTest --${policy_argument})
+			set_tests_properties(CoinRenderRetained${policy}Test PROPERTIES TIMEOUT 180 RUN_SERIAL TRUE)
+		endforeach()
+		foreach(mode none screen-door blend add delayed-blend delayed-add layers)
+			add_test(NAME CoinRenderRetainedMode-${mode}Test COMMAND CoinRenderRetainedFeaturesTest --${mode})
+			set_tests_properties(CoinRenderRetainedMode-${mode}Test PROPERTIES TIMEOUT 180 RUN_SERIAL TRUE)
+		endforeach()
+	endif()
+	add_executable(CoinRenderRetainedCityTest CoinRenderRetainedCityTest.cpp)
+	target_compile_definitions(CoinRenderRetainedCityTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+	target_include_directories(CoinRenderRetainedCityTest PRIVATE
+		${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	target_link_libraries(CoinRenderRetainedCityTest CoinRender Coin)
+	add_test(NAME CoinRenderRetainedCityTest COMMAND CoinRenderRetainedCityTest)
+	set_tests_properties(CoinRenderRetainedCityTest PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE)
+	add_executable(CoinRenderRetainedBenchmark CoinRenderRetainedBenchmark.cpp)
+	target_compile_definitions(CoinRenderRetainedBenchmark PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+	target_include_directories(CoinRenderRetainedBenchmark PRIVATE
+		${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+	target_link_libraries(CoinRenderRetainedBenchmark CoinRender Coin)
+	add_executable(CoinRenderRetainedIncrementalTest CoinRenderRetainedIncrementalTest.cpp)
+	target_compile_definitions(CoinRenderRetainedIncrementalTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+	target_include_directories(CoinRenderRetainedIncrementalTest PRIVATE
+		${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+	target_link_libraries(CoinRenderRetainedIncrementalTest CoinRender Coin)
+	add_test(NAME CoinRenderRetainedIncrementalTest COMMAND CoinRenderRetainedIncrementalTest)
+	set_tests_properties(CoinRenderRetainedIncrementalTest PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE)
+	add_executable(CoinRenderRetainedConnectorTest CoinRenderRetainedConnectorTest.cpp)
+	target_compile_definitions(CoinRenderRetainedConnectorTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+	target_include_directories(CoinRenderRetainedConnectorTest PRIVATE
+		${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+	target_link_libraries(CoinRenderRetainedConnectorTest CoinRender Coin)
+	if(TARGET OpenGL::EGL)
+		target_link_libraries(CoinRenderRetainedConnectorTest OpenGL::EGL)
+	endif()
+	if(TARGET OpenGL::GL)
+		target_link_libraries(CoinRenderRetainedConnectorTest OpenGL::GL)
+	else()
+		target_link_libraries(CoinRenderRetainedConnectorTest ${OPENGL_gl_LIBRARY})
+	endif()
+	add_test(NAME CoinRenderRetainedConnectorTest COMMAND CoinRenderRetainedConnectorTest)
+	set_tests_properties(CoinRenderRetainedConnectorTest PROPERTIES TIMEOUT 120)
+	add_test(NAME CoinRenderRetainedNoBorrowTest COMMAND CoinRenderRetainedConnectorTest)
+	set_tests_properties(CoinRenderRetainedNoBorrowTest PROPERTIES TIMEOUT 120
+		ENVIRONMENT "COIN_RENDER_DISABLE_COMPOSITION_BORROW=1")
+	if(COIN_BUILD_LEGACY_GL_RENDERER)
+		add_test(NAME CoinRenderRetainedGLReferenceTest COMMAND CoinRenderRetainedConnectorTest --gl-reference)
+		set_tests_properties(CoinRenderRetainedGLReferenceTest PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE
+			ENVIRONMENT "EGL_PLATFORM=surfaceless")
+	endif()
 	if((COIN_TEST_RENDER_STRICT_DISPLAY OR COIN_TEST_RENDER_GL_REFERENCE) AND
 	   NOT COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
 		message(FATAL_ERROR "Strict WebGPU display/GL reference tests require COIN_RENDER_BACKEND=RUST_BRIDGE")

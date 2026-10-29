@@ -22,10 +22,15 @@ set(COIN_ELEMENTS_FILES
 	SoCullElement.cpp
 	SoDecimationPercentageElement.cpp
 	SoDecimationTypeElement.cpp
+	SoRenderDepthPolicyElement.cpp
+	SoPBRMaterialElement.cpp
 	SoDepthBufferElement.cpp
 	SoDiffuseColorElement.cpp
 	SoDrawStyleElement.cpp
 	SoElement.cpp
+	SoRenderMatrixPolicyElement.cpp
+	SoDevicePixelRatioElement.cpp
+	SoRenderPlacementElement.cpp
 	SoEmissiveColorElement.cpp
 	SoEnvironmentElement.cpp
 	SoFloatElement.cpp

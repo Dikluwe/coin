@@ -26,6 +26,7 @@ public:
   ~CoinRenderFrameBorrow();
 private:
   friend class CoinRenderActionP;
+  friend class CoinRenderRetainedTransport;
   CoinRenderFrameBorrow(const CoinRenderFramePlan &, Identity &, bool renew, bool enabled);
   CoinRenderFrameBorrow(const CoinRenderFrameBorrow &) = delete;
   CoinRenderFrameBorrow & operator=(const CoinRenderFrameBorrow &) = delete;

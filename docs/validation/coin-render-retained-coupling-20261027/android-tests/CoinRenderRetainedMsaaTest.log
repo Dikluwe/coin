@@ -1,0 +1,8 @@
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--msaa4 opaque cube
+fixture=--msaa4 PHONG
+fixture=--msaa4 blend
+fixture=--msaa4 texture
+fixture=--msaa4 mixed opaque/transparent order
+fixture=--msaa4 per-face transparency
+retained_test_renderer requested=2 observed=2 gpu_available=1 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Rust/wgpu adapter probe succeeded

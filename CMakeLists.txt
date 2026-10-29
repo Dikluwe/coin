@@ -1080,6 +1080,7 @@ add_subdirectory(include)
 add_subdirectory(data)
 add_subdirectory(src)
 if(COIN_BUILD_RENDER)
+  add_subdirectory(src/environment)
   add_subdirectory(src/rendering/coinrender)
 endif()
 

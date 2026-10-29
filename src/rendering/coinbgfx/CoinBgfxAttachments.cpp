@@ -396,6 +396,7 @@ CoinBgfxBackend::prepareTransparencyPrograms(CoinBgfxTransparencyStrategy strate
 void
 CoinBgfxBackend::destroyFrameBuffers(bool keepOutput)
 {
+  this->pbrPresentationIdentity.reset();
   for (uint8_t pass = 0; pass < COIN_RENDER_MAX_PEEL_LAYERS; ++pass) {
     if (bgfx::isValid(this->peelFrameBuffers[pass]))
       bgfx::destroy(this->peelFrameBuffers[pass]);

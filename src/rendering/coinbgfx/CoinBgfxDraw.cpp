@@ -235,6 +235,7 @@ CoinBgfxBackend::submitSurfaceDraw(bgfx::ViewId view, const CoinBgfxDraw & draw,
   const std::vector<bgfx::FrameBufferHandle> & shadowMaps,
   int width, int height, bgfx::TextureHandle sampleDepth)
 {
+  if (draw.pbr) { this->submitPbrDraw(view, draw, frame, textures); return; }
   if (draw.bumpSlot && draw.bumpExtended) {
     this->bindDrawTexture(draw, textures, true, this->sampleCount > 1, true);
     this->bindShadowReceiver(frame, shadowPlan, shadowMaps, draw, height, 8);

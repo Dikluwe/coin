@@ -1,0 +1,18 @@
+# From the repository root. GUI output directories must be fresh.
+export COIN_VIEWPORT_SOURCE="$PWD"
+export COIN_VIEWPORT_WORKER=/tmp/coin-retained-bgfx/bin/CoinRenderFreeCADViewportWorker
+export COIN_VIEWPORT_ENVIRONMENT=/tmp/coin-retained-ibl/environments/studio.cibl
+export COIN_VIEWPORT_ASSEMBLY=/mnt/Laranja/Git/externos/freecad-source/data/examples/AssemblyExample.FCStd
+export COIN_ASSEMBLY_REFLECTION_PREVIEW=1
+export COIN_ASSEMBLY_PREVIEW_INTERACTION_PART=BucketLink2
+export COIN_ASSEMBLY_PREVIEW_OUTPUT=/tmp/coin-c19-final
+export QT_QPA_PLATFORM=xcb
+export LD_LIBRARY_PATH=/home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt/lib
+export QT_PLUGIN_PATH=/home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt/plugins
+xvfb-run -a -s '-screen 0 1680x1200x24' /mnt/Laranja/Git/externos/freecad-build/bin/FreeCAD --user-cfg /tmp/coin-c19-user.cfg --system-cfg /tmp/coin-c19-system.cfg "$PWD/examples/coinrender/freecad_assembly_appearance.FCMacro"
+python3 scripts/coinrender/compare_freecad_pbr_effects.py --worker "$COIN_VIEWPORT_WORKER" --environment "$COIN_VIEWPORT_ENVIRONMENT" --preview /tmp/coin-c19-final
+head -n 1 /tmp/coin-c19-final/industrial-session/requests.txt > /tmp/coin-c19-cache-request.txt
+xvfb-run -a -s '-screen 0 1680x1200x24' python3 scripts/coinrender/test_native_pbr_reuse.py --worker "$COIN_VIEWPORT_WORKER" --scene /tmp/coin-c19-final/industrial-session/scene.iv --request /tmp/coin-c19-cache-request.txt --environment "$COIN_VIEWPORT_ENVIRONMENT" --output /tmp/coin-c19-cache
+python3 scripts/coinrender/run_retained_pbr_anisotropy.py --retained /tmp/coin-retained-bgfx/bin/CoinRenderRetainedSurfaceImage --current /tmp/coin-retained-bgfx/bin/CoinRenderCurrentSurfaceImage --updates /tmp/coin-retained-bgfx/bin/CoinRenderRetainedAnisotropyTest --environment "$COIN_VIEWPORT_ENVIRONMENT" --products /tmp/coin-c17-product.cani --reference /tmp/coin-c17-reference-consumer --output /tmp/coin-c19-anisotropy-control
+python3 scripts/coinrender/audit_retained_contribution_boundaries.py --upstream-git-dir /tmp/coin-retained-upstream.git --output /tmp/coin-c19-boundaries-final.json
+ctest --test-dir /tmp/coin-retained-bgfx --output-on-failure -j1 --output-junit /tmp/coin-c19-tests-final.xml -R '^(CoinEnvironmentAnisotropyTest|CoinEnvironmentTest|SoRetainedPBRTest|CoinRenderRetainedReflectionTest|CoinRenderFreeCADMeshExportTest|CoinRenderIBLBake-studio|CoinRenderRetainedIBL-studio|CoinRenderIBLBake-asymmetric|CoinRenderRetainedIBL-asymmetric|CoinRenderRetainedSurfacesTest|CoinRenderAnisotropyBake|CoinRenderRetainedAnisotropyTest|CoinRenderPbrEffectsTest|CoinRenderRetainedIBLAdmissionTest|CoinRenderRetainedPBRGalleryTest|CoinRenderRetainedPBRGpuTest|CoinRenderRetainedConnectorTest|CoinRenderRetainedNoBorrowTest|CoinBgfxCoreTest|CoinBgfxInstancingTest)$'

@@ -1,0 +1,12 @@
+Retained contribution boundaries: FAIL
+Classified: 86; changed in scope: 86; native boundary: 32
+  coinrender: 29
+  fork_candidate: 21
+  fork_candidate_review: 4
+  mixed_native: 6
+  mixed_registration: 5
+  port_compatibility: 21
+ERROR: src/rendering/coinrender/CoinRenderRetainedTransport.h: native candidate includes executor/integration header Inventor/rendering/CoinRenderOptions.h
+ERROR: src/rendering/coinrender/CoinRenderRetainedTransport.h: native candidate includes executor/integration header rendering/coinrender/CoinRenderBackend.h
+ERROR: src/rendering/coinrender/CoinRenderRetainedTransport.h: native candidate includes executor/integration header Inventor/rendering/CoinRenderRetainedRenderer.h
+ERROR: src/rendering/coinrender/CoinRenderRetainedTransport.h: native candidate contains integration/executor token COIN_RENDER_RETAINED_TRANSPORT_H

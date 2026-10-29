@@ -70,6 +70,8 @@
 */
 
 #include <Inventor/nodes/SoLight.h>
+#include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/actions/SoIRRenderAction.h>
 
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
@@ -145,4 +147,13 @@ SoLight::callback(SoCallbackAction * action)
   SoState * state = action->getState();
   SoLightElement::add(state, this, (SoModelMatrixElement::get(state) * 
                                     SoViewingMatrixElement::get(state)));
+}
+
+// Logical light capture for retained IR; no GL call or second traversal.
+void SoLight::IRRender(SoIRRenderAction * action)
+{
+  if (this->on.getValue() && !this->isOfType(SoDirectionalLight::getClassTypeId()))
+    action->recordWorldStateDependency();
+  SoState * state = action->getState();
+  SoLightElement::add(state, this, SoModelMatrixElement::get(state) * SoViewingMatrixElement::get(state));
 }

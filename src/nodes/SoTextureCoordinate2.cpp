@@ -253,3 +253,6 @@ SoTextureCoordinate2::pick(SoPickAction * action)
 }
 
 #undef PRIVATE
+
+#include <Inventor/actions/SoIRRenderAction.h>
+void SoTextureCoordinate2::IRRender(SoIRRenderAction * action) { doAction(action); }

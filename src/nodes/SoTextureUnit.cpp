@@ -228,3 +228,14 @@ SoTextureUnit::getMaxTextureUnit(void)
 
   return (uint32_t) tmp;
 }
+
+#include <Inventor/actions/SoIRRenderAction.h>
+void
+SoTextureUnit::IRRender(SoIRRenderAction * action)
+{
+  if (this->unit.getValue() < 0 || this->unit.getValue() >= 8) {
+    action->markUnsupported(this, "Retained texture unit must be in [0,7]");
+    return;
+  }
+  doAction(action);
+}

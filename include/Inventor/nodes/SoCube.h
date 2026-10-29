@@ -60,6 +60,7 @@ protected:
   virtual ~SoCube();
 
   void generatePrimitives(SoAction * action) override;
+  SbBool generateRetainedPrimitives(SoIRRenderAction * action) override;
   void computeBBox(SoAction * action, SbBox3f & box, SbVec3f & center) override;
 
 private:

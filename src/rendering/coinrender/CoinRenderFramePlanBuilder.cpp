@@ -41,6 +41,9 @@
 #include <Inventor/elements/SoBumpMapMatrixElement.h>
 #include <Inventor/elements/SoDrawStyleElement.h>
 #include <Inventor/elements/SoMaterialBindingElement.h>
+#include "elements/SoPBRMaterialElement.h"
+#include "rendering/SoRenderIRP.h"
+#include "rendering/coinrender/CoinRenderPbrMaterialCapture.h"
 #include <Inventor/elements/SoNormalBindingElement.h>
 #include <Inventor/elements/SoNormalElement.h>
 #include <Inventor/nodes/SoCone.h>
@@ -265,6 +268,8 @@ CoinRenderFramePlanBuilder::reset()
   this->currentPlan.vertices.clear();
   this->currentPlan.bumpCoords.clear();
   this->currentPlan.bumpTangents.clear();
+  this->currentPlan.pbrSurfaceVertices.clear();
+  this->pbrSurfaces.beginCapture();
   this->currentPlan.bumpImages.clear();
   this->currentPlan.portableShaders.clear();
   this->portableShaderSlots.clear();
@@ -749,6 +754,8 @@ CoinRenderFramePlanBuilder::beginShape(SoCallbackAction * action, const SoNode *
   if (type != SoCube::getClassTypeId() && type != SoCone::getClassTypeId() &&
       type != SoCylinder::getClassTypeId() && type != SoSphere::getClassTypeId()) return;
   SoState * state = action->getState();
+  const auto * physical=SoPBRMaterialElement::get(state);
+  if(physical && physical->model==SoRenderMaterialModel::PBR && physical->material.anisotropy>0)return;
   // Native template replay has no per-corner bump coordinate payload.
   if (SoBumpMapCoordinateElement::getInstance(state)->getNum() > 0) return;
   const SoNode * bumpSource = SoBumpMapElement::getSource(state);
@@ -1316,6 +1323,15 @@ CoinRenderFramePlanBuilder::captureMaterial(SoCallbackAction * action, int mater
   action->getMaterial(amb, diff, spec, emiss, shin, transp, safeIndex);
 
   CoinRenderMaterialSnapshot matSnap;
+  const auto * physical=SoPBRMaterialElement::get(state);
+  if (physical && physical->model==SoRenderMaterialModel::PBR) {
+    if(!so_valid_pbr_material(physical->material) ||
+       SoMaterialBindingElement::get(state)!=SoMaterialBindingElement::OVERALL || packedDiffuse) {
+      this->hasError=true;this->builderError="Invalid or non-overall PBR material";return 0;
+    }
+    matSnap.model=CoinRenderMaterialModel::PBR;
+    matSnap.pbr=coin_render_pbr_snapshot(physical->material);
+  }
   matSnap.ambient[0] = amb[0]; matSnap.ambient[1] = amb[1]; matSnap.ambient[2] = amb[2]; matSnap.ambient[3] = 1.0f;
   matSnap.diffuse[0] = diff[0]; matSnap.diffuse[1] = diff[1]; matSnap.diffuse[2] = diff[2]; matSnap.diffuse[3] = 1.0f - transp;
   matSnap.specular[0] = spec[0]; matSnap.specular[1] = spec[1]; matSnap.specular[2] = spec[2]; matSnap.specular[3] = 1.0f;
@@ -1424,6 +1440,16 @@ CoinRenderFramePlanBuilder::captureCubeNode(SoCallbackAction * action,
 bool
 CoinRenderFramePlanBuilder::captureTexture(SoCallbackAction * action, CoinRenderRenderStateSnapshot & rs, std::string * outError)
 {
+  const auto * physical=SoPBRMaterialElement::get(action->getState());
+  if(physical && physical->model==SoRenderMaterialModel::PBR) {
+    SoPBRSurfaceData source;SbString error;std::string diagnostic;
+    if(!SoRenderIR::capturePBRSurfaceFromState(action->getState(),nullptr,source,error) ||
+       !this->pbrSurfaces.images(this->currentPlan,rs,source,this->maxTextureAnisotropy,diagnostic)) {
+      this->isUnsupported=true;this->builderError=error.getLength()?error.getString():diagnostic;
+      if(outError)*outError=this->builderError;return false;
+    }
+    return true;
+  }
   if (!captureTextureUnit(action, 0, rs, outError)) return false;
   SoState * state = action ? action->getState() : nullptr;
   if (!state) return true;
@@ -3188,6 +3214,10 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
       coords->getType(0) == SoMultiTextureCoordinateElement::FUNCTION)
     tc = coords->get(0, pt, n);
 
+  if((rs.pbrNormalImageSlot!=UINT32_MAX || this->currentPlan.materials[materialSlot].pbr.anisotropy>0) && rs.pbrNormalCoordinateUnit==0 &&
+     !rs.hasTexture && coords->getType(0)==SoMultiTextureCoordinateElement::FUNCTION)
+    tc=coords->get(0,pt,n);
+
   v.position[0] = pt[0];
   v.position[1] = pt[1];
   v.position[2] = pt[2];
@@ -3206,6 +3236,7 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
     (this->currentPlan.portableShaders[rs.portableShaderSlot - 1].ir.coordinateMask & 0xfeu);
   for (const auto & texture : rs.extraTextures)
     if (texture.enabled) hasExtraCoordinates = true;
+  hasExtraCoordinates=hasExtraCoordinates || (rs.pbrNormalCoordinateUnit>0 && (rs.pbrNormalImageSlot!=UINT32_MAX || this->currentPlan.materials[materialSlot].pbr.anisotropy>0));
   if (!hasExtraCoordinates) return v;
 
   const auto * positions = SoCoordinateElement::getInstance(state);
@@ -3239,7 +3270,7 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
     matchPoint(line->getPoint0()); matchPoint(line->getPoint1());
   }
   for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-    if (!rs.extraTextures[unit - 1].enabled &&
+    if (!rs.extraTextures[unit - 1].enabled && !((rs.pbrNormalImageSlot!=UINT32_MAX || this->currentPlan.materials[materialSlot].pbr.anisotropy>0) && int(unit)==rs.pbrNormalCoordinateUnit) &&
         (!rs.portableShaderSlot || !(this->currentPlan.portableShaders[rs.portableShaderSlot - 1].ir.coordinateMask & (1u << unit)))) continue;
     const auto type = coords->getType(unit);
     if (type == SoMultiTextureCoordinateElement::FUNCTION ||
@@ -3380,7 +3411,7 @@ CoinRenderFramePlanBuilder::addVertex(SoCallbackAction * action, const SoPrimiti
   const auto & rs = this->currentPlan.renderStates[
     this->currentPlan.draws[this->currentDrawIndex].renderStateSlot];
   const CoinRenderVertexSnapshot vertex = this->captureVertex(action, pv, materialSlot, rs);
-  const SoNode * bumpSource = SoBumpMapElement::getSource(action->getState());
+  const SoNode * bumpSource = this->currentPlan.materials[materialSlot].model==CoinRenderMaterialModel::PBR?nullptr:SoBumpMapElement::getSource(action->getState());
   const SbUniqueId bumpRevision = bumpSource ? bumpSource->getNodeId() : 0;
   if (bumpSource != this->lastBumpSource || bumpRevision != this->lastBumpRevision) {
     this->lastBumpSource = bumpSource;
@@ -4373,6 +4404,9 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
     return false;
   }
   timer.mark("expand_styles");
+  if(!this->pbrSurfaces.prepare(this->currentPlan,128u*1024u*1024u,this->builderError)) {
+    if(outError)*outError=this->builderError;return false;
+  }
   if (!this->currentPlan.isValid(outError)) {
     return false;
   }
@@ -4508,6 +4542,9 @@ CoinRenderFramePlanBuilder::processIndexedFaceSet(
     return CoinRenderFastPathResult::INVALID_SCENE;
   }
   if (isShapeInvisible(action)) return CoinRenderFastPathResult::SUCCESS_PRUNE;
+  const auto * physical=SoPBRMaterialElement::get(action->getState());
+  if(physical && physical->model==SoRenderMaterialModel::PBR && physical->material.anisotropy>0)
+    return CoinRenderFastPathResult::FALLBACK_CONTINUE; // Preserve per-corner tangent UVs.
   if (SoBumpMapCoordinateElement::getInstance(action->getState())->getNum() > 0)
     return CoinRenderFastPathResult::FALLBACK_CONTINUE;
   const SoNode * bumpSource = SoBumpMapElement::getSource(action->getState());

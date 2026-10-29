@@ -1,0 +1,275 @@
+{
+  "BasePin": {
+    "expects_solid": true,
+    "source_volume": 31415.92653589793,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 252,
+        "triangles": 500,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 31402.90796623921,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  },
+  "Base": {
+    "expects_solid": true,
+    "source_volume": 241280.9395115904,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 2170,
+        "triangles": 4364,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 241274.13676289434,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  },
+  "Boom": {
+    "expects_solid": true,
+    "source_volume": 1204575.2487515295,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 2248,
+        "triangles": 4520,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 1204562.287408532,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  },
+  "Stick": {
+    "expects_solid": true,
+    "source_volume": 333942.17860695574,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 2194,
+        "triangles": 4412,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 333941.4357624103,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  },
+  "Bucket": {
+    "expects_solid": true,
+    "source_volume": 58312.053574498656,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 4786,
+        "triangles": 9584,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 58310.68040574726,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  },
+  "BucketLink2": {
+    "expects_solid": true,
+    "source_volume": 17079.259884200455,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 2500,
+        "triangles": 4801,
+        "boundary_edges": 217,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 15545.095173936073,
+        "closed_solid": false
+      },
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "linear_deflection": 0.2,
+        "vertices": 1268,
+        "triangles": 2528,
+        "boundary_edges": 20,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 17058.827033741898,
+        "closed_solid": false
+      },
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.3,
+        "linear_deflection": 0.2,
+        "vertices": 856,
+        "triangles": 1716,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 17038.1674128718,
+        "closed_solid": true
+      }
+    ],
+    "repaired": true
+  },
+  "BucketLink1": {
+    "expects_solid": true,
+    "source_volume": 12304.424386084183,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 2154,
+        "triangles": 4316,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 12302.686860610745,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  },
+  "BoomCylinderOuter": {
+    "expects_solid": true,
+    "source_volume": 48197.411440688076,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 1117,
+        "triangles": 2234,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 48184.253646277575,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  },
+  "BoomCylinderInner": {
+    "expects_solid": true,
+    "source_volume": 22989.416923964363,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 812,
+        "triangles": 1624,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 22983.086096610925,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  },
+  "StickCylinderInner": {
+    "expects_solid": true,
+    "source_volume": 22989.416923964363,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 812,
+        "triangles": 1624,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 22983.086096610925,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  },
+  "StickCylinderOuter": {
+    "expects_solid": true,
+    "source_volume": 48197.411440688105,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 1117,
+        "triangles": 2234,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 48184.25364627763,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  },
+  "BucketCylinderInner": {
+    "expects_solid": true,
+    "source_volume": 9045.57836615283,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 812,
+        "triangles": 1624,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 9042.982769598857,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  },
+  "BucketCylinderOuter": {
+    "expects_solid": true,
+    "source_volume": 16011.73499121194,
+    "attempts": [
+      {
+        "method": "Shape.tessellate",
+        "linear_deflection": 0.2,
+        "vertices": 1092,
+        "triangles": 2184,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 16006.117484969507,
+        "closed_solid": true
+      }
+    ],
+    "repaired": false
+  }
+}

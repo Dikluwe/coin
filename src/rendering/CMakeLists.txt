@@ -1,6 +1,10 @@
 # source files
 set(COIN_RENDERING_FILES
 	SoGL.cpp
+	SoRenderIR.cpp
+	SoRenderPlan.cpp
+	SoRenderBackend.cpp
+	SoRetainedUpdater.cpp
 	SoGLBigImage.cpp
 	SoGLDriverDatabase.cpp
 	SoGLImage.cpp

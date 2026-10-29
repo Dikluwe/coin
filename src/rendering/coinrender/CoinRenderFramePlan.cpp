@@ -216,6 +216,7 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan &other) const
       this->outputMipmaps != other.outputMipmaps ||
       !samePlainSnapshots(this->vertices, other.vertices) ||
       !samePlainSnapshots(this->bumpCoords, other.bumpCoords) ||
+      !samePlainSnapshots(this->pbrSurfaceVertices, other.pbrSurfaceVertices) ||
       !samePlainSnapshots(this->bumpTangents, other.bumpTangents) ||
       !sameBumpImages(this->bumpImages, other.bumpImages) ||
       !samePlainSnapshots(this->bumpTransforms, other.bumpTransforms) ||
@@ -376,6 +377,12 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
 
   for (size_t i = 0; i < this->materials.size(); ++i) {
     const CoinRenderMaterialSnapshot &m = this->materials[i];
+    if ((m.model != CoinRenderMaterialModel::LEGACY && m.model != CoinRenderMaterialModel::PBR) ||
+        (m.model == CoinRenderMaterialModel::PBR &&
+         (!coin_render_valid_pbr_material(m.pbr) || m.transparency != 0))) {
+      if (outDiagnostic) *outDiagnostic = "Invalid PBR material snapshot";
+      return false;
+    }
     if (!isFiniteF(m.transparency) || m.transparency < 0.0f || m.transparency > 1.0f ||
         !isFiniteF(m.diffuse[3]) || m.diffuse[3] < 0.0f || m.diffuse[3] > 1.0f) {
       if (outDiagnostic)
@@ -390,6 +397,16 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
   }
 
   const size_t numVertices = this->vertices.size();
+  uint32_t previousPbr=0;bool firstPbr=true;
+  for(const auto & surface:this->pbrSurfaceVertices) {
+    bool valid=surface.vertexIndex<numVertices && (firstPbr||surface.vertexIndex>previousPbr);
+    for(float v:surface.normalUv)valid=valid&&std::isfinite(v);
+    for(float v:surface.normalTangent)valid=valid&&std::isfinite(v);
+    for(float v:surface.directionTangent)valid=valid&&std::isfinite(v);
+    if(!valid||surface.normalUv[2]==0){if(outDiagnostic)*outDiagnostic="Invalid PBR surface corner";return false;}
+    previousPbr=surface.vertexIndex;firstPbr=false;
+  }
+
   for (const auto & matrix : this->bumpTransforms)
     if (!isMatrixFinite(matrix)) {
       if (outDiagnostic) *outDiagnostic = "Invalid bump transform snapshot";
@@ -674,6 +691,11 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
     if (i == 0)
       timer.mark("scene_state");
     const CoinRenderRenderStateSnapshot &state = this->renderStates[i];
+    if(state.pbrNormalImageSlot!=UINT32_MAX && (state.pbrNormalImageSlot>=textures.size() || state.pbrNormalSamplerSlot>=samplers.size() ||
+       state.pbrNormalCoordinateUnit<0 || state.pbrNormalCoordinateUnit>7)) {
+      if(outDiagnostic)*outDiagnostic="Invalid PBR normal resources";return false;
+    }
+
     if (state.portableShaderSlot > this->portableShaders.size()) {
       if (outDiagnostic) *outDiagnostic = "Portable shader occurrence slot is invalid";
       return false;

@@ -54,6 +54,7 @@ public:
   SoSFVec3f directionT;
   SoSFVec3f directionR;
 
+  void IRRender(SoIRRenderAction * action) override;
   void doAction(SoAction * action) override;
   void GLRender(SoGLRenderAction * action) override;
   void pick(SoPickAction * action) override;

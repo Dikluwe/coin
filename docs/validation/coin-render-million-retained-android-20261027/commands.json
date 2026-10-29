@@ -1,0 +1,3183 @@
+[
+  {
+    "label": "install",
+    "args": [
+      "install",
+      "--no-incremental",
+      "-r",
+      "/tmp/coin-retained-million-ab/coin-render-million-ab.apk"
+    ],
+    "exit": 0,
+    "stdout": "Performing Streamed Install\nSuccess\n",
+    "stderr": ""
+  },
+  {
+    "label": "portrait",
+    "args": [
+      "shell",
+      "wm",
+      "user-rotation",
+      "lock",
+      "0"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-stop",
+    "args": [
+      "shell",
+      "am",
+      "force-stop",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-launch",
+    "args": [
+      "shell",
+      "am",
+      "start",
+      "-f",
+      "0x10008000",
+      "-n",
+      "org.coin3d.coinrender.retainedmillion/android.app.NativeActivity",
+      "--ei",
+      "coinrender_renderer",
+      "2",
+      "--ei",
+      "coinrender_samples",
+      "1",
+      "--ez",
+      "coinrender_city",
+      "true",
+      "--ez",
+      "coinrender_million_city",
+      "true",
+      "--ez",
+      "coinrender_continuous",
+      "true",
+      "--ez",
+      "coinrender_compare",
+      "true",
+      "--ez",
+      "coinrender_retained",
+      "true"
+    ],
+    "exit": 0,
+    "stdout": "Starting: Intent { flg=0x10008000 cmp=org.coin3d.coinrender.retainedmillion/android.app.NativeActivity (has extras) }\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "413400\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "902220\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "1386052\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "1928516\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2155512\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2574348\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:26:34.474  6530  6560 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3281328\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:26:34.474  6530  6560 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3827244\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:26:34.474  6530  6560 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4960912\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:26:34.474  6530  6560 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:26:40.535  6530  6560 I CoinRenderP23: comparison_first path=retained render_ms=6061.431 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4803296\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:26:34.474  6530  6560 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:26:40.535  6530  6560 I CoinRenderP23: comparison_first path=retained render_ms=6061.431 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:26:41.409  6530  6560 I CoinRenderP23: comparison_capture path=retained rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n10-27 18:26:41.454  6530  6560 I CoinRenderP23: retained_stats captures=1 plans=1 transport_builds=1 retained_frames=2 commands=1000001 resources=2 vertices=324 cameras=1 materials=9\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=3 generation=1\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=5 generation=1\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=4 generation=1\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=6 generation=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4798944\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:26:34.474  6530  6560 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:26:40.535  6530  6560 I CoinRenderP23: comparison_first path=retained render_ms=6061.431 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:26:41.409  6530  6560 I CoinRenderP23: comparison_capture path=retained rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n10-27 18:26:41.454  6530  6560 I CoinRenderP23: retained_stats captures=1 plans=1 transport_builds=1 retained_frames=2 commands=1000001 resources=2 vertices=324 cameras=1 materials=9\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=3 generation=1\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=5 generation=1\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=4 generation=1\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=6 generation=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6530\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6530",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4798944\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6530",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:23.388  6530  6560 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_renderer=2\n10-27 18:26:23.390  6530  6560 I CoinRenderP23: requested_samples=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:26:32.534  6530  6560 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:26:34.474  6530  6560 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:26:40.535  6530  6560 I CoinRenderP23: comparison_first path=retained render_ms=6061.431 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:26:41.409  6530  6560 I CoinRenderP23: comparison_capture path=retained rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n10-27 18:26:41.454  6530  6560 I CoinRenderP23: retained_stats captures=1 plans=1 transport_builds=1 retained_frames=2 commands=1000001 resources=2 vertices=324 cameras=1 materials=9\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=3 generation=1\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=5 generation=1\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=4 generation=1\n10-27 18:26:41.455  6530  6560 I CoinRenderP23: lifecycle command=6 generation=1\n10-27 18:26:45.092  6530  6560 I CoinRenderP23: comparison_perf path=retained samples=120 median_ms=27.676567 p90_ms=28.542520 serial=132\n10-27 18:26:45.092  6530  6560 I CoinRenderP23: retained_stats captures=1 plans=1 transport_builds=1 retained_frames=132 commands=1000001 resources=2 vertices=324 cameras=1 materials=9\n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-mem-0",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 667750 Realtime: 667750\n\n** MEMINFO in pid 6530 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  4632869  4632808        0        0  4636692  4739928  4734276     2421\n  Dalvik Heap      538      392        0        0     8512     3743     1872     1871\n Dalvik Other     4830     1052        0        0     9244                           \n        Stack      636      636        0        0      644                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22424     1164    19060        0    60776                           \n    .jar mmap     4504        0     1240        0    46232                           \n    .apk mmap      325        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       46        0        0        0     1824                           \n    .art mmap     8075     7784        0        0    24236                           \n   Other mmap     1947        4        0        0     4856                           \n        Memfd       10        0        0        0      592                           \n      Unknown      676      664        0        0     2088                           \n        TOTAL  4677074  4644504    20572        0  4799228  4743671  4736148     4292\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8176                          32748\n         Native Heap:  4632808                        4636692\n                Code:    21864                         119732\n               Stack:      636                            644\n            Graphics:        0                              0\n       Private Other:     1592\n              System:    11998\n             Unknown:                                    9412\n \n           TOTAL PSS:  4677074            TOTAL RSS:  4799228      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-mem-1",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 669001 Realtime: 669001\n\n** MEMINFO in pid 6530 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  4632885  4632824        0        0  4636708  4739928  4734256     2449\n  Dalvik Heap      638      492        0        0     8612     3751     1876     1875\n Dalvik Other     4912     1088        0        0     9372                           \n        Stack      636      636        0        0      644                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22432     1168    19060        0    60920                           \n    .jar mmap     4529        0     1240        0    46412                           \n    .apk mmap      325        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       46        0        0        0     1824                           \n    .art mmap     8118     7788       24        0    24324                           \n   Other mmap     1993        4        0        0     4948                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  4677398  4644668    20596        0  4799980  4743679  4736132     4324\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8304                          32936\n         Native Heap:  4632824                        4636708\n                Code:    21892                         120172\n               Stack:      636                            644\n            Graphics:        0                              0\n       Private Other:     1608\n              System:    12134\n             Unknown:                                    9520\n \n           TOTAL PSS:  4677398            TOTAL RSS:  4799980      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-mem-2",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 670223 Realtime: 670223\n\n** MEMINFO in pid 6530 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  4632889  4632828        0        0  4636712  4739928  4734255     2450\n  Dalvik Heap      642      496        0        0     8616     3751     1876     1875\n Dalvik Other     4884     1036        0        0     9368                           \n        Stack      636      636        0        0      644                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22432     1168    19060        0    60920                           \n    .jar mmap     4529        0     1240        0    46412                           \n    .apk mmap      325        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       46        0        0        0     1824                           \n    .art mmap     8118     7788       24        0    24324                           \n   Other mmap     2017        4        0        0     4996                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  4677402  4644624    20596        0  4800032  4743679  4736131     4325\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  4632828                        4636712\n                Code:    21844                         120172\n               Stack:      636                            644\n            Graphics:        0                              0\n       Private Other:     1604\n              System:    12182\n             Unknown:                                    9564\n \n           TOTAL PSS:  4677402            TOTAL RSS:  4800032      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-mem-3",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 671432 Realtime: 671432\n\n** MEMINFO in pid 6530 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  4632889  4632828        0        0  4636712  4739928  4734255     2450\n  Dalvik Heap      642      496        0        0     8616     3751     1876     1875\n Dalvik Other     4884     1036        0        0     9368                           \n        Stack      636      636        0        0      644                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22432     1168    19060        0    60920                           \n    .jar mmap     4529        0     1240        0    46412                           \n    .apk mmap      325        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       46        0        0        0     1824                           \n    .art mmap     8118     7788       24        0    24324                           \n   Other mmap     2017        4        0        0     4996                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  4677402  4644624    20596        0  4800032  4743679  4736131     4325\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  4632828                        4636712\n                Code:    21844                         120172\n               Stack:      636                            644\n            Graphics:        0                              0\n       Private Other:     1604\n              System:    12182\n             Unknown:                                    9564\n \n           TOTAL PSS:  4677402            TOTAL RSS:  4800032      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-mem-4",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 672636 Realtime: 672636\n\n** MEMINFO in pid 6530 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  4632889  4632828        0        0  4636712  4739928  4734255     2450\n  Dalvik Heap      642      496        0        0     8616     3751     1876     1875\n Dalvik Other     4884     1036        0        0     9368                           \n        Stack      636      636        0        0      644                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22432     1168    19060        0    60920                           \n    .jar mmap     4529        0     1240        0    46412                           \n    .apk mmap      325        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       46        0        0        0     1824                           \n    .art mmap     8118     7788       24        0    24324                           \n   Other mmap     2017        4        0        0     4996                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  4677402  4644624    20596        0  4800032  4743679  4736131     4325\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  4632828                        4636712\n                Code:    21844                         120172\n               Stack:      636                            644\n            Graphics:        0                              0\n       Private Other:     1604\n              System:    12182\n             Unknown:                                    9564\n \n           TOTAL PSS:  4677402            TOTAL RSS:  4800032      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "1-retained-file-rgba",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-retained.rgba"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "1-retained-file-depth",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-retained.depth"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "1-retained-file-times",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-retained.times"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "1-retained-screenshot",
+    "args": [
+      "exec-out",
+      "screencap",
+      "-p"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "1-retained-finish",
+    "args": [
+      "shell",
+      "am",
+      "force-stop",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-stop",
+    "args": [
+      "shell",
+      "am",
+      "force-stop",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-launch",
+    "args": [
+      "shell",
+      "am",
+      "start",
+      "-f",
+      "0x10008000",
+      "-n",
+      "org.coin3d.coinrender.retainedmillion/android.app.NativeActivity",
+      "--ei",
+      "coinrender_renderer",
+      "2",
+      "--ei",
+      "coinrender_samples",
+      "1",
+      "--ez",
+      "coinrender_city",
+      "true",
+      "--ez",
+      "coinrender_million_city",
+      "true",
+      "--ez",
+      "coinrender_continuous",
+      "true",
+      "--ez",
+      "coinrender_compare",
+      "true",
+      "--ez",
+      "coinrender_retained",
+      "false"
+    ],
+    "exit": 0,
+    "stdout": "Starting: Intent { flg=0x10008000 cmp=org.coin3d.coinrender.retainedmillion/android.app.NativeActivity (has extras) }\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "408960\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "885612\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "1360236\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "1883252\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2155264\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2544384\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2772416\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2917668\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3200928\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3511464\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4207616\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4345776\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:27:15.952  6804  6820 I CoinRenderP23: comparison_first path=current render_ms=10422.642 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4606256\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:27:15.952  6804  6820 I CoinRenderP23: comparison_first path=current render_ms=10422.642 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4891056\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:27:15.952  6804  6820 I CoinRenderP23: comparison_first path=current render_ms=10422.642 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4370436\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:27:15.952  6804  6820 I CoinRenderP23: comparison_first path=current render_ms=10422.642 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:27:23.791  6804  6820 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4632372\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:27:15.952  6804  6820 I CoinRenderP23: comparison_first path=current render_ms=10422.642 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:27:23.791  6804  6820 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4894644\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:27:15.952  6804  6820 I CoinRenderP23: comparison_first path=current render_ms=10422.642 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:27:23.791  6804  6820 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "5160552\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:27:15.952  6804  6820 I CoinRenderP23: comparison_first path=current render_ms=10422.642 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:27:23.791  6804  6820 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3998248\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:27:15.952  6804  6820 I CoinRenderP23: comparison_first path=current render_ms=10422.642 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:27:23.791  6804  6820 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n10-27 18:27:31.189  6804  6820 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)\n10-27 18:27:31.189  6804  6820 I CoinRenderP23: lifecycle command=3 generation=1\n10-27 18:27:31.189  6804  6820 I CoinRenderP23: lifecycle command=5 generation=1\n10-27 18:27:31.189  6804  6820 I CoinRenderP23: lifecycle command=4 generation=1\n10-27 18:27:31.189  6804  6820 I CoinRenderP23: lifecycle command=6 generation=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "6804\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "6804",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3998248\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=6804",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:26:54.453  6804  6820 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: render_path=current comparison=1\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_renderer=2\n10-27 18:26:54.455  6804  6820 I CoinRenderP23: requested_samples=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:03.587  6804  6820 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:03.588  6804  6820 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:05.529  6804  6820 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:27:15.952  6804  6820 I CoinRenderP23: comparison_first path=current render_ms=10422.642 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:27:23.791  6804  6820 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n10-27 18:27:31.189  6804  6820 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)\n10-27 18:27:31.189  6804  6820 I CoinRenderP23: lifecycle command=3 generation=1\n10-27 18:27:31.189  6804  6820 I CoinRenderP23: lifecycle command=5 generation=1\n10-27 18:27:31.189  6804  6820 I CoinRenderP23: lifecycle command=4 generation=1\n10-27 18:27:31.189  6804  6820 I CoinRenderP23: lifecycle command=6 generation=1\n10-27 18:27:33.834  6804  6820 I CoinRenderP23: comparison_perf path=current samples=120 median_ms=19.999640 p90_ms=21.078778 serial=132\n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-mem-0",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 715323 Realtime: 715323\n\n** MEMINFO in pid 6804 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  3832122  3832060        0        0  3835936  4028264  3845631   179142\n  Dalvik Heap      540      392        0        0     8512     3743     1872     1871\n Dalvik Other     4805     1036        0        0     9208                           \n        Stack      656      656        0        0      664                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22579     1164    19208        0    60880                           \n    .jar mmap     4516        0     1240        0    46232                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8082     7784        0        0    24236                           \n   Other mmap     1977        4        0        0     4916                           \n        Memfd       10        0        0        0      592                           \n      Unknown      672      660        0        0     2088                           \n        TOTAL  3876531  3843756    20720        0  3998620  4032007  3847503   181013\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8176                          32748\n         Native Heap:  3832060                        3835936\n                Code:    22000                         119804\n               Stack:      656                            664\n            Graphics:        0                              0\n       Private Other:     1584\n              System:    12055\n             Unknown:                                    9468\n \n           TOTAL PSS:  3876531            TOTAL RSS:  3998620      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       14        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-mem-1",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 716555 Realtime: 716555\n\n** MEMINFO in pid 6804 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  3832110  3832048        0        0  3835924  4028264  3845621   179174\n  Dalvik Heap      640      492        0        0     8612     3751     1876     1875\n Dalvik Other     4915     1124        0        0     9340                           \n        Stack      660      660        0        0      668                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22587     1168    19208        0    61024                           \n    .jar mmap     4541        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8125     7788       24        0    24324                           \n   Other mmap     1999        4        0        0     4960                           \n        Memfd       10        0        0        0      592                           \n      Unknown      676      664        0        0     2092                           \n        TOTAL  3876835  3843948    20744        0  3999304  4032015  3847497   181049\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8304                          32936\n         Native Heap:  3832048                        3835924\n                Code:    22076                         120244\n               Stack:      660                            668\n            Graphics:        0                              0\n       Private Other:     1604\n              System:    12143\n             Unknown:                                    9532\n \n           TOTAL PSS:  3876835            TOTAL RSS:  3999304      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       14        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-mem-2",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 717753 Realtime: 717753\n\n** MEMINFO in pid 6804 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  3832110  3832048        0        0  3835924  4028264  3845621   179174\n  Dalvik Heap      644      496        0        0     8616     3751     1876     1875\n Dalvik Other     4895     1084        0        0     9340                           \n        Stack      660      660        0        0      668                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22587     1168    19208        0    61024                           \n    .jar mmap     4541        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8125     7788       24        0    24324                           \n   Other mmap     2019        4        0        0     5000                           \n        Memfd       10        0        0        0      592                           \n      Unknown      676      664        0        0     2092                           \n        TOTAL  3876839  3843912    20744        0  3999348  4032015  3847497   181049\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  3832048                        3835924\n                Code:    22036                         120244\n               Stack:      660                            668\n            Graphics:        0                              0\n       Private Other:     1604\n              System:    12183\n             Unknown:                                    9572\n \n           TOTAL PSS:  3876839            TOTAL RSS:  3999348      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       14        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-mem-3",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 718946 Realtime: 718946\n\n** MEMINFO in pid 6804 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  3832110  3832048        0        0  3835924  4028264  3845622   179173\n  Dalvik Heap      644      496        0        0     8616     3751     1876     1875\n Dalvik Other     4895     1084        0        0     9340                           \n        Stack      660      660        0        0      668                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22586     1168    19208        0    61024                           \n    .jar mmap     4541        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8125     7788       24        0    24324                           \n   Other mmap     2019        4        0        0     5000                           \n        Memfd       10        0        0        0      592                           \n      Unknown      676      664        0        0     2092                           \n        TOTAL  3876838  3843912    20744        0  3999348  4032015  3847498   181048\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  3832048                        3835924\n                Code:    22036                         120244\n               Stack:      660                            668\n            Graphics:        0                              0\n       Private Other:     1604\n              System:    12182\n             Unknown:                                    9572\n \n           TOTAL PSS:  3876838            TOTAL RSS:  3999348      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       14        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-mem-4",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 720142 Realtime: 720142\n\n** MEMINFO in pid 6804 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  3832110  3832048        0        0  3835924  4028264  3845622   179173\n  Dalvik Heap      644      496        0        0     8616     3751     1876     1875\n Dalvik Other     4895     1084        0        0     9340                           \n        Stack      660      660        0        0      668                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22586     1168    19208        0    61024                           \n    .jar mmap     4541        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8125     7788       24        0    24324                           \n   Other mmap     2019        4        0        0     5000                           \n        Memfd       10        0        0        0      592                           \n      Unknown      676      664        0        0     2092                           \n        TOTAL  3876838  3843912    20744        0  3999348  4032015  3847498   181048\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  3832048                        3835924\n                Code:    22036                         120244\n               Stack:      660                            668\n            Graphics:        0                              0\n       Private Other:     1604\n              System:    12182\n             Unknown:                                    9572\n \n           TOTAL PSS:  3876838            TOTAL RSS:  3999348      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       14        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "2-current-file-rgba",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-current.rgba"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "2-current-file-depth",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-current.depth"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "2-current-file-times",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-current.times"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "2-current-screenshot",
+    "args": [
+      "exec-out",
+      "screencap",
+      "-p"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "2-current-finish",
+    "args": [
+      "shell",
+      "am",
+      "force-stop",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-stop",
+    "args": [
+      "shell",
+      "am",
+      "force-stop",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-launch",
+    "args": [
+      "shell",
+      "am",
+      "start",
+      "-f",
+      "0x10008000",
+      "-n",
+      "org.coin3d.coinrender.retainedmillion/android.app.NativeActivity",
+      "--ei",
+      "coinrender_renderer",
+      "2",
+      "--ei",
+      "coinrender_samples",
+      "1",
+      "--ez",
+      "coinrender_city",
+      "true",
+      "--ez",
+      "coinrender_million_city",
+      "true",
+      "--ez",
+      "coinrender_continuous",
+      "true",
+      "--ez",
+      "coinrender_compare",
+      "true",
+      "--ez",
+      "coinrender_retained",
+      "false"
+    ],
+    "exit": 0,
+    "stdout": "Starting: Intent { flg=0x10008000 cmp=org.coin3d.coinrender.retainedmillion/android.app.NativeActivity (has extras) }\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "399120\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "865676\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "1328172\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "1828860\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2155164\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2457120\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2733656\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2870816\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3344860\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3432552\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3799324\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4291660\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:03.819  7057  7073 I CoinRenderP23: comparison_first path=current render_ms=10454.181 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4553036\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:03.819  7057  7073 I CoinRenderP23: comparison_first path=current render_ms=10454.181 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4848204\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:03.819  7057  7073 I CoinRenderP23: comparison_first path=current render_ms=10454.181 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4354044\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:03.819  7057  7073 I CoinRenderP23: comparison_first path=current render_ms=10454.181 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:28:11.317  7057  7073 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4620076\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:03.819  7057  7073 I CoinRenderP23: comparison_first path=current render_ms=10454.181 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:28:11.317  7057  7073 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4894636\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:03.819  7057  7073 I CoinRenderP23: comparison_first path=current render_ms=10454.181 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:28:11.317  7057  7073 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "5183200\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:03.819  7057  7073 I CoinRenderP23: comparison_first path=current render_ms=10454.181 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:28:11.317  7057  7073 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3994784\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:03.819  7057  7073 I CoinRenderP23: comparison_first path=current render_ms=10454.181 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:28:11.317  7057  7073 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n10-27 18:28:18.600  7057  7073 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)\n10-27 18:28:18.600  7057  7073 I CoinRenderP23: lifecycle command=3 generation=1\n10-27 18:28:18.600  7057  7073 I CoinRenderP23: lifecycle command=5 generation=1\n10-27 18:28:18.600  7057  7073 I CoinRenderP23: lifecycle command=4 generation=1\n10-27 18:28:18.600  7057  7073 I CoinRenderP23: lifecycle command=6 generation=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7057\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7057",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3994784\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7057",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:27:41.866  7057  7073 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: render_path=current comparison=1\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_renderer=2\n10-27 18:27:41.868  7057  7073 I CoinRenderP23: requested_samples=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:27:51.303  7057  7073 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:27:51.304  7057  7073 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:27:53.365  7057  7073 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:03.819  7057  7073 I CoinRenderP23: comparison_first path=current render_ms=10454.181 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:28:11.317  7057  7073 I CoinRenderP23: comparison_capture path=current rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n10-27 18:28:18.600  7057  7073 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)\n10-27 18:28:18.600  7057  7073 I CoinRenderP23: lifecycle command=3 generation=1\n10-27 18:28:18.600  7057  7073 I CoinRenderP23: lifecycle command=5 generation=1\n10-27 18:28:18.600  7057  7073 I CoinRenderP23: lifecycle command=4 generation=1\n10-27 18:28:18.600  7057  7073 I CoinRenderP23: lifecycle command=6 generation=1\n10-27 18:28:21.273  7057  7073 I CoinRenderP23: comparison_perf path=current samples=120 median_ms=20.166108 p90_ms=21.020448 serial=132\n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-mem-0",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 762769 Realtime: 762769\n\n** MEMINFO in pid 7057 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  3828675  3828612        0        0  3832496  4028264  3845639   179167\n  Dalvik Heap      543      392        0        0     8512     3743     1872     1871\n Dalvik Other     4825     1072        0        0     9212                           \n        Stack      672      672        0        0      680                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22585     1164    19208        0    60832                           \n    .jar mmap     4542        0     1240        0    46232                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8087     7784        0        0    24236                           \n   Other mmap     1949        4        0        0     4860                           \n        Memfd       10        0        0        0      592                           \n      Unknown      676      664        0        0     2088                           \n        TOTAL  3873136  3840364    20720        0  3995096  4032007  3847511   181038\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8176                          32748\n         Native Heap:  3828612                        3832496\n                Code:    22036                         119760\n               Stack:      672                            680\n            Graphics:        0                              0\n       Private Other:     1588\n              System:    12052\n             Unknown:                                    9412\n \n           TOTAL PSS:  3873136            TOTAL RSS:  3995096      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        6         Parcel count:       24\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-mem-1",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 764015 Realtime: 764015\n\n** MEMINFO in pid 7057 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  3828675  3828612        0        0  3832496  4028264  3845630   179182\n  Dalvik Heap      643      492        0        0     8612     3751     1876     1875\n Dalvik Other     4913     1116        0        0     9344                           \n        Stack      672      672        0        0      680                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22592     1168    19208        0    60976                           \n    .jar mmap     4567        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8130     7788       24        0    24324                           \n   Other mmap     1993        4        0        0     4948                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  3873447  3840520    20744        0  3995832  4032015  3847506   181057\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8304                          32936\n         Native Heap:  3828612                        3832496\n                Code:    22068                         120200\n               Stack:      672                            680\n            Graphics:        0                              0\n       Private Other:     1608\n              System:    12183\n             Unknown:                                    9520\n \n           TOTAL PSS:  3873447            TOTAL RSS:  3995832      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        6         Parcel count:       24\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-mem-2",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 765225 Realtime: 765225\n\n** MEMINFO in pid 7057 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  3828651  3828588        0        0  3832472  4028264  3845630   179181\n  Dalvik Heap      647      496        0        0     8616     3751     1876     1875\n Dalvik Other     4889     1068        0        0     9344                           \n        Stack      672      672        0        0      680                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22592     1168    19208        0    60976                           \n    .jar mmap     4567        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8130     7788       24        0    24324                           \n   Other mmap     2017        4        0        0     4996                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  3873427  3840452    20744        0  3995860  4032015  3847506   181056\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  3828588                        3832472\n                Code:    22020                         120200\n               Stack:      672                            680\n            Graphics:        0                              0\n       Private Other:     1608\n              System:    12231\n             Unknown:                                    9568\n \n           TOTAL PSS:  3873427            TOTAL RSS:  3995860      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        6         Parcel count:       24\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-mem-3",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 766431 Realtime: 766431\n\n** MEMINFO in pid 7057 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  3828651  3828588        0        0  3832472  4028264  3845630   179181\n  Dalvik Heap      647      496        0        0     8616     3751     1876     1875\n Dalvik Other     4889     1068        0        0     9344                           \n        Stack      672      672        0        0      680                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22592     1168    19208        0    60976                           \n    .jar mmap     4567        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8130     7788       24        0    24324                           \n   Other mmap     2017        4        0        0     4996                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  3873427  3840452    20744        0  3995860  4032015  3847506   181056\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  3828588                        3832472\n                Code:    22020                         120200\n               Stack:      672                            680\n            Graphics:        0                              0\n       Private Other:     1608\n              System:    12231\n             Unknown:                                    9568\n \n           TOTAL PSS:  3873427            TOTAL RSS:  3995860      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        6         Parcel count:       24\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-mem-4",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 767649 Realtime: 767649\n\n** MEMINFO in pid 7057 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  3828643  3828580        0        0  3832464  4028264  3845630   179181\n  Dalvik Heap      647      496        0        0     8616     3751     1876     1875\n Dalvik Other     4889     1068        0        0     9344                           \n        Stack      672      672        0        0      680                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22591     1168    19208        0    60976                           \n    .jar mmap     4567        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8130     7788       24        0    24324                           \n   Other mmap     2017        4        0        0     4996                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  3873418  3840444    20744        0  3995852  4032015  3847506   181056\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  3828580                        3832464\n                Code:    22020                         120200\n               Stack:      672                            680\n            Graphics:        0                              0\n       Private Other:     1608\n              System:    12230\n             Unknown:                                    9568\n \n           TOTAL PSS:  3873418            TOTAL RSS:  3995852      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        6         Parcel count:       24\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "3-current-file-rgba",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-current.rgba"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "3-current-file-depth",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-current.depth"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "3-current-file-times",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-current.times"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "3-current-screenshot",
+    "args": [
+      "exec-out",
+      "screencap",
+      "-p"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "3-current-finish",
+    "args": [
+      "shell",
+      "am",
+      "force-stop",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-stop",
+    "args": [
+      "shell",
+      "am",
+      "force-stop",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-launch",
+    "args": [
+      "shell",
+      "am",
+      "start",
+      "-f",
+      "0x10008000",
+      "-n",
+      "org.coin3d.coinrender.retainedmillion/android.app.NativeActivity",
+      "--ei",
+      "coinrender_renderer",
+      "2",
+      "--ei",
+      "coinrender_samples",
+      "1",
+      "--ez",
+      "coinrender_city",
+      "true",
+      "--ez",
+      "coinrender_million_city",
+      "true",
+      "--ez",
+      "coinrender_continuous",
+      "true",
+      "--ez",
+      "coinrender_compare",
+      "true",
+      "--ez",
+      "coinrender_retained",
+      "true"
+    ],
+    "exit": 0,
+    "stdout": "Starting: Intent { flg=0x10008000 cmp=org.coin3d.coinrender.retainedmillion/android.app.NativeActivity (has extras) }\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "394960\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "861896\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "1333636\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "1869016\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2155012\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "2517904\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=1 generation=0\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3087420\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:28:40.642  7312  7329 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "3611776\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:28:40.642  7312  7329 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4897072\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:28:40.642  7312  7329 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4802164\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:28:40.642  7312  7329 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:46.753  7312  7329 I CoinRenderP23: comparison_first path=retained render_ms=6110.918 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:28:47.564  7312  7329 I CoinRenderP23: comparison_capture path=retained rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n10-27 18:28:47.605  7312  7329 I CoinRenderP23: retained_stats captures=1 plans=1 transport_builds=1 retained_frames=2 commands=1000001 resources=2 vertices=324 cameras=1 materials=9\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=3 generation=1\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=5 generation=1\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=4 generation=1\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=6 generation=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4798268\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:28:40.642  7312  7329 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:46.753  7312  7329 I CoinRenderP23: comparison_first path=retained render_ms=6110.918 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:28:47.564  7312  7329 I CoinRenderP23: comparison_capture path=retained rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n10-27 18:28:47.605  7312  7329 I CoinRenderP23: retained_stats captures=1 plans=1 transport_builds=1 retained_frames=2 commands=1000001 resources=2 vertices=324 cameras=1 materials=9\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=3 generation=1\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=5 generation=1\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=4 generation=1\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=6 generation=1\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "7312\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-rss",
+    "args": [
+      "shell",
+      "ps",
+      "-p",
+      "7312",
+      "-o",
+      "RSS="
+    ],
+    "exit": 0,
+    "stdout": "4798440\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-log",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=7312",
+      "-s",
+      "CoinRenderP23:I"
+    ],
+    "exit": 0,
+    "stdout": "--------- beginning of main\n10-27 18:28:29.413  7312  7329 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: render_path=retained comparison=1\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_renderer=2\n10-27 18:28:29.415  7312  7329 I CoinRenderP23: requested_samples=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: scene=city-1000000 buildings=1000000 ground=1 triangles=12000012 continuous=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: legacy_gl_unavailable=1\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=10 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=11 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=0 generation=0\n10-27 18:28:38.691  7312  7329 I CoinRenderP23: lifecycle command=1 generation=0\n10-27 18:28:40.642  7312  7329 I CoinRenderP23: camera_surface generation=1 focal=9260.209\n10-27 18:28:46.753  7312  7329 I CoinRenderP23: comparison_first path=retained render_ms=6110.918 size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855\n10-27 18:28:47.564  7312  7329 I CoinRenderP23: comparison_capture path=retained rgba_fnv64=4dd049b3eb21d973 pixels=2592000\n10-27 18:28:47.605  7312  7329 I CoinRenderP23: retained_stats captures=1 plans=1 transport_builds=1 retained_frames=2 commands=1000001 resources=2 vertices=324 cameras=1 materials=9\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=3 generation=1\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=5 generation=1\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=4 generation=1\n10-27 18:28:47.606  7312  7329 I CoinRenderP23: lifecycle command=6 generation=1\n10-27 18:28:51.231  7312  7329 I CoinRenderP23: comparison_perf path=retained samples=120 median_ms=27.458337 p90_ms=28.575622 serial=132\n10-27 18:28:51.232  7312  7329 I CoinRenderP23: retained_stats captures=1 plans=1 transport_builds=1 retained_frames=132 commands=1000001 resources=2 vertices=324 cameras=1 materials=9\n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-mem-0",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 793724 Realtime: 793724\n\n** MEMINFO in pid 7312 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  4632523  4632460        0        0  4636344  4739928  4734261     2436\n  Dalvik Heap      543      392        0        0     8512     3743     1872     1871\n Dalvik Other     4831     1068        0        0     9228                           \n        Stack      652      652        0        0      660                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22376     1164    18980        0    60692                           \n    .jar mmap     4537        0     1240        0    46232                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8087     7784        0        0    24236                           \n   Other mmap     1947        4        0        0     4856                           \n        Memfd       10        0        0        0      592                           \n      Unknown      676      664        0        0     2088                           \n        TOTAL  4676754  4644188    20492        0  4798796  4743671  4736133     4307\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8176                          32748\n         Native Heap:  4632460                        4636344\n                Code:    21800                         119632\n               Stack:      652                            660\n            Graphics:        0                              0\n       Private Other:     1592\n              System:    12074\n             Unknown:                                    9412\n \n           TOTAL PSS:  4676754            TOTAL RSS:  4798796      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-mem-1",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 794956 Realtime: 794956\n\n** MEMINFO in pid 7312 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  4632535  4632472        0        0  4636356  4739928  4734253     2456\n  Dalvik Heap      643      492        0        0     8612     3751     1876     1875\n Dalvik Other     4909     1096        0        0     9356                           \n        Stack      660      660        0        0      668                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22384     1168    18980        0    60836                           \n    .jar mmap     4562        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8130     7788       24        0    24324                           \n   Other mmap     1997        4        0        0     4956                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  4677082  4644348    20516        0  4799560  4743679  4736129     4331\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8304                          32936\n         Native Heap:  4632472                        4636356\n                Code:    21820                         120072\n               Stack:      660                            668\n            Graphics:        0                              0\n       Private Other:     1608\n              System:    12218\n             Unknown:                                    9528\n \n           TOTAL PSS:  4677082            TOTAL RSS:  4799560      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-mem-2",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 796164 Realtime: 796164\n\n** MEMINFO in pid 7312 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  4632535  4632472        0        0  4636356  4739928  4734253     2456\n  Dalvik Heap      647      496        0        0     8616     3751     1876     1875\n Dalvik Other     4885     1052        0        0     9352                           \n        Stack      660      660        0        0      668                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22383     1168    18980        0    60836                           \n    .jar mmap     4562        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8130     7788       24        0    24324                           \n   Other mmap     2017        4        0        0     4996                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  4677081  4644308    20516        0  4799600  4743679  4736129     4331\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  4632472                        4636356\n                Code:    21780                         120072\n               Stack:      660                            668\n            Graphics:        0                              0\n       Private Other:     1604\n              System:    12257\n             Unknown:                                    9564\n \n           TOTAL PSS:  4677081            TOTAL RSS:  4799600      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-mem-3",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 797375 Realtime: 797375\n\n** MEMINFO in pid 7312 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  4632535  4632472        0        0  4636356  4739928  4734253     2456\n  Dalvik Heap      647      496        0        0     8616     3751     1876     1875\n Dalvik Other     4885     1052        0        0     9352                           \n        Stack      660      660        0        0      668                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22383     1168    18980        0    60836                           \n    .jar mmap     4562        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8130     7788       24        0    24324                           \n   Other mmap     2017        4        0        0     4996                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  4677081  4644308    20516        0  4799600  4743679  4736129     4331\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  4632472                        4636356\n                Code:    21780                         120072\n               Stack:      660                            668\n            Graphics:        0                              0\n       Private Other:     1604\n              System:    12257\n             Unknown:                                    9564\n \n           TOTAL PSS:  4677081            TOTAL RSS:  4799600      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-mem-4",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "Applications Memory Usage (in Kilobytes):\nUptime: 798580 Realtime: 798580\n\n** MEMINFO in pid 7312 [org.coin3d.coinrender.retainedmillion] **\n                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap\n                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free\n                ------   ------   ------   ------   ------   ------   ------   ------\n  Native Heap  4632535  4632472        0        0  4636356  4739928  4734253     2456\n  Dalvik Heap      647      496        0        0     8616     3751     1876     1875\n Dalvik Other     4885     1052        0        0     9352                           \n        Stack      660      660        0        0      668                           \n    Other dev        9        0        8        0      312                           \n     .so mmap    22384     1168    18980        0    60836                           \n    .jar mmap     4562        0     1240        0    46412                           \n    .apk mmap      330        0      200        0     1848                           \n    .ttf mmap      158        0       64        0      508                           \n    .dex mmap       27        0        0        0      864                           \n    .oat mmap       48        0        0        0     1824                           \n    .art mmap     8130     7788       24        0    24324                           \n   Other mmap     2017        4        0        0     4996                           \n        Memfd       10        0        0        0      592                           \n      Unknown      680      668        0        0     2092                           \n        TOTAL  4677082  4644308    20516        0  4799600  4743679  4736129     4331\n \n App Summary\n                       Pss(KB)                        Rss(KB)\n                        ------                         ------\n           Java Heap:     8308                          32940\n         Native Heap:  4632472                        4636356\n                Code:    21780                         120072\n               Stack:      660                            668\n            Graphics:        0                              0\n       Private Other:     1604\n              System:    12258\n             Unknown:                                    9564\n \n           TOTAL PSS:  4677082            TOTAL RSS:  4799600      TOTAL SWAP (KB):        0\n \n Objects\n               Views:       11         ViewRootImpl:        1\n         AppContexts:        5           Activities:        1\n              Assets:       21        AssetManagers:        0\n       Local Binders:       15        Proxy Binders:       53\n       Parcel memory:        5         Parcel count:       22\n    Death Recipients:        0             WebViews:        0\n \n Native Allocations\n                         Count                       Total(kB)\n                        ------                         ------\n    Other (malloced):      335                             30\n Other (nonmalloced):       75                             56\n   Bitmap (malloced):        6                            355\n \n Mapped Bitmaps\n                         Count                       Size(KB)\n                        ------                         ------\n              Mapped:        0                              0\n              Unique:        0                              0\n \n SQL\n         MEMORY_USED:        0\n  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0\n \n \n",
+    "stderr": ""
+  },
+  {
+    "label": "4-retained-file-rgba",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-retained.rgba"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "4-retained-file-depth",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-retained.depth"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "4-retained-file-times",
+    "args": [
+      "exec-out",
+      "run-as",
+      "org.coin3d.coinrender.retainedmillion",
+      "cat",
+      "files/million-retained.times"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "4-retained-screenshot",
+    "args": [
+      "exec-out",
+      "screencap",
+      "-p"
+    ],
+    "exit": 0,
+    "stdout": "<binary>",
+    "stderr": "<binary>"
+  },
+  {
+    "label": "4-retained-finish",
+    "args": [
+      "shell",
+      "am",
+      "force-stop",
+      "org.coin3d.coinrender.retainedmillion"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,11 @@
+From this Coin checkout, build in a configured BGFX build:
+cmake --build /tmp/coin-retained-bgfx --target CoinRenderFreeCADViewportWorker -j 4
+
+Native GUI campaign and separate offscreen replays:
+python3 scripts/coinrender/run_freecad_retained_viewport.py --presentation native --freecad /mnt/Laranja/Git/externos/freecad-build/bin/FreeCAD --worker /tmp/coin-retained-bgfx/bin/CoinRenderFreeCADViewportWorker --environment /tmp/coin-retained-ibl/environments/studio.cibl --assembly /mnt/Laranja/Git/externos/freecad-source/data/examples/AssemblyExample.FCStd --output /tmp/fresh-coin-freecad-native --qt-root /home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt --xvfb
+
+The same runner with --presentation readback qualifies the previous explicit control. Use a fresh output directory. The studio package is preserved in ../coin-render-retained-ibl-20261028/environment-packages.tar.gz.
+
+For interactive use, set COIN_VIEWPORT_SOURCE to this checkout, COIN_VIEWPORT_WORKER to the worker, COIN_VIEWPORT_ENVIRONMENT to studio.cibl and optionally COIN_VIEWPORT_ASSEMBLY to the FCStd. Launch FreeCAD with examples/coinrender/freecad_retained_viewport.FCMacro. Supply a compatible Qt/PySide environment as above; native presentation requires X11/xcb. Escape retires BGFX before restoring the original view.
+
+The native worker directory contains scene/state/metadata only, with no pixel files. Native-presented buffers are OS surface screenshots taken solely by the tests, not renderer readbacks or display images. Both offscreen controls are separate processes after the GUI closes. All 19 native presented colors and 40 control color/depth buffers match exactly.

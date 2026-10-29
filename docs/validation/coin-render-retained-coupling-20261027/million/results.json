@@ -1,0 +1,302 @@
+[
+  {
+    "trial": 1,
+    "mode": "current",
+    "pid": 6345,
+    "camera_and_viewport": "size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855",
+    "first_render_ms": 9441.559,
+    "steady_median_ms": 19.340335000000003,
+    "steady_p90_ms": 20.296818,
+    "sampled_peak_rss_kib": 5070292,
+    "samples": [
+      {
+        "reported_pss_kib": 3873522,
+        "rss_kib": 3775664,
+        "swap_kib": 219600,
+        "native_alloc_kib": 3845638
+      },
+      {
+        "reported_pss_kib": 3874392,
+        "rss_kib": 3777012,
+        "swap_kib": 219384,
+        "native_alloc_kib": 3845629
+      },
+      {
+        "reported_pss_kib": 3874403,
+        "rss_kib": 3777068,
+        "swap_kib": 219376,
+        "native_alloc_kib": 3845631
+      },
+      {
+        "reported_pss_kib": 3874304,
+        "rss_kib": 3777072,
+        "swap_kib": 219372,
+        "native_alloc_kib": 3845631
+      },
+      {
+        "reported_pss_kib": 3874291,
+        "rss_kib": 3777072,
+        "swap_kib": 219372,
+        "native_alloc_kib": 3845631
+      }
+    ],
+    "median_memory": {
+      "reported_pss_kib": 3874304,
+      "rss_kib": 3777068,
+      "swap_kib": 219376,
+      "native_alloc_kib": 3845631
+    },
+    "directory": "/tmp/coin-retained-million-coupling/1-current",
+    "seconds_to_measurement_end": 45.15877447198727
+  },
+  {
+    "trial": 2,
+    "mode": "retained",
+    "pid": 6714,
+    "camera_and_viewport": "size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855",
+    "first_render_ms": 4281.871,
+    "steady_median_ms": 19.591046,
+    "steady_p90_ms": 20.934707,
+    "sampled_peak_rss_kib": 4268616,
+    "samples": [
+      {
+        "reported_pss_kib": 3866075,
+        "rss_kib": 3986648,
+        "swap_kib": 0,
+        "native_alloc_kib": 3831380
+      },
+      {
+        "reported_pss_kib": 3866700,
+        "rss_kib": 3989280,
+        "swap_kib": 0,
+        "native_alloc_kib": 3831360
+      },
+      {
+        "reported_pss_kib": 3866692,
+        "rss_kib": 3989380,
+        "swap_kib": 0,
+        "native_alloc_kib": 3831373
+      },
+      {
+        "reported_pss_kib": 3866692,
+        "rss_kib": 3989380,
+        "swap_kib": 0,
+        "native_alloc_kib": 3831373
+      },
+      {
+        "reported_pss_kib": 3866696,
+        "rss_kib": 3989380,
+        "swap_kib": 0,
+        "native_alloc_kib": 3831372
+      }
+    ],
+    "median_memory": {
+      "reported_pss_kib": 3866692,
+      "rss_kib": 3989380,
+      "swap_kib": 0,
+      "native_alloc_kib": 3831373
+    },
+    "directory": "/tmp/coin-retained-million-coupling/2-retained",
+    "seconds_to_measurement_end": 26.30421182498685
+  },
+  {
+    "trial": 3,
+    "mode": "retained",
+    "pid": 6960,
+    "camera_and_viewport": "size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855",
+    "first_render_ms": 4483.794,
+    "steady_median_ms": 19.743007,
+    "steady_p90_ms": 20.917825,
+    "sampled_peak_rss_kib": 4149928,
+    "samples": [
+      {
+        "reported_pss_kib": 3872251,
+        "rss_kib": 3993244,
+        "swap_kib": 0,
+        "native_alloc_kib": 3831393
+      },
+      {
+        "reported_pss_kib": 3865667,
+        "rss_kib": 3989344,
+        "swap_kib": 0,
+        "native_alloc_kib": 3831408
+      },
+      {
+        "reported_pss_kib": 3865663,
+        "rss_kib": 3989448,
+        "swap_kib": 0,
+        "native_alloc_kib": 3831389
+      },
+      {
+        "reported_pss_kib": 3865663,
+        "rss_kib": 3989448,
+        "swap_kib": 0,
+        "native_alloc_kib": 3831389
+      },
+      {
+        "reported_pss_kib": 3865663,
+        "rss_kib": 3989448,
+        "swap_kib": 0,
+        "native_alloc_kib": 3831388
+      }
+    ],
+    "median_memory": {
+      "reported_pss_kib": 3865663,
+      "rss_kib": 3989448,
+      "swap_kib": 0,
+      "native_alloc_kib": 3831389
+    },
+    "directory": "/tmp/coin-retained-million-coupling/3-retained",
+    "seconds_to_measurement_end": 26.81435081199743
+  },
+  {
+    "trial": 4,
+    "mode": "current",
+    "pid": 7216,
+    "camera_and_viewport": "size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855",
+    "first_render_ms": 9714.631,
+    "steady_median_ms": 19.8288835,
+    "steady_p90_ms": 20.776711,
+    "sampled_peak_rss_kib": 5215584,
+    "samples": [
+      {
+        "reported_pss_kib": 3872657,
+        "rss_kib": 3996144,
+        "swap_kib": 0,
+        "native_alloc_kib": 3845627
+      },
+      {
+        "reported_pss_kib": 3872958,
+        "rss_kib": 3996820,
+        "swap_kib": 0,
+        "native_alloc_kib": 3845620
+      },
+      {
+        "reported_pss_kib": 3872962,
+        "rss_kib": 3996872,
+        "swap_kib": 0,
+        "native_alloc_kib": 3845620
+      },
+      {
+        "reported_pss_kib": 3872962,
+        "rss_kib": 3996872,
+        "swap_kib": 0,
+        "native_alloc_kib": 3845620
+      },
+      {
+        "reported_pss_kib": 3872962,
+        "rss_kib": 3996872,
+        "swap_kib": 0,
+        "native_alloc_kib": 3845622
+      }
+    ],
+    "median_memory": {
+      "reported_pss_kib": 3872962,
+      "rss_kib": 3996872,
+      "swap_kib": 0,
+      "native_alloc_kib": 3845620
+    },
+    "directory": "/tmp/coin-retained-million-coupling/4-current",
+    "seconds_to_measurement_end": 44.81379412498791
+  },
+  {
+    "trial": 5,
+    "mode": "current",
+    "pid": 7484,
+    "camera_and_viewport": "size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855",
+    "first_render_ms": 9846.478,
+    "steady_median_ms": 19.901014,
+    "steady_p90_ms": 21.183114,
+    "sampled_peak_rss_kib": 5288868,
+    "samples": [
+      {
+        "reported_pss_kib": 3874524,
+        "rss_kib": 3994328,
+        "swap_kib": 49,
+        "native_alloc_kib": 3845633
+      },
+      {
+        "reported_pss_kib": 3874935,
+        "rss_kib": 3995172,
+        "swap_kib": 47,
+        "native_alloc_kib": 3845594
+      },
+      {
+        "reported_pss_kib": 3874939,
+        "rss_kib": 3995224,
+        "swap_kib": 47,
+        "native_alloc_kib": 3845624
+      },
+      {
+        "reported_pss_kib": 3874939,
+        "rss_kib": 3995224,
+        "swap_kib": 47,
+        "native_alloc_kib": 3845624
+      },
+      {
+        "reported_pss_kib": 3874939,
+        "rss_kib": 3995224,
+        "swap_kib": 47,
+        "native_alloc_kib": 3845625
+      }
+    ],
+    "median_memory": {
+      "reported_pss_kib": 3874939,
+      "rss_kib": 3995224,
+      "swap_kib": 47,
+      "native_alloc_kib": 3845624
+    },
+    "directory": "/tmp/coin-retained-million-coupling/5-current",
+    "seconds_to_measurement_end": 46.46165964601096
+  },
+  {
+    "trial": 6,
+    "mode": "retained",
+    "pid": 7826,
+    "camera_and_viewport": "size=1080x2400 camera=3950.89062,2773.27783,7908.99463 focal=9260.20898 near=7275.23242 far=11245.1855",
+    "first_render_ms": 4354.441,
+    "steady_median_ms": 19.687738,
+    "steady_p90_ms": 20.734631,
+    "sampled_peak_rss_kib": 4265344,
+    "samples": [
+      {
+        "reported_pss_kib": 3865971,
+        "rss_kib": 3983364,
+        "swap_kib": 58,
+        "native_alloc_kib": 3831400
+      },
+      {
+        "reported_pss_kib": 3866107,
+        "rss_kib": 3986208,
+        "swap_kib": 47,
+        "native_alloc_kib": 3831414
+      },
+      {
+        "reported_pss_kib": 3866103,
+        "rss_kib": 3986308,
+        "swap_kib": 47,
+        "native_alloc_kib": 3831395
+      },
+      {
+        "reported_pss_kib": 3866103,
+        "rss_kib": 3986308,
+        "swap_kib": 47,
+        "native_alloc_kib": 3831395
+      },
+      {
+        "reported_pss_kib": 3866103,
+        "rss_kib": 3986308,
+        "swap_kib": 47,
+        "native_alloc_kib": 3831396
+      }
+    ],
+    "median_memory": {
+      "reported_pss_kib": 3866103,
+      "rss_kib": 3986308,
+      "swap_kib": 47,
+      "native_alloc_kib": 3831396
+    },
+    "directory": "/tmp/coin-retained-million-coupling/6-retained",
+    "seconds_to_measurement_end": 26.857773006981006
+  }
+]

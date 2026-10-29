@@ -37,6 +37,7 @@
 #include <Inventor/lists/SoNodeList.h>
 #include <Inventor/lists/SbList.h>
 #include <Inventor/SbMatrix.h>
+#include <Inventor/SbVec3f.h>
 
 class SoLight;
 
@@ -58,9 +59,12 @@ public:
   static  const SbMatrix & getMatrix(SoState * const state,
                                      const int index);
 
+  static const SbVec3f & getAttenuation(SoState * state, int index);
+
 protected:
   SoNodeList lights;
   SbList <SbMatrix> * matrixlist;
+  SbList<SbVec3f> * attenuationlist;
 
 private:
 

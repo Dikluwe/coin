@@ -7,6 +7,7 @@
 #include <string>
 
 COIN_RENDER_DLL_API bool coin_render_valid_options(const CoinRenderOptions& options, std::string& diagnostic);
+COIN_RENDER_DLL_API bool coin_render_valid_pbr_effects(const CoinRenderPbrEffects &, std::string &);
 
 // Pure selection: hardware facts and implementation/profile evidence are inputs.
 // No probe, scene traversal, environment parsing or GPU commands occur here.

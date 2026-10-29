@@ -51,6 +51,7 @@ public:
   SoSFColor color;
 
   void callback(SoCallbackAction * action) override;
+  void IRRender(SoIRRenderAction * action) override;
 
 protected:
   SoLight(void);

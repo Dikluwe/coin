@@ -28,6 +28,8 @@ CoinRenderSubmitResult
 CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
   const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * outTicket)
 {
+  // Revoke the prior completed-image receipt before any admission can fail.
+  const auto previousPresentation=std::move(this->pbrPresentationIdentity);
   if (!this->initialized || this->status != CoinRenderBackendStatus::SUCCESS || !this->onApiThread()) {
     this->lastError = "BGFX submission requires a prepared backend on its API thread";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::NOT_READY, this->lastError);
@@ -35,6 +37,10 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   if (!CoinRenderCubeTextureCore::validate(frame, this->lastError) ||
       !CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
     return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
+  const bool pbrFrame = this->hasPbr(frame);
+  const auto & effects=target.options.pbrEffects;
+  if(!pbrFrame&&(effects.planarReflection||effects.shadows||effects.ambientOcclusion||effects.background))
+    return {CoinRenderBackendStatus::UNSUPPORTED,"PBR viewport effects require opaque PBR geometry"};
   PortablePreflightRelease releasePreflight{this};
   for(const auto & image:frame.textures)if(image.cubeFaceSize && image.gpuToken) {
     if(!CoinRenderCubeTextureCore::valid(image))return {CoinRenderBackendStatus::UNSUPPORTED,"Invalid GPU cube atlas metadata"};
@@ -57,6 +63,10 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->lastError = "BGFX supports native window presentation or offscreen readback";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
+  if(pbrFrame && !outTicket && this->canReusePbrPresentation(frame,target,previousPresentation))
+    return this->reusePbrPresentation(frame,target);
+  if (pbrFrame && !this->preparePbr(frame,target))
+    return {this->pbrPrepareStatus,this->lastError};
   const auto multipassAdmission = this->preflightMultipass(frame,target.size);
   if (multipassAdmission.status != CoinRenderBackendStatus::SUCCESS) return multipassAdmission;
   if (frame.stereoMode && !this->prepareStereoPrograms())
@@ -239,6 +249,13 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     bgfxSplitSamplerViews(freshPlan);
     plan = &freshPlan;
   }
+  std::vector<CoinBgfxVertexRange> instanceRanges;
+  const bool instancePatchUsed = !cacheHit && !cameraPatchUsed && frame.numPasses == 1 && !portableFrame &&
+    !activeBump && !cachedBump && !hasShadows && cacheDimensionsMatch &&
+    reuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD && reuse.baseRevision != 0 &&
+    reuse.baseRevision == this->cachedRevision && bgfx::isValid(this->cachedVertexBuffer) &&
+    bgfx::isValid(this->cachedIndexBuffer) && bgfx::isValid(this->cachedInstanceBuffer) &&
+    CoinBgfxLowering::instancePatchRanges(this->cachedPlan, freshPlan, instanceRanges);
   std::vector<CoinBgfxVertexRange> materialRanges;
   const bool materialPatchEligible = frame.numPasses == 1 && !portableFrame && !activeBump && !cachedBump && !cacheHit && !cameraPatchUsed &&
     !this->cachedPlan.usesInstancing && !freshPlan.usesInstancing &&
@@ -273,7 +290,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   uint32_t requiredViews = 0;
   if (!bgfxCompositionViewBudget(frame, strategyDraws, selectedStrategy,
         shadowPlan.passes.size(), false, target.size[0], target.size[1],
-        outputViews, this->sampleCount > 1, this->lastError, &requiredViews) || !this->reserveViews(requiredViews))
+        outputViews, this->sampleCount > 1, this->lastError, &requiredViews) ||
+        !this->reserveViews(requiredViews + (pbrFrame ? 1 + int(this->pbrEffects.planarReflection) + int(this->pbrEffects.shadows) + int(this->pbrEffects.ambientOcclusion) : 0)))
     return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   if (frame.numPasses > 1 && !this->prepareMultipassPrograms())
     return {CoinRenderBackendStatus::BACKEND_ERROR,this->lastError};
@@ -367,9 +385,24 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->cachedTextures.size()==plan->textures.size() &&
     std::all_of(this->cachedTextures.begin(),this->cachedTextures.end(),[](bgfx::TextureHandle t){return bgfx::isValid(t);}) &&
     bgfxSameBumpTextures(this->cachedPlan.textures,plan->textures);
-  bool retained = cacheHit || cameraPatchUsed || materialPatchUsed;
+  bool retained = cacheHit || cameraPatchUsed || materialPatchUsed || instancePatchUsed;
   bool geometryBufferReused = retained;
   uint32_t materialPatchVertices = 0;
+  if (instancePatchUsed) {
+    uint64_t uploadedInstances = 0;
+    for (const auto & range : instanceRanges) {
+      uploadedInstances += range.count;
+      bgfx::update(instanceBuffer, range.first, bgfx::copy(freshPlan.instances.data() + range.first,
+        range.count * static_cast<uint32_t>(sizeof(CoinBgfxInstance))));
+    }
+    this->cachedPlan = std::move(freshPlan);
+    this->cachedRevision = frame.revision;
+    plan = &this->cachedPlan;
+    if (tracePhases)
+      std::fprintf(stderr, "COIN_RENDER_PHASE bgfx_instance_patch ranges=%zu instances=%llu uploaded_bytes=%llu reused_mesh=1\n",
+        instanceRanges.size(), static_cast<unsigned long long>(uploadedInstances),
+        static_cast<unsigned long long>(uploadedInstances * sizeof(CoinBgfxInstance)));
+  }
   if (materialPatchUsed) {
     for (const CoinBgfxVertexRange & range : materialRanges) {
       materialPatchVertices += range.count;
@@ -463,7 +496,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     if (texture.gpuToken != 0) hasDirectTextures = true;
   std::vector<bool> textureOwned(plan->textures.size(), false);
   bool textureCacheHit = !hasDirectTextures &&
-    (bumpTextureReuse || cacheHit || cameraPatchUsed || materialPatchUsed) &&
+    (bumpTextureReuse || cacheHit || cameraPatchUsed || materialPatchUsed || instancePatchUsed) &&
     this->cachedTextures.size() == plan->textures.size();
   for (bgfx::TextureHandle texture : this->cachedTextures) {
     if (!bgfx::isValid(texture)) textureCacheHit = false;
@@ -680,10 +713,15 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     }
   }
   bgfx::ViewId opaqueView = this->viewBase + rasterViewOffset + (hasShadows ? static_cast<bgfx::ViewId>(shadowPlan.passes.size()) : 0);
+  if(pbrFrame) {
+    opaqueView=this->encodePbrEffectDepths(opaqueView,cameraPatchUsed?cameraDraws:plan->draws,vb,ib,frame);
+    if(!this->encodePbrReflection(opaqueView,cameraPatchUsed?cameraDraws:plan->draws,vb,ib,textures,frame))
+      return {CoinRenderBackendStatus::UNSUPPORTED,this->lastError};
+  }
   if (this->shadowArrayActive) this->encodeShadowArray(shadowPlan,shadowMaps.buffers,opaqueView++);
   const bgfx::FrameBufferHandle resolvedOutput = bgfx::isValid(this->windowSceneFrameBuffer)
     ? this->windowSceneFrameBuffer : this->frameBuffer;
-  const bgfx::FrameBufferHandle sceneOutput = this->sampleCount > 1 ?
+  const bgfx::FrameBufferHandle sceneOutput = pbrFrame ? this->pbrFrameBuffer : this->sampleCount > 1 ?
     this->msaaFrameBuffer : resolvedOutput;
   if (selectedStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS &&
       !bgfx::isValid(bgfx::getTexture(sceneOutput, 1))) {
@@ -694,7 +732,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   const std::vector<CoinBgfxDraw> & sourceDraws =
     cameraPatchUsed ? cameraDraws : plan->draws;
   std::vector<CoinBgfxDraw> groupedDraws;
-  const bool groupDraws = frame.numPasses == 1 && this->drawGroupingEnabled && !activeBump && !hasShadows && !plan->usesInstancing;
+  const bool groupDraws = !pbrFrame && frame.numPasses == 1 && this->drawGroupingEnabled && !activeBump && !hasShadows && !plan->usesInstancing;
   if (groupDraws)
     CoinBgfxLowering::groupOpaqueDraws(sourceDraws, groupedDraws);
   const std::vector<CoinBgfxDraw> & baseDraws =
@@ -802,6 +840,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     destroyTextures();
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
+  if (pbrFrame) this->encodePbrOutput(nextView++, resolvedOutput);
   if (this->sampleCount > 1)
     this->encodeMsaaResolve(nextView++, resolvedOutput, this->width, this->height, 1.0f);
     if (frame.numPasses > 1) {
@@ -854,24 +893,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
   if (bgfx::isValid(this->windowSceneFrameBuffer)) {
     const bgfx::ViewId presentView = nextView++;
-    bgfx::setViewName(presentView, "window_scene_present");
-    bgfx::setViewMode(presentView, bgfx::ViewMode::Sequential);
-    bgfx::setViewRect(presentView, 0, 0, this->width, this->height);
-    bgfx::setViewFrameBuffer(presentView, this->frameBuffer);
-    bgfx::setViewClear(presentView, BGFX_CLEAR_NONE);
-    bgfx::setViewTransform(presentView, nullptr, nullptr);
-    const float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
-    const float pixelSize[4] = {1.0f / this->width, 1.0f / this->height, 0, 0};
-    bgfx::setTransform(identity);
-    bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
-    bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
-    bgfx::setUniform(this->depthInfoUniform, pixelSize);
-    bgfx::setTexture(0, this->layerSampler,
-      bgfx::getTexture(this->windowSceneFrameBuffer, 0),
-      BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
-      BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
-    bgfx::submit(presentView, this->compositeProgram);
+    this->encodeWindowScenePresent(presentView);
     if (tracePhases)
       std::fprintf(stderr,
         "COIN_RENDER_PHASE bgfx_window_scene_present target=%p generation=%llu serial=%llu size=%dx%d native_fbo=%u scene_fbo=%u scene_color=%u present_program=%u first_view=%u present_view=%u end_view=%u reserved_views=%u planned_views=%u\n",
@@ -903,13 +925,14 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       bgfx::requestScreenShot(this->frameBuffer, requestName.c_str());
     }
     const uint32_t submittedFrame = bgfx::frame();
-    if (target.windowReadbackRequested) {
-      // frame() waits for its predecessor, then releases the submitted scene
-      // to the renderer thread. The renderer performs synchronous native
-      // screenshot readback before signalling that scene's completion. Fence
-      // it with an empty resource frame so cold program/pipeline preparation
-      // and rendering finish inside apply(), before the callback deadline.
+    if (target.windowReadbackRequested || pbrFrame) {
+      // frame() waits for its predecessor, then releases this scene to the
+      // renderer thread. Fence it with an empty resource frame so cold pipeline
+      // preparation/rendering complete inside apply(). An explicitly requested
+      // screenshot also finishes before its callback deadline.
       // FLUSH suppresses presentation of this empty frame; no scene is replayed.
+      // Native PBR hosts also use this completion boundary before acknowledging
+      // camera/interaction packets. It does not request a screenshot/readback.
       bgfx::frame(BGFX_FRAME_FLUSH);
     }
     runtimeStatus = this->checkRuntimeFailure("BGFX frame submission failed");
@@ -982,6 +1005,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     }
     this->lastError.clear();
     rememberBump();
+    if(pbrFrame){++this->pbrShadedFrames;this->rememberPbrPresentation(frame,target);}
     this->sceneDepthInitialized = true;
     COIN_BGFX_TEST_SUBMIT_SUCCEEDED();
     return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", ++this->serial);

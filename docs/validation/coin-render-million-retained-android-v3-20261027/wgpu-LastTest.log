@@ -1,0 +1,90 @@
+Start testing: Oct 27 19:20 -03
+----------------------------------------------------------
+87/1700 Testing: CoinRenderRetainedCityTest
+87/1700 Test: CoinRenderRetainedCityTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderRetainedCityTest"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderRetainedCityTest" start time: Oct 27 19:20 -03
+Output:
+----------------------------------------------------------
+city channels_different=0 maximum=0 depth_different=0
+commands=400 geometry=1 vertices=24 cameras=1
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+<end of output>
+Test time =   0.22 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedCityTest" end time: Oct 27 19:20 -03
+"CoinRenderRetainedCityTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+88/1700 Testing: CoinRenderRetainedIncrementalTest
+88/1700 Test: CoinRenderRetainedIncrementalTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderRetainedIncrementalTest"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderRetainedIncrementalTest" start time: Oct 27 19:20 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.17 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedIncrementalTest" end time: Oct 27 19:20 -03
+"CoinRenderRetainedIncrementalTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+89/1700 Testing: CoinRenderRetainedConnectorTest
+89/1700 Test: CoinRenderRetainedConnectorTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderRetainedConnectorTest"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderRetainedConnectorTest" start time: Oct 27 19:20 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.13 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedConnectorTest" end time: Oct 27 19:20 -03
+"CoinRenderRetainedConnectorTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+90/1700 Testing: CoinRenderRetainedNoBorrowTest
+90/1700 Test: CoinRenderRetainedNoBorrowTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderRetainedConnectorTest"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderRetainedNoBorrowTest" start time: Oct 27 19:20 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.14 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedNoBorrowTest" end time: Oct 27 19:20 -03
+"CoinRenderRetainedNoBorrowTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+91/1700 Testing: CoinRenderRetainedGLReferenceTest
+91/1700 Test: CoinRenderRetainedGLReferenceTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderRetainedConnectorTest" "--gl-reference"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderRetainedGLReferenceTest" start time: Oct 27 19:20 -03
+Output:
+----------------------------------------------------------
+GL reference renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2
+GL reference: compared=3588 differing_channels=0
+<end of output>
+Test time =   0.25 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedGLReferenceTest" end time: Oct 27 19:20 -03
+"CoinRenderRetainedGLReferenceTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 27 19:20 -03

@@ -1,0 +1,36 @@
+Internal ctest changing into directory: /tmp/coin-retained-bgfx
+Test project /tmp/coin-retained-bgfx
+      Start   1: CoinEnvironmentTest
+ 1/15 Test   #1: CoinEnvironmentTest ..................   Passed    0.26 sec
+      Start   2: SoRetainedPBRTest
+ 2/15 Test   #2: SoRetainedPBRTest ....................   Passed    0.01 sec
+      Start  89: CoinRenderIBLBake-studio
+ 3/15 Test  #89: CoinRenderIBLBake-studio .............   Passed    0.99 sec
+      Start  90: CoinRenderRetainedIBL-studio
+ 4/15 Test  #90: CoinRenderRetainedIBL-studio .........   Passed    3.50 sec
+      Start  91: CoinRenderIBLBake-asymmetric
+ 5/15 Test  #91: CoinRenderIBLBake-asymmetric .........   Passed    0.98 sec
+      Start  92: CoinRenderRetainedIBL-asymmetric
+ 6/15 Test  #92: CoinRenderRetainedIBL-asymmetric .....   Passed    3.21 sec
+      Start  93: CoinRenderRetainedSurfacesTest
+ 7/15 Test  #93: CoinRenderRetainedSurfacesTest .......   Passed   10.67 sec
+      Start  94: CoinRenderPbrEffectsTest
+ 8/15 Test  #94: CoinRenderPbrEffectsTest .............   Passed    0.81 sec
+      Start  95: CoinRenderRetainedIBLAdmissionTest
+ 9/15 Test  #95: CoinRenderRetainedIBLAdmissionTest ...   Passed    0.53 sec
+      Start  96: CoinRenderRetainedPBRGalleryTest
+10/15 Test  #96: CoinRenderRetainedPBRGalleryTest .....   Passed    1.79 sec
+      Start  97: CoinRenderRetainedPBRGpuTest
+11/15 Test  #97: CoinRenderRetainedPBRGpuTest .........   Passed   15.37 sec
+      Start 114: CoinRenderRetainedConnectorTest
+12/15 Test #114: CoinRenderRetainedConnectorTest ......   Passed    0.31 sec
+      Start 115: CoinRenderRetainedNoBorrowTest
+13/15 Test #115: CoinRenderRetainedNoBorrowTest .......   Passed    0.29 sec
+      Start 173: CoinBgfxCoreTest
+14/15 Test #173: CoinBgfxCoreTest .....................   Passed    0.50 sec
+      Start 185: CoinBgfxInstancingTest
+15/15 Test #185: CoinBgfxInstancingTest ...............   Passed    0.48 sec
+
+100% tests passed, 0 tests failed out of 15
+
+Total Test time (real) =  39.75 sec

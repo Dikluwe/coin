@@ -1,0 +1,1685 @@
+{
+  "schema_version": 1,
+  "branch": "codex/coinrender-retained-integration",
+  "base_commit": "e8c7003345a481a4d6d16bdec411ecf86f873d09",
+  "upstream": {
+    "repository": "https://github.com/FreeCAD/coin",
+    "revision": "17a9e4b21b643cb44d42e103183d8384eef6a6a5",
+    "branch": "stack/retained-instance-data",
+    "pull_request": "https://github.com/FreeCAD/coin/pull/80"
+  },
+  "scope": "Changed non-documentation files versus the integration base, plus non-ignored new files.",
+  "candidate_readiness": "Candidates are implemented/tested in the local integration, not validated as upstream-ready patches.",
+  "classified_files": 152,
+  "changed_files": 152,
+  "bucket_counts": {
+    "coinrender": 74,
+    "fork_candidate": 21,
+    "fork_candidate_review": 20,
+    "mixed_native": 7,
+    "mixed_registration": 9,
+    "port_compatibility": 21
+  },
+  "native_boundary_files": 48,
+  "unclassified": [],
+  "errors": [],
+  "files": [
+    {
+      "path": "CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "F10",
+        "C8",
+        "C10"
+      ],
+      "reason": "Separate CPU library build from local CoinRender dependency/export and test registration.",
+      "export_policy": "Split CPU module registration from local CoinRender packaging.",
+      "sha256": "030cf6c2542d1bffc45e8b099e66c4bbbce5d181632dad1ed0a8c0ae64509a4f"
+    },
+    {
+      "path": "cmake/patches/freecad-retained-contributions.json",
+      "bucket": "coinrender",
+      "features": [
+        "C8"
+      ],
+      "reason": "Local provenance and contribution audit metadata/tooling.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "e73fe14ad1adc50d229defc7b7b9d229d1d908d493923501b77efc6154f3591e"
+    },
+    {
+      "path": "cmake/patches/freecad-retained-origin.txt",
+      "bucket": "coinrender",
+      "features": [
+        "C8"
+      ],
+      "reason": "Local provenance and contribution audit metadata/tooling.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "881f63ac874e895ebfda6c6cc5f3ca1a4fdb298cf901cbb3947bfbd0000cbc56"
+    },
+    {
+      "path": "examples/coinrender/CMakeLists.txt",
+      "bucket": "coinrender",
+      "features": [
+        "C6",
+        "C9",
+        "C10",
+        "C11"
+      ],
+      "reason": "Real BGFX PBR examples and qualification tools.",
+      "export_policy": "Keep on CoinRender/executor side. No native fork export.",
+      "sha256": "f8235fcc87e788f2fa94c4ea4bd8a1f6dadbc9e419fc0318d8c3d09b7a93af21"
+    },
+    {
+      "path": "examples/coinrender/CoinRenderPbrGalleryScenes.h",
+      "bucket": "coinrender",
+      "features": [
+        "C10",
+        "C6"
+      ],
+      "reason": "IBL target ownership, BGFX execution or target-dependent qualification; not native capture/planning.",
+      "export_policy": "Keep on integration/executor side.",
+      "sha256": "9e1cee435a908fcf1b8683902c37cacbc793aea89864732262f2da665808e7f8"
+    },
+    {
+      "path": "examples/coinrender/coin_render_android_smoke.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "606da435c4d2274fedb59d97d796a3c5acf16cd055f609cc57f497e5780bb522"
+    },
+    {
+      "path": "examples/coinrender/coin_render_ibl_baker.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F10"
+      ],
+      "reason": "Renderer-independent CPU package/baking source, test or example. No scene traversal, planner or GPU types; API and native use case require fork review.",
+      "export_policy": "Review as optional CPU resource module; not a whole integration export.",
+      "sha256": "f33a42b27a47ad60a3c596737048bae9b2830d2af1ea2ab4239a56bb24cfb23d"
+    },
+    {
+      "path": "examples/coinrender/coin_render_retained_ibl_gallery.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C10",
+        "C6"
+      ],
+      "reason": "IBL target ownership, BGFX execution or target-dependent qualification; not native capture/planning.",
+      "export_policy": "Keep on integration/executor side.",
+      "sha256": "9982dd27c1be2ac9ca960becb30a00cea31ffb85cc53354b4ae8b5d3530b8a0a"
+    },
+    {
+      "path": "examples/coinrender/coin_render_retained_pbr_gallery.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6",
+        "C9"
+      ],
+      "reason": "Real BGFX PBR examples and qualification tools.",
+      "export_policy": "Keep on CoinRender/executor side. No native fork export.",
+      "sha256": "38ab4bbd459c923ade7965baf2935dfd5b3b02f8ad25b374164eeb8522783b58"
+    },
+    {
+      "path": "include/CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "C8",
+        "F6",
+        "C7",
+        "C10"
+      ],
+      "reason": "Split native feature registration from importing the fork into this older Coin base.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "e49250fb30aa0f368c60aca3c45686e249be7b80e2d92b08c5b107707f883af7"
+    },
+    {
+      "path": "include/Inventor/CoinEnvironmentExport.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F10"
+      ],
+      "reason": "Renderer-independent CPU package/baking source, test or example. No scene traversal, planner or GPU types; API and native use case require fork review.",
+      "export_policy": "Review as optional CPU resource module; not a whole integration export.",
+      "sha256": "70c77bdaa4719a69350c7601e615d4ae4bf18810ee94bee7c7ef43ee006c4db5"
+    },
+    {
+      "path": "include/Inventor/SoPath.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "175ea18b2abe9e1c68fa22b3aec72271995ecf28cc9127506eb2adda70381dac"
+    },
+    {
+      "path": "include/Inventor/actions/SoIRRenderAction.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F5",
+        "F7"
+      ],
+      "reason": "Capture/updater extensions share files with the imported baseline; rebase individual semantic changes onto the real fork implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "a04e611940fc57834dcfcdabc8b4a7f55a816599478e26fda3d32fed0c1043e3"
+    },
+    {
+      "path": "include/Inventor/elements/SoDevicePixelRatioElement.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "3541db7b13f8744c6775642207539e3102d3537d6cbbd0b28137f732f68369e8"
+    },
+    {
+      "path": "include/Inventor/elements/SoLightElement.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F3"
+      ],
+      "reason": "Per-light source state is independent of the selected GPU executor.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "1ecfa9582baed3d1ab8d34748ca46872c6baba2a0aff5eb8b86b83a82a27a8a3"
+    },
+    {
+      "path": "include/Inventor/elements/SoMultiTextureCoordinateElement.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "8da7e857ab68825debc014b46f87c079b62141a83e73a2d6693c92d57655f946"
+    },
+    {
+      "path": "include/Inventor/elements/SoMultiTextureImageElement.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "b60baa661e3a818ff43cd0d64cbc39d31deaac8ae67497a71f53033fe8a38f1b"
+    },
+    {
+      "path": "include/Inventor/elements/SoRenderMatrixPolicyElement.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "60023c04d70e2958f74498bc8d17c96d1fe674c1354e9ec2192f50f13ff82a67"
+    },
+    {
+      "path": "include/Inventor/environment/CoinEnvironment.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F10"
+      ],
+      "reason": "Renderer-independent CPU package/baking source, test or example. No scene traversal, planner or GPU types; API and native use case require fork review.",
+      "export_policy": "Review as optional CPU resource module; not a whole integration export.",
+      "sha256": "07926b8c0bc9970d019bad786758a13f6a5cab656bad7cece959c2c1bff12b6e"
+    },
+    {
+      "path": "include/Inventor/environment/CoinEnvironmentHalf.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F10"
+      ],
+      "reason": "Renderer-independent CPU package/baking source, test or example. No scene traversal, planner or GPU types; API and native use case require fork review.",
+      "export_policy": "Review as optional CPU resource module; not a whole integration export.",
+      "sha256": "9e997a9fd99fb56a967d725bc277eccf715d19fb220fd240e2707deefed5fa7a"
+    },
+    {
+      "path": "include/Inventor/environment/CoinEnvironmentRadiance.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F10"
+      ],
+      "reason": "Renderer-independent CPU package/baking source, test or example. No scene traversal, planner or GPU types; API and native use case require fork review.",
+      "export_policy": "Review as optional CPU resource module; not a whole integration export.",
+      "sha256": "7f1183752d501c2085cc7b8ea6f17c6bc7ae5ae6036abd0de893eec3f1041830"
+    },
+    {
+      "path": "include/Inventor/nodes/SoCamera.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "824420fa6fda4e79893ade12a00a8e4a9862712db682fac2f110827f410cf9fd"
+    },
+    {
+      "path": "include/Inventor/nodes/SoClipPlane.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "7e246d96b679bf3778d18d0ed7089261c30c08db7565902b1afdefa572267617"
+    },
+    {
+      "path": "include/Inventor/nodes/SoComplexity.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1"
+      ],
+      "reason": "Match the logical state supplied by the existing callback path.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "3ef8cf65f42cd4051d99a24c2a5eb8780de2097c9d9c5bc6d0ce7547c72c7e69"
+    },
+    {
+      "path": "include/Inventor/nodes/SoCube.h",
+      "bucket": "mixed_native",
+      "features": [
+        "F4",
+        "C7"
+      ],
+      "reason": "Port the shared cube resource delta, not the entire older-base shape implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "ef245ee35ad494bf5ca1ae411596ec0014f5b8a6e68d2979508590356ae7350e"
+    },
+    {
+      "path": "include/Inventor/nodes/SoDepthBuffer.h",
+      "bucket": "mixed_native",
+      "features": [
+        "F1",
+        "F6"
+      ],
+      "reason": "Logical depth capture can be reviewed separately from authored-mask provenance.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "9f1391f834e4a426713b31133ac90b21f8a38cf14ed4a5d531ee73062a11c913"
+    },
+    {
+      "path": "include/Inventor/nodes/SoEnvironment.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1"
+      ],
+      "reason": "Match the logical state supplied by the existing callback path.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "4662cdb3b4b2a81bea86e64c85e166cd213b83ea466cad3e0f0bc6bca8a43505"
+    },
+    {
+      "path": "include/Inventor/nodes/SoFaceSet.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "c68c7b927d60fab33e21c0799ecede3b6c6b4e3f95d7885f6aa0ebbf5f7d250b"
+    },
+    {
+      "path": "include/Inventor/nodes/SoLight.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "ad346dcaa51662d9f038117d21dee771f0e793cded244ac85a6021fa8fe7c274"
+    },
+    {
+      "path": "include/Inventor/nodes/SoNode.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "f60f05051b3ff074fd909d0641eb14d4650da78edf7078531c4abdf49fcdee5b"
+    },
+    {
+      "path": "include/Inventor/nodes/SoShape.h",
+      "bucket": "mixed_native",
+      "features": [
+        "F4",
+        "F5",
+        "C7"
+      ],
+      "reason": "Mixes imported primitive collection, object-center fix, path/storage work and existing callback/corner extensions; split by function/hunk.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "3c4367d6b121e3cf833574f604828b4e48fbf072f1bfa39fb51bd44bc1dc2945"
+    },
+    {
+      "path": "include/Inventor/nodes/SoTexture2.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F7"
+      ],
+      "reason": "Source-image semantics need review before exporting the upload-hints implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "da8df9cc1b57173919d8cd89632e99d9c8127fa381a18063cc91e60bef9f8e9e"
+    },
+    {
+      "path": "include/Inventor/rendering/CoinRenderOptions.h",
+      "bucket": "coinrender",
+      "features": [
+        "C9",
+        "C10"
+      ],
+      "reason": "PBR output exposure option, setter and common option validation; target/executor policy, not scene semantics.",
+      "export_policy": "Keep on CoinRender/executor side. No native fork export.",
+      "sha256": "568daaab8916492b921cceded592ebc92ae03aa7c1c419b61963cff470e13bc4"
+    },
+    {
+      "path": "include/Inventor/rendering/CoinRenderRetainedRenderer.h",
+      "bucket": "coinrender",
+      "features": [
+        "C1"
+      ],
+      "reason": "Experimental facade, ownership and target-specific admission belong to CoinRender.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "329564b5cdef390f742c11aa0cda3d43682f273e981f54f866e63761794fb5d2"
+    },
+    {
+      "path": "include/Inventor/rendering/CoinRenderTarget.h",
+      "bucket": "coinrender",
+      "features": [
+        "C9",
+        "C10"
+      ],
+      "reason": "PBR output exposure option, setter and common option validation; target/executor policy, not scene semantics.",
+      "export_policy": "Keep on CoinRender/executor side. No native fork export.",
+      "sha256": "6f982748c2288b8d99065de2950ca076c6573df3f7674772941c99b5c047a430"
+    },
+    {
+      "path": "include/Inventor/rendering/SoPBRMaterial.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F9"
+      ],
+      "reason": "Authored scene node adapted from the PBR branch; native API placement requires upstream review.",
+      "export_policy": "Review semantic delta and native API; no whole-file export.",
+      "sha256": "acbc3d3107be9cce6b9ff5dffe384a0854609d89036a396a4a0820a6a938d614"
+    },
+    {
+      "path": "include/Inventor/rendering/SoPBRMaterialData.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F9"
+      ],
+      "reason": "Logical authored factors without GPU types; texture-unit references do not yet represent retained PBR image resources.",
+      "export_policy": "Review semantic delta and native API; no whole-file export.",
+      "sha256": "c9b063691c29c21f3957ae77c926789ba227f337711828dc76e7a3bbc840d4d2"
+    },
+    {
+      "path": "include/Inventor/rendering/SoRenderIR.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F3",
+        "F5",
+        "F6",
+        "F8",
+        "F9"
+      ],
+      "reason": "Native data and value semantics; separate ordinary capture changes from compact-storage and provenance proposals.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "b0d3aaf2abf13931ed6e846f81c57d818ba60d92ca1e615c7c8ca33db4608f9a"
+    },
+    {
+      "path": "scripts/coinrender/audit_retained_contribution_boundaries.py",
+      "bucket": "coinrender",
+      "features": [
+        "C8"
+      ],
+      "reason": "Local provenance and contribution audit metadata/tooling.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "17ed0299e02c12c8575405a8cc42578e5f960c76846661d86e3384d7d911c3e4"
+    },
+    {
+      "path": "scripts/coinrender/render_retained_ibl_gallery.py",
+      "bucket": "coinrender",
+      "features": [
+        "C10",
+        "C6"
+      ],
+      "reason": "IBL target ownership, BGFX execution or target-dependent qualification; not native capture/planning.",
+      "export_policy": "Keep on integration/executor side.",
+      "sha256": "c0f3400491be24cdc1190728248d038e00cfc3084fbeaccb0f0962a08b0974b9"
+    },
+    {
+      "path": "scripts/coinrender/render_retained_pbr_gallery.py",
+      "bucket": "coinrender",
+      "features": [
+        "C6",
+        "C9"
+      ],
+      "reason": "Real BGFX PBR examples and qualification tools.",
+      "export_policy": "Keep on CoinRender/executor side. No native fork export.",
+      "sha256": "7a5db7fa892878f8f6380cf7209b0325bd4a4bb5c2b08cc4cdc859d584eea6c4"
+    },
+    {
+      "path": "scripts/coinrender/run_retained_ibl_comparison.py",
+      "bucket": "coinrender",
+      "features": [
+        "C10",
+        "C6"
+      ],
+      "reason": "IBL target ownership, BGFX execution or target-dependent qualification; not native capture/planning.",
+      "export_policy": "Keep on integration/executor side.",
+      "sha256": "270a9c28e16850452c1b1e1d3e544b121831dc0f9d96606a2e30f82115e0094f"
+    },
+    {
+      "path": "scripts/coinrender/run_retained_pbr_comparison.py",
+      "bucket": "coinrender",
+      "features": [
+        "C6",
+        "C9"
+      ],
+      "reason": "PBR comparison fixtures and exact serial GPU runner; target-dependent control, not a native fork test.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "3e671dc095b132c222a223a9727f7ca60ca26ce1a469f3a471b7fd733a1ef925"
+    },
+    {
+      "path": "scripts/coinrender/run_retained_pbr_gallery.py",
+      "bucket": "coinrender",
+      "features": [
+        "C6",
+        "C9"
+      ],
+      "reason": "Real BGFX PBR examples and qualification tools.",
+      "export_policy": "Keep on CoinRender/executor side. No native fork export.",
+      "sha256": "6e4be1f1cbb347722625dc110355775478705407ed9bfe825c96fe20b80ecc08"
+    },
+    {
+      "path": "src/actions/CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "C8",
+        "F6",
+        "C7"
+      ],
+      "reason": "Split native feature registration from importing the fork into this older Coin base.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "fcd25974a58124f05c56f802d0874add1f4fb5ae8cefe0e3e35db9ab871b9a69"
+    },
+    {
+      "path": "src/actions/SoIRRenderAction.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F5",
+        "F7",
+        "F9"
+      ],
+      "reason": "Capture/updater extensions share files with the imported baseline; rebase individual semantic changes onto the real fork implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "de36b3938bbd2f316590b4fd140982b97a53a6268a8b55e3da8f77f8165aa8d6"
+    },
+    {
+      "path": "src/elements/CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "C8",
+        "F6",
+        "C7",
+        "F9"
+      ],
+      "reason": "Split native feature registration from importing the fork into this older Coin base.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "07d830f8eda60aea43037f6a30b5daa19b5e6d59b9dc7c586a509053f5dff9a0"
+    },
+    {
+      "path": "src/elements/SoDevicePixelRatioElement.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "a88d2c75b92ca25cedeef852cea35683917102189d47c1638c61e14289ab579e"
+    },
+    {
+      "path": "src/elements/SoLazyElementP.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Local bounded lazy-state snapshot shim. Never overwrite the fuller upstream SoLazyElementP/packed-alpha implementation with this file.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "268f1afd6a39665b2bfcb567a1bd567597880eeeb7b38775d6699bd8443e0986"
+    },
+    {
+      "path": "src/elements/SoLightElement.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F3"
+      ],
+      "reason": "Per-light source state is independent of the selected GPU executor.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "4c250f6fdc3bb97bcc30786b895065cf8dfab7de95d8c67d51fdfee9c25ae808"
+    },
+    {
+      "path": "src/elements/SoMultiTextureCoordinateElement.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "f6becae2cdd2910b14457757753f5f8789dda777e520e3535b460e036b109892"
+    },
+    {
+      "path": "src/elements/SoMultiTextureImageElement.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "8da11d7db0d162d0d24327a65e895581bdfe87c9fe86816fb4ba54b59c577b90"
+    },
+    {
+      "path": "src/elements/SoPBRMaterialElement.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F9"
+      ],
+      "reason": "Native separator stack and legacy/PBR model state.",
+      "export_policy": "Review semantic delta and native API; no whole-file export.",
+      "sha256": "924829040e9627b2a2bc8f0671b8b39ccde7b3d801c7d908b81ee25f89406a1e"
+    },
+    {
+      "path": "src/elements/SoPBRMaterialElement.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F9"
+      ],
+      "reason": "Native material state and immutable shared descriptor.",
+      "export_policy": "Review semantic delta and native API; no whole-file export.",
+      "sha256": "111678d049d3ba94ae4e9dffedd968cbfc577c563cc53357de2e9863826cd661"
+    },
+    {
+      "path": "src/elements/SoRenderDepthPolicyElement.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F6"
+      ],
+      "reason": "Requires a native fork use case; a generic name alone does not justify upstream API/data growth.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "b71dcf65f99314840f667e41fce4b18b688829c06bfcf915e8dc75ec075dc180"
+    },
+    {
+      "path": "src/elements/SoRenderDepthPolicyElement.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F6"
+      ],
+      "reason": "Requires a native fork use case; a generic name alone does not justify upstream API/data growth.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "0ac1b129dadb5dc2058545c014418ce176fd01291546058ae1713647cdfe8ac4"
+    },
+    {
+      "path": "src/elements/SoRenderMatrixPolicyElement.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "0723dc518fbdead9dfd6419926a656167abf73bc1f0dc709ca3d5ef6511e1127"
+    },
+    {
+      "path": "src/elements/SoRenderPlacementElement.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "dfcac1e369bc095eb15de9049cefe337e43b285f2f13514d10d972add45210d1"
+    },
+    {
+      "path": "src/elements/SoRenderPlacementElement.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "b876fa45831850aa0c14b6f4f5bd2a7b282605e6bf3b39f896633d2e2b95fe2c"
+    },
+    {
+      "path": "src/environment/CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "F10",
+        "C8",
+        "C10"
+      ],
+      "reason": "Separate CPU library build from local CoinRender dependency/export and test registration.",
+      "export_policy": "Split CPU module registration from local CoinRender packaging.",
+      "sha256": "590bb69f82d681f1c6ad84448c908cc3c6a79d92f1370cb17faef9ff70a05e4b"
+    },
+    {
+      "path": "src/environment/CoinEnvironment.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F10"
+      ],
+      "reason": "Renderer-independent CPU package/baking source, test or example. No scene traversal, planner or GPU types; API and native use case require fork review.",
+      "export_policy": "Review as optional CPU resource module; not a whole integration export.",
+      "sha256": "d265bab8d89e6b5a57fdfea034b9e32258d5317fd14dec8f61d6553fe6b0d67e"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentExr.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F10"
+      ],
+      "reason": "Renderer-independent CPU package/baking source, test or example. No scene traversal, planner or GPU types; API and native use case require fork review.",
+      "export_policy": "Review as optional CPU resource module; not a whole integration export.",
+      "sha256": "eca8382d2a8bbd1c8028ebeb38d14b162e4a50cc2fb28c37781ce886a5e9e208"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentExrP.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F10"
+      ],
+      "reason": "Renderer-independent CPU package/baking source, test or example. No scene traversal, planner or GPU types; API and native use case require fork review.",
+      "export_policy": "Review as optional CPU resource module; not a whole integration export.",
+      "sha256": "7ea467c708d5e46409c06cfc3fc71f40e4aa108c6343a334b67ca10a990211b7"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentRadiance.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F10"
+      ],
+      "reason": "Renderer-independent CPU package/baking source, test or example. No scene traversal, planner or GPU types; API and native use case require fork review.",
+      "export_policy": "Review as optional CPU resource module; not a whole integration export.",
+      "sha256": "7edbcdb22229039f3e9122eabed9c8d7ba66f29cbb85525d2005d1788de5f5d8"
+    },
+    {
+      "path": "src/misc/SoBase.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "1f163327de0c8717680db57324c438092c8fb82b6d10cceff2e4114c827a550a"
+    },
+    {
+      "path": "src/misc/SoDB.cpp",
+      "bucket": "mixed_registration",
+      "features": [
+        "C8",
+        "F6",
+        "C7"
+      ],
+      "reason": "Split native feature registration from importing the fork into this older Coin base.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "f4698f379818ab71332cbdeee5120b73d901376684efcd0fb01b05e3666593e2"
+    },
+    {
+      "path": "src/nodes/CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "F9"
+      ],
+      "reason": "Native PBR node build registration.",
+      "export_policy": "Review semantic delta and native API; no whole-file export.",
+      "sha256": "2899e8b7a954db07d8cc518e922fffe4f430b96f2888773f6ce9f61d2ecf695d"
+    },
+    {
+      "path": "src/nodes/SoCamera.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "e6e213e96526a6a26e71134aaf5c003e1c1ba141cacd63811b3887dc89de97c7"
+    },
+    {
+      "path": "src/nodes/SoClipPlane.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "3882a4049cfcea4952da21a593600381b9ce1271ff0f02822c4759d0f61213f4"
+    },
+    {
+      "path": "src/nodes/SoComplexity.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1"
+      ],
+      "reason": "Match the logical state supplied by the existing callback path.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "e8730cb641b08cfccf31597d9318f2df5f308e8989296f80c2774b4cf8bf8b42"
+    },
+    {
+      "path": "src/nodes/SoDepthBuffer.cpp",
+      "bucket": "mixed_native",
+      "features": [
+        "F1",
+        "F6"
+      ],
+      "reason": "Logical depth capture can be reviewed separately from authored-mask provenance.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "a433bf44abf9ff5343d31c67d48de2545cc64abdde31bf2ed64911d49185788f"
+    },
+    {
+      "path": "src/nodes/SoEnvironment.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1"
+      ],
+      "reason": "Match the logical state supplied by the existing callback path.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "64dbd3d26a278423357ee3823a317956f7ca6ef43f56ea0090c1e1f8bb5c9309"
+    },
+    {
+      "path": "src/nodes/SoLight.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "6d9bf8d3df49d2d747ecdcf9b1e2bcf444e31b9fb1a16d1a5092b1a22797163d"
+    },
+    {
+      "path": "src/nodes/SoMaterial.cpp",
+      "bucket": "mixed_native",
+      "features": [
+        "F9"
+      ],
+      "reason": "Effective legacy fields restore the legacy model; preserve existing material implementation.",
+      "export_policy": "Review semantic delta and native API; no whole-file export.",
+      "sha256": "0993bfb20d43bbf4da8394dc03c02e8a9cb9f020f405f9cf6ed85437a4cdd736"
+    },
+    {
+      "path": "src/nodes/SoNode.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7",
+        "F9"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "0685537699846f16927d371f6c0a9c250488fa3e6d69a4e0cecec8253fea5764"
+    },
+    {
+      "path": "src/nodes/SoPBRMaterial.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F9"
+      ],
+      "reason": "Native capture and callback node semantics adapted from the PBR branch.",
+      "export_policy": "Review semantic delta and native API; no whole-file export.",
+      "sha256": "b7b6d6b1a87825fcca000c2a38b5ac89b5d2ca344f0e7d14eb19c404b6fa78f7"
+    },
+    {
+      "path": "src/nodes/SoTexture2.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F7"
+      ],
+      "reason": "Source-image semantics need review before exporting the upload-hints implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "453c4957a152a01f1a7a90ae867be603355a5b123d0174be372c0dcf159b0f92"
+    },
+    {
+      "path": "src/rendering/CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "C8",
+        "F6",
+        "C7"
+      ],
+      "reason": "Split native feature registration from importing the fork into this older Coin base.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "668d56a4c0d2dfcc0633ebad248356d8a2d4c415821236ea2aeecd47d25a751f"
+    },
+    {
+      "path": "src/rendering/SoInlineVector.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "194858a919b9e1a99594cb748cdcf0ec55ca988adaef36387c4e185a4d696003"
+    },
+    {
+      "path": "src/rendering/SoRenderBackend.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "a3f15128aead9df3f24920ff598f5390f98a3c8159ea741ebc9e26246c8d6a4c"
+    },
+    {
+      "path": "src/rendering/SoRenderBackend.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "1869d8a5ae994f8486d067ed949827328660c5c122dfeabce734aa8cd775166b"
+    },
+    {
+      "path": "src/rendering/SoRenderIR.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F3",
+        "F5",
+        "F6",
+        "F8",
+        "F9"
+      ],
+      "reason": "Native data and value semantics; separate ordinary capture changes from compact-storage and provenance proposals.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "79e6bd486dd543a4a20dd0075465ec2faf30f8853cd5a8d2be85d71f32261b5d"
+    },
+    {
+      "path": "src/rendering/SoRenderIRP.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F3",
+        "F5",
+        "F6",
+        "F8"
+      ],
+      "reason": "Native data and value semantics; separate ordinary capture changes from compact-storage and provenance proposals.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "508bd5c267b1110cd3443eec0b25978198d5405554449b9f8fa3945b00c3c3c2"
+    },
+    {
+      "path": "src/rendering/SoRenderPlan.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F4",
+        "F5",
+        "F9"
+      ],
+      "reason": "Native order policies are portable; snapshot access changes also belong to the compact-storage proposal.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "73577fdd7700cbe578e00ed9873f9be5548a536e9a818bbe3c29512c4a6f96f6"
+    },
+    {
+      "path": "src/rendering/SoRenderPlan.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F4",
+        "F5"
+      ],
+      "reason": "Native order policies are portable; snapshot access changes also belong to the compact-storage proposal.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "0e4a437aeb77bd844d3b2565d5d5d2e728d3b36a7e5f9db924ce9c635a1c44c2"
+    },
+    {
+      "path": "src/rendering/SoRetainedUpdater.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F2"
+      ],
+      "reason": "Projection qualification, dependency safety and conservative update rules; preserve the upstream notification authority.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "1134535fd74462ebecfe2c738fc2e266c89adf53eb7c355e5a6c842fadc88ac4"
+    },
+    {
+      "path": "src/rendering/SoRetainedUpdater.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F2"
+      ],
+      "reason": "Projection qualification, dependency safety and conservative update rules; preserve the upstream notification authority.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "cccf4c17ade2c8021cef068729ff994ea484e2d2497dfef6cae434053e414372"
+    },
+    {
+      "path": "src/rendering/SoTextureQualityPolicy.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "61cf41850158158fed7bab238b43fe76297979b96d67d2a998a65292ca53e3f0"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxBackend.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "6c0b30175d958e3446aedfd5e811b0254458f11590132f0bac3895eab6f91c3c"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxBackend.h",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9",
+        "C10"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "c023f852874d224b51475c92ba8b03facbd809ca17dfcec3acd3ab61bb035b9b"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxDraw.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "e71ec81d30fdef499430b3ee56597802758b6aa67cd90049c689d67e2fd7bd63"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxLowering.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9",
+        "C10"
+      ],
+      "reason": "BGFX-specific execution and controls.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "2001d7fd69a9f803eb8d546ec041a6b862fe8ea47730d3795d9d2ce47de37134"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxLowering.h",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9",
+        "C10"
+      ],
+      "reason": "BGFX-specific execution and controls.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "ddcbfff4ac2e01478fdcd6bc42ee06be76a93ac29e5838373b22766b23dd5b86"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxPbr.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9",
+        "C10",
+        "C12"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "e936d487bc10497282e29b09eb3fe0cea5b0dc9cb3eb7ffbe05e65827cab0038"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxPbrEnvironment.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C10"
+      ],
+      "reason": "IBL target ownership, BGFX execution or target-dependent qualification; not native capture/planning.",
+      "export_policy": "Keep on integration/executor side.",
+      "sha256": "1f4da532ac8b1aa5e66339948376df99ac8c99ae8d83437d5b5d48f3929e76a3"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxPrograms.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "c92fa70db06a35e5db5f6aece294f51ce2e64d8e977f53c24a892fc85d55bd64"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxSubmit.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9",
+        "C12"
+      ],
+      "reason": "BGFX-specific execution and controls.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "41983397b307ebaaaf3884b7ca32a635847e51dfe8acd9ea92f1132d5871f4fc"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_brdf.sh",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "22bbf0c339baf1b8490d9583d0e2e2321e2258f15fd5dfd42d86d2b6fc5e1b1f"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_environment.sh",
+      "bucket": "coinrender",
+      "features": [
+        "C10"
+      ],
+      "reason": "IBL target ownership, BGFX execution or target-dependent qualification; not native capture/planning.",
+      "export_policy": "Keep on integration/executor side.",
+      "sha256": "043f35526d4e955b1f8e4a9e45646076f4ac857feaea3e901f55b69304374a3b"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_ibl.sh",
+      "bucket": "coinrender",
+      "features": [
+        "C10"
+      ],
+      "reason": "IBL target ownership, BGFX execution or target-dependent qualification; not native capture/planning.",
+      "export_policy": "Keep on integration/executor side.",
+      "sha256": "27db4cf16f3101159386f44a93cb5abe8ffb194950a26f492e0cee987ce342c0"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_output.sh",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "1017c318e3c2c4baee25f5db8f161d1817e4fad6732f7708ac4067a3086cfad3"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_rough_planar.sh",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "d086b21ab7e46dcd6227d800dbb4ed8ee21f6ebc1cee34e3b024080dbb4d4cdb"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr.sc",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "3731385a9fcddda814531763768452ee6d5c0a2886da2dac71bd4bdb4d0fd93a"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_output.sc",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "350169a561c687dfb8a2dba4df76351f2ad390132efe058dad0857e3742fb005"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/pbr-varying.def.sc",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "68c617cd9111e79dbf701b6564ba4b9fb55541e3a8f9be370f2a28cd236e51ca"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/vs_pbr.sc",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "acdfc18605c15cd77da5725164e9c533e28af82ad685ec45dfaafc63a1d1ecba"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/vs_pbr_output.sc",
+      "bucket": "coinrender",
+      "features": [
+        "C4",
+        "C9"
+      ],
+      "reason": "BGFX PBR shader/resource/execution slice; device resources and passes remain in the executor.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "ce350ae9d104e8335d136f8b57ebdbc8dd318e77fa87d3eb1b9f31058f59b7d7"
+    },
+    {
+      "path": "src/rendering/coinrender/CMakeLists.txt",
+      "bucket": "coinrender",
+      "features": [
+        "C1",
+        "C2",
+        "C8",
+        "C9",
+        "C10"
+      ],
+      "reason": "CoinRender target source registration and linkage.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "62b403a1adce19c8a3a2ea83f622c76119b6c16bad4c104d390efaf7279a864e"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderComposition.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C3"
+      ],
+      "reason": "CoinRender frame identity, resolved composition and publication contracts.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "9cf479a5b51411974f0f029037d6e069201fc754b4825ad9592042a40bf671b0"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderComposition.h",
+      "bucket": "coinrender",
+      "features": [
+        "C3"
+      ],
+      "reason": "CoinRender frame identity, resolved composition and publication contracts.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "cd5d8aa0e5bec7eab5348364ef07e93d5a41169e78f936dc3a12b9a3cd1a258d"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C9"
+      ],
+      "reason": "CoinRender material transport, value conversion, capture control or unsupported-executor admission; no native planning authority.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "1cceea733ce2911d3cfa6c8a6602a34adaf14579ed33f9ff8ebbd3971fe06e99"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderDepthPolicyElement.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C7",
+        "F6"
+      ],
+      "reason": "Compatibility alias/stub for the shared native element; fork review concerns the native implementation, not this alias.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "8af1875d1773c0334c5cec615462dd6d1dcb09f26de4308989cb6d0989dd04d3"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderDepthPolicyElement.h",
+      "bucket": "coinrender",
+      "features": [
+        "C7",
+        "F6"
+      ],
+      "reason": "Compatibility alias/stub for the shared native element; fork review concerns the native implementation, not this alias.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "d0b5fc2baa07136ab3d168b8a4df4743f140132421f93d13394fa4d8be7af9ad"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderFramePlan.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C9"
+      ],
+      "reason": "CoinRender material transport, value conversion, capture control or unsupported-executor admission; no native planning authority.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "e93c2144eeeedfbf4c8ae5171724cba02c8e63937964dcb8c8772557c1c951c0"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderFramePlan.h",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C9"
+      ],
+      "reason": "CoinRender material transport, value conversion, capture control or unsupported-executor admission; no native planning authority.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "7d9848c8590b8428d893fcea01defb8d92ff0ab40e88467a8d3423209689b1c8"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C9"
+      ],
+      "reason": "CoinRender material transport, value conversion, capture control or unsupported-executor admission; no native planning authority.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "d384c13891fbbefbe9df2fad2425c921c3fb101ff0c376ff42b6823e6b5554e8"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderFrameReuseCore.h",
+      "bucket": "coinrender",
+      "features": [
+        "C3"
+      ],
+      "reason": "CoinRender frame identity, resolved composition and publication contracts.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "1a8aca77b42423ad9ba2cde22779434a43c2d2db1bf60f1d1a225a67685730e1"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderPbrMaterial.h",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C9"
+      ],
+      "reason": "CoinRender material transport, value conversion, capture control or unsupported-executor admission; no native planning authority.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "39c0d0299d2c7bbbb51c1ee252897376a77d47809154e9f263cd05bb509b3b0a"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderPbrMaterialCapture.h",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C9"
+      ],
+      "reason": "CoinRender material transport, value conversion, capture control or unsupported-executor admission; no native planning authority.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "d37d4185e979887aa6ecddb5215e5641dbda6f6679d7b8b4cecdb092f02dd6f7"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderRecordingBackend.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C9"
+      ],
+      "reason": "CoinRender material transport, value conversion, capture control or unsupported-executor admission; no native planning authority.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "c23fc66a764c2bd2423f4a5631b10b06ccd7e197bc476a59217ea1e40c6264a1"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderRetainedRenderer.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C1"
+      ],
+      "reason": "Experimental facade, ownership and target-specific admission belong to CoinRender.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "a76b847eae8fc12969b28f1fa51ce90b069a3cdfba4b134a56b5da5fcf53c75b"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderRetainedTransport.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C3",
+        "C9"
+      ],
+      "reason": "Mechanical conversion and reuse of CoinRender-owned transport; not the native capture schema.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "b6b0debda40192fa557130ed76da8056ccc8c96f17c6d934eb698fa877b58187"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderRetainedTransport.h",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C3"
+      ],
+      "reason": "Mechanical conversion and reuse of CoinRender-owned transport; not the native capture schema.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "1e6868867312c019b67f20a12784774ed9024d9e90a70d278c7147eac9856bbf"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderSceneChanges.h",
+      "bucket": "coinrender",
+      "features": [
+        "C1"
+      ],
+      "reason": "Experimental facade, ownership and target-specific admission belong to CoinRender.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "c4a5a678a8d768277debd597ae4b2f5e2bcb8f39fe2cdbd428cdad48bc54cd69"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderSelectionCore.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C9",
+        "C10"
+      ],
+      "reason": "PBR output exposure option, setter and common option validation; target/executor policy, not scene semantics.",
+      "export_policy": "Keep on CoinRender/executor side. No native fork export.",
+      "sha256": "ddd860e0dd4af0674be76875139ddc67af85cdb0f0ec54f73391e6c524f7c732"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderTarget.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C3",
+        "C10"
+      ],
+      "reason": "CoinRender frame identity, resolved composition and publication contracts.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "edd5b435bf78a9137ed9e36fb9703eb31e8ea79f3a05d0534872564951f58d08"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderTargetP.h",
+      "bucket": "coinrender",
+      "features": [
+        "C10"
+      ],
+      "reason": "IBL target ownership, BGFX execution or target-dependent qualification; not native capture/planning.",
+      "export_policy": "Keep on integration/executor side.",
+      "sha256": "b32ac98438dd103e535ef84bfe8601bdc1637940e77ec0a2b5ae52cac0d5f074"
+    },
+    {
+      "path": "src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C5",
+        "C9"
+      ],
+      "reason": "wgpu-specific transport packing.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "ae1ef79518911659ec40fa22155058e28383c7f5cc86d968fb25f10d8fdc04cf"
+    },
+    {
+      "path": "src/shapenodes/SoCube.cpp",
+      "bucket": "mixed_native",
+      "features": [
+        "F4",
+        "C7"
+      ],
+      "reason": "Port the shared cube resource delta, not the entire older-base shape implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "6b95daa0c119ff46e0ddc37a38b5198dbe8eb398d56f4dac50a6241627fc3b6d"
+    },
+    {
+      "path": "src/shapenodes/SoFaceSet.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "2a7774b911557d558c346c87c53e46b2e4a22bb825fe51bd9e15c471e33c97f6"
+    },
+    {
+      "path": "src/shapenodes/SoShape.cpp",
+      "bucket": "mixed_native",
+      "features": [
+        "F4",
+        "F5",
+        "C7"
+      ],
+      "reason": "Mixes imported primitive collection, object-center fix, path/storage work and existing callback/corner extensions; split by function/hunk.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "2b44efed847c65a7a739b5ea28bcdfe2c5a82be42581e8647332838ffbb06df5"
+    },
+    {
+      "path": "testsuite/CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "F9",
+        "C10"
+      ],
+      "reason": "Native PBR test links Coin only, independently of CoinRender.",
+      "export_policy": "Review semantic delta and native API; no whole-file export.",
+      "sha256": "f48e79fc92c3de130c69cfa0b86726dd6636ec4a24994580085d81c1e5831b02"
+    },
+    {
+      "path": "testsuite/coinbgfx/CoinBgfxCoreTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4"
+      ],
+      "reason": "BGFX-specific execution and controls.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "1ac497fb800bd548bbf7935a82535360190de284f8fd8a9e32b8be917a0b800e"
+    },
+    {
+      "path": "testsuite/coinbgfx/CoinBgfxInstancingTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4"
+      ],
+      "reason": "BGFX-specific execution and controls.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "f33e34b43bb22bae7fea5b60dbbe36a44e4b6a32ac7350fad076b3c6f7328119"
+    },
+    {
+      "path": "testsuite/coinenvironment/CoinEnvironmentTest.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F10"
+      ],
+      "reason": "Renderer-independent CPU package/baking source, test or example. No scene traversal, planner or GPU types; API and native use case require fork review.",
+      "export_policy": "Review as optional CPU resource module; not a whole integration export.",
+      "sha256": "6a4cab483acc472401a93f60e4a0f7e8cb69d46fab9faba5b9e20aa6a8706b5f"
+    },
+    {
+      "path": "testsuite/coinrender/CMakeLists.txt",
+      "bucket": "coinrender",
+      "features": [
+        "C6",
+        "C9",
+        "C10",
+        "C11"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "6e81b5c5a00e4133eceb72dbbad39c24865bd478a29aaaf69ef2cdbfdd3ba360"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedBenchmark.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "f367cd72b479c40c95d339adddd738563b68b666c4ec3ab3d7c6973b11c13581"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedCityTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "6f4478c840ae33b61b6c77c10123c280b8986cfe5000ec6298eb8551aab7d2e2"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedConnectorTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "b52698a7be31270614ee6af14a94a2b7541e34286bd3fe0da9e82ff8b12c4f83"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedFeaturesTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "6a2cd0e12814dabb9051e8df1f9da4338b57bb639df8f328feb96f356462c485"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedIBLAdmissionTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C10",
+        "C6"
+      ],
+      "reason": "IBL target ownership, BGFX execution or target-dependent qualification; not native capture/planning.",
+      "export_policy": "Keep on integration/executor side.",
+      "sha256": "311187338462cee209af0fa92bf9ba309f631dd75372bf884f033bf8b3f8aa05"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedIncrementalTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "184b4ef63219992a60519dbad82c05c058c0a29b205499cf2358c62a62a2c802"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedPBRBoundaryTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C6"
+      ],
+      "reason": "Local unsupported-executor admission and prior-publication preservation control.",
+      "export_policy": "Keep local CoinRender executor admission control.",
+      "sha256": "861797977f4c27f2e3f757efbcfc7d8afce0391491ebcc144a41d876c5a57640"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedPBRCompare.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6",
+        "C9"
+      ],
+      "reason": "PBR comparison fixtures and exact serial GPU runner; target-dependent control, not a native fork test.",
+      "export_policy": "Keep on CoinRender/executor side; not a FreeCAD/coin native export.",
+      "sha256": "7603f6c2ded2643de29877e0778245ee0523be46bd7eb26284a3c85f351d4df2"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedTestRenderer.h",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "c5eef0d84ca8d5c1912efa0c446b6bf601af5011c5b2088543933107bbe4a88a"
+    },
+    {
+      "path": "testsuite/rendering/SoRetainedPBRTest.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F9"
+      ],
+      "reason": "Native capture/planner regression scenarios; requires port into fork test infrastructure.",
+      "export_policy": "Review semantic delta and native API; no whole-file export.",
+      "sha256": "9667d848c443ea597b4228d1a6f80e56cad41e23899f3e9838d8178c0301114c"
+    },
+    {
+      "path": "examples/coinrender/coin_render_freecad_viewport.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C11",
+        "C10",
+        "C9",
+        "C12"
+      ],
+      "reason": "FreeCAD application ingress, executor/Qt presentation or interaction qualification; no native fork ownership.",
+      "export_policy": "Keep on integration/executor side; no native FreeCAD/coin export.",
+      "sha256": "7a3aedc9eb2b616ca514cff7edba09cb8610962ac9d12f53b11dccc7aab976c3"
+    },
+    {
+      "path": "examples/coinrender/freecad_retained_viewport.py",
+      "bucket": "coinrender",
+      "features": [
+        "C11",
+        "C10",
+        "C9",
+        "C12"
+      ],
+      "reason": "FreeCAD application ingress, executor/Qt presentation or interaction qualification; no native fork ownership.",
+      "export_policy": "Keep on integration/executor side; no native FreeCAD/coin export.",
+      "sha256": "b77b016a252f75c9372d15b4284bcc93c212bb701d86796a1ef5bf6a4fe8d56f"
+    },
+    {
+      "path": "examples/coinrender/freecad_retained_viewport.FCMacro",
+      "bucket": "coinrender",
+      "features": [
+        "C11",
+        "C10",
+        "C9",
+        "C12"
+      ],
+      "reason": "FreeCAD application ingress, executor/Qt presentation or interaction qualification; no native fork ownership.",
+      "export_policy": "Keep on integration/executor side; no native FreeCAD/coin export.",
+      "sha256": "f8f58718e49c6691534c789692e5ec293279a1ca2af67e35df90fc90132ab019"
+    },
+    {
+      "path": "scripts/coinrender/run_freecad_retained_viewport.py",
+      "bucket": "coinrender",
+      "features": [
+        "C11",
+        "C10",
+        "C9",
+        "C12"
+      ],
+      "reason": "FreeCAD application ingress, executor/Qt presentation or interaction qualification; no native fork ownership.",
+      "export_policy": "Keep on integration/executor side; no native FreeCAD/coin export.",
+      "sha256": "9e872149482549b075d1edbe2aca54a4562eb3dc94162987078bfffe0631060c"
+    },
+    {
+      "path": "testsuite/coinrender/freecad_retained_viewport.FCMacro",
+      "bucket": "coinrender",
+      "features": [
+        "C11",
+        "C10",
+        "C9",
+        "C12"
+      ],
+      "reason": "FreeCAD application ingress, executor/Qt presentation or interaction qualification; no native fork ownership.",
+      "export_policy": "Keep on integration/executor side; no native FreeCAD/coin export.",
+      "sha256": "8f3aa6230c7d5c4031b379478e1b557e0184d9ab3e66f5ae6f80486c6f1ef997"
+    },
+    {
+      "path": "include/Inventor/rendering/CoinRenderNativeSurface.h",
+      "bucket": "coinrender",
+      "features": [
+        "C12"
+      ],
+      "reason": "Native host-surface lifetime contract; presentation/executor integration, not logical native scene capture.",
+      "export_policy": "Keep on CoinRender application/executor side.",
+      "sha256": "35a01ee022bc37ee12d5e085f615212312c1cbba4c7fae4413368b8534941f7a"
+    }
+  ]
+}

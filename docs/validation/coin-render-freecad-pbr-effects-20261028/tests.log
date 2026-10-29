@@ -1,0 +1,30 @@
+Internal ctest changing into directory: /tmp/coin-retained-bgfx
+Test project /tmp/coin-retained-bgfx
+      Start   1: CoinEnvironmentTest
+ 1/12 Test   #1: CoinEnvironmentTest ..................   Passed    0.15 sec
+      Start   2: SoRetainedPBRTest
+ 2/12 Test   #2: SoRetainedPBRTest ....................   Passed    0.01 sec
+      Start  89: CoinRenderIBLBake-studio
+ 3/12 Test  #89: CoinRenderIBLBake-studio .............   Passed    0.96 sec
+      Start  90: CoinRenderRetainedIBL-studio
+ 4/12 Test  #90: CoinRenderRetainedIBL-studio .........   Passed    6.28 sec
+      Start  91: CoinRenderIBLBake-asymmetric
+ 5/12 Test  #91: CoinRenderIBLBake-asymmetric .........   Passed    0.98 sec
+      Start  92: CoinRenderRetainedIBL-asymmetric
+ 6/12 Test  #92: CoinRenderRetainedIBL-asymmetric .....   Passed    6.53 sec
+      Start  93: CoinRenderPbrEffectsTest
+ 7/12 Test  #93: CoinRenderPbrEffectsTest .............   Passed    2.12 sec
+      Start  94: CoinRenderRetainedIBLAdmissionTest
+ 8/12 Test  #94: CoinRenderRetainedIBLAdmissionTest ...   Passed    1.13 sec
+      Start  95: CoinRenderRetainedPBRGalleryTest
+ 9/12 Test  #95: CoinRenderRetainedPBRGalleryTest .....   Passed    3.21 sec
+      Start 113: CoinRenderRetainedConnectorTest
+10/12 Test #113: CoinRenderRetainedConnectorTest ......   Passed    0.37 sec
+      Start 172: CoinBgfxCoreTest
+11/12 Test #172: CoinBgfxCoreTest .....................   Passed    0.51 sec
+      Start 184: CoinBgfxInstancingTest
+12/12 Test #184: CoinBgfxInstancingTest ...............   Passed   16.44 sec
+
+100% tests passed, 0 tests failed out of 12
+
+Total Test time (real) =  38.74 sec

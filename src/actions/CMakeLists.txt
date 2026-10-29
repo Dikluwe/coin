@@ -1,6 +1,7 @@
 # source files
 set(COIN_ACTIONS_FILES
 	SoAction.cpp
+	SoIRRenderAction.cpp
 	SoActionP.cpp
 	SoBoxHighlightRenderAction.cpp
 	SoCallbackAction.cpp

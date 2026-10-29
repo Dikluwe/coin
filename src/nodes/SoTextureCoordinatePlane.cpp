@@ -305,3 +305,6 @@ SoTextureCoordinatePlane::setupGencache(void)
 }
 
 #undef PRIVATE
+
+#include <Inventor/actions/SoIRRenderAction.h>
+void SoTextureCoordinatePlane::IRRender(SoIRRenderAction * action) { doAction(action); }

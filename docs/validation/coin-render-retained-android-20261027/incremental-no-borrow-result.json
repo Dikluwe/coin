@@ -1,0 +1,16 @@
+{
+  "args": [
+    "/home/dikluwe/Android/Sdk/platform-tools/adb",
+    "-s",
+    "emulator-5580",
+    "shell",
+    "env",
+    "LD_LIBRARY_PATH=/data/local/tmp/coin-retained-20261027",
+    "COIN_RETAINED_TEST_RENDERER=opengl",
+    "COIN_RENDER_DISABLE_COMPOSITION_BORROW=1",
+    "/data/local/tmp/coin-retained-20261027/CoinRenderRetainedIncrementalTest"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": "retained_test_renderer requested=2 observed=2 gpu_available=1 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Rust/wgpu adapter probe succeeded\n"
+}

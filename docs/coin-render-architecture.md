@@ -1,5 +1,10 @@
 # CoinRender architecture and ownership
 
+This integration branch also provides an opt-in
+[FreeCAD retained capture connector](coin-render-retained-integration.md).
+It has a bounded profile and adds core virtual methods requiring a full rebuild;
+it does not replace the broader CoinRenderAction path described below.
+
 CoinRender extends Coin rendering beyond CoinGL. `CoinRenderAction` captures scene
 semantics once into a common plan. Each executor consumes that contract rather
 than independently interpreting Coin nodes. Scene semantics, the chosen visual

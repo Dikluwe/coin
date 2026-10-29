@@ -137,6 +137,15 @@ public:
                                         const SbVec2i32& framebufferSize,
                                         const CoinRenderOptions& options);
   const CoinRenderOptions& getOptions(void) const;
+  // Applies to the next render. Invalid parameters preserve the last options
+  // and publication; no capture or planning is performed by this setter.
+  SbBool setPbrEffects(const CoinRenderPbrEffects & effects);
+  /** Change only PBR output exposure. Invalid values preserve the configuration
+   * and last publication. The next successful render applies the value. */
+  SbBool setPbrExposureStops(float stops);
+  /** Change global IBL rotation/intensity for the next render. No capture,
+   * planning or environment upload is required. Invalid values preserve state. */
+  SbBool setPbrEnvironmentParameters(float rotationRadians, float intensity);
 
   ~CoinRenderTarget(void);
   CoinRenderTarget(const CoinRenderTarget&) = delete;

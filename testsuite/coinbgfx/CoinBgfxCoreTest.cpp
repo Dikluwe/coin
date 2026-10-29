@@ -448,6 +448,50 @@ bool instancedOpaque(const CoinRenderFramePlan & base)
                 uploadedCoplanar, uploadedCameraDraws, diagnostic, &uploadedCameraInstances) &&
               sameBytes(uploadedCameraInstances, freshlyMovedCoplanar.instances),
               "LEQUAL camera patch must rebuild released GPU instance payload exactly");
+  // BASE_COLOR uses the existing shader's per-instance PHONG flag, without
+  // inventing lighting. General lowering remains an independent value oracle.
+  CoinRenderFramePlan unlit = frame;
+  for (auto & state : unlit.renderStates) state.lightModel = CoinRenderLightModel::BASE_COLOR;
+  CoinBgfxPlan unlitPlan, unlitGeneral;
+  ok &= check(CoinBgfxLowering::lowerInstanced(unlit, 4, 4, false, unlitPlan, diagnostic) &&
+              CoinBgfxLowering::lower(unlit, 4, 4, false, unlitGeneral, diagnostic) &&
+              unlitPlan.instances.size() == 300 && unlitPlan.draws.size() == 1,
+              "BASE_COLOR must use ordered instancing");
+  for (size_t i = 0; i < unlitPlan.instances.size(); ++i) {
+    const auto & instance = unlitPlan.instances[i];
+    const auto & generalVertex = unlitGeneral.vertices[unlitGeneral.indices[i * 6]];
+    ok &= check(instance.data[4][3] == 0.0f &&
+                std::memcmp(instance.data[6], generalVertex.color, sizeof(generalVertex.color)) == 0,
+                "unlit instance color must equal the general unlit value");
+  }
+  ok &= instancedCamera(unlit, unlitPlan);
+  std::vector<CoinBgfxVertexRange> instancePatches;
+  CoinBgfxPlan modified = unlitPlan;
+  modified.instances[1].data[6][0] += 0.1f;
+  modified.instances[2].data[0][3] += 0.2f;
+  modified.instances[5].data[6][1] += 0.1f;
+  ok &= check(CoinBgfxLowering::instancePatchRanges(unlitPlan, modified, instancePatches) &&
+              instancePatches.size() == 2 && instancePatches[0].first == 1 && instancePatches[0].count == 2 &&
+              instancePatches[1].first == 5 && instancePatches[1].count == 1,
+              "only contiguous changed material/model instance records are uploaded");
+  auto simulatedGpu = unlitPlan.instances;
+  for (const auto & range : instancePatches)
+    std::copy_n(modified.instances.begin() + range.first, range.count, simulatedGpu.begin() + range.first);
+  ok &= check(sameBytes(simulatedGpu, modified.instances), "instance subrange updates reproduce a full upload");
+  ok &= check(CoinBgfxLowering::instancePatchRanges(unlitPlan, unlitPlan, instancePatches) && instancePatches.empty(),
+              "identical instances need no uploads");
+  auto changedMesh = modified; changedMesh.instancedVertices[0].position[0] += 0.1f;
+  ok &= check(!CoinBgfxLowering::instancePatchRanges(unlitPlan, changedMesh, instancePatches) && instancePatches.empty(),
+              "mesh edits cannot borrow instance-only upload proof");
+  changedMesh = modified; changedMesh.indices[0] = changedMesh.indices[1];
+  ok &= check(!CoinBgfxLowering::instancePatchRanges(unlitPlan, changedMesh, instancePatches),
+              "index edits invalidate instance-only buffer reuse");
+  changedMesh = modified; changedMesh.instances.pop_back();
+  ok &= check(!CoinBgfxLowering::instancePatchRanges(unlitPlan, changedMesh, instancePatches),
+              "instance membership changes require full admission");
+  changedMesh = unlitPlan; changedMesh.instancedVertices.clear();
+  ok &= check(!CoinBgfxLowering::instancePatchRanges(changedMesh, modified, instancePatches),
+              "released CPU mesh cannot prove GPU contents");
   frame.vertices[5].position[0] += 0.25f;
   ok &= check(CoinBgfxLowering::lowerInstanced(frame, 4, 4, false, instanced, diagnostic) &&
               instanced.instancedVertices.size() == 8 && instanced.draws.size() == 300,
@@ -930,7 +974,7 @@ int main()
   frame.bumpTangents.push_back(bumpTangent);
   const CoinBgfxPlan beforeUnlitBump = plan;
   ok &= check(!CoinBgfxLowering::lower(frame, 4, 4, false, plan, diagnostic) &&
-              diagnostic == "Consumed bump requires PHONG and the qualified point/directional lighting profile" &&
+              diagnostic == "Consumed bump requires PHONG, one to eight legacy lights, and directional-only shadows" &&
               sameBytes(plan.draws, beforeUnlitBump.draws) &&
               sameBytes(plan.vertices, beforeUnlitBump.vertices) &&
               sameBytes(plan.indices, beforeUnlitBump.indices),

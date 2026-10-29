@@ -53,6 +53,7 @@ public:
   SoSFVec2f scaleFactor;
   SoSFVec2f center;
 
+  void IRRender(SoIRRenderAction * action) override;
   void doAction(SoAction * action) override;
   void callback(SoCallbackAction * action) override;
   void GLRender(SoGLRenderAction * action) override;

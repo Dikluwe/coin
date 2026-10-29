@@ -1,0 +1,201 @@
+Start testing: Oct 27 22:58 -03
+----------------------------------------------------------
+87/704 Testing: CoinRenderRetainedFeaturesTest
+87/704 Test: CoinRenderRetainedFeaturesTest
+Command: "/tmp/coin-retained-recording/bin/CoinRenderRetainedFeaturesTest"
+Directory: /tmp/coin-retained-recording/testsuite/coinrender
+"CoinRenderRetainedFeaturesTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+fixture=sphere
+fixture=cone
+fixture=cylinder
+fixture=indexed faces
+fixture=triangle strip
+fixture=indexed triangle strip
+fixture=quad mesh
+fixture=lines
+fixture=indexed lines
+fixture=points
+fixture=directional sphere
+fixture=point light
+fixture=spot light
+fixture=environment attenuation
+fixture=polygon offset
+fixture=switch
+fixture=explicit normals
+fixture=per-face materials
+fixture=fog 1
+fixture=fog 2
+fixture=fog 3
+fixture=attenuation captured at light
+fixture=texture 1 model 8448
+fixture=texture 1 model 7681
+fixture=texture 1 model 3042
+fixture=texture 2 model 8448
+fixture=texture 2 model 7681
+fixture=texture 2 model 3042
+fixture=texture 3 model 8448
+fixture=texture 3 model 7681
+fixture=texture 3 model 8449
+fixture=texture 3 model 3042
+fixture=texture 4 model 8448
+fixture=texture 4 model 7681
+fixture=texture 4 model 8449
+fixture=texture 4 model 3042
+fixture=texture quality/matrix 0.000000
+fixture=texture quality/matrix 0.100000
+fixture=texture quality/matrix 0.300000
+fixture=texture quality/matrix 0.600000
+fixture=texture quality/matrix 0.820000
+fixture=texture quality/matrix 0.950000
+fixture=sorted material transparency
+fixture=blend
+fixture=add
+fixture=textured alpha test
+fixture=small nonzero transparency
+fixture=wide lines
+fixture=wide points
+fixture=world clipping plane
+fixture=explicit indexed texture coordinates
+fixture=per-vertex materials
+fixture=vertex property geometry
+fixture=high intensity light
+fixture=high intensity ambient
+fixture=spot half sphere cutoff
+fixture=camera far fog 1
+fixture=camera far fog 2
+fixture=camera far fog 3
+fixture=translated light scope
+fixture=translated clipping scope
+fixture=translated camera scope
+fixture=per-face object transparency
+fixture=implicit depth with coplanar geometry
+<end of output>
+Test time =   0.18 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedFeaturesTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedFeaturesTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+88/704 Testing: CoinRenderRetainedCityTest
+88/704 Test: CoinRenderRetainedCityTest
+Command: "/tmp/coin-retained-recording/bin/CoinRenderRetainedCityTest"
+Directory: /tmp/coin-retained-recording/testsuite/coinrender
+"CoinRenderRetainedCityTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+city channels_different=0 maximum=0 depth_different=0
+commands=400 geometry=1 vertices=24 cameras=1
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+<end of output>
+Test time =   0.19 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedCityTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedCityTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+89/704 Testing: CoinRenderRetainedIncrementalTest
+89/704 Test: CoinRenderRetainedIncrementalTest
+Command: "/tmp/coin-retained-recording/bin/CoinRenderRetainedIncrementalTest"
+Directory: /tmp/coin-retained-recording/testsuite/coinrender
+"CoinRenderRetainedIncrementalTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedIncrementalTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedIncrementalTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+90/704 Testing: CoinRenderRetainedConnectorTest
+90/704 Test: CoinRenderRetainedConnectorTest
+Command: "/tmp/coin-retained-recording/bin/CoinRenderRetainedConnectorTest"
+Directory: /tmp/coin-retained-recording/testsuite/coinrender
+"CoinRenderRetainedConnectorTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedConnectorTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedConnectorTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+91/704 Testing: CoinRenderRetainedNoBorrowTest
+91/704 Test: CoinRenderRetainedNoBorrowTest
+Command: "/tmp/coin-retained-recording/bin/CoinRenderRetainedConnectorTest"
+Directory: /tmp/coin-retained-recording/testsuite/coinrender
+"CoinRenderRetainedNoBorrowTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedNoBorrowTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedNoBorrowTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+92/704 Testing: CoinRenderRetainedGLReferenceTest
+92/704 Test: CoinRenderRetainedGLReferenceTest
+Command: "/tmp/coin-retained-recording/bin/CoinRenderRetainedConnectorTest" "--gl-reference"
+Directory: /tmp/coin-retained-recording/testsuite/coinrender
+"CoinRenderRetainedGLReferenceTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+GL reference renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2
+GL reference: compared=3588 differing_channels=0
+<end of output>
+Test time =   0.16 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedGLReferenceTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedGLReferenceTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+122/704 Testing: CoinRenderDepthContractTest
+122/704 Test: CoinRenderDepthContractTest
+Command: "/tmp/coin-retained-recording/bin/CoinRenderDepthContractTest"
+Directory: /tmp/coin-retained-recording/testsuite/coinrender
+"CoinRenderDepthContractTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+color_write_depth_only PASS gpu=0
+color_write_channels PASS gpu=0
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDepthContractTest" end time: Oct 27 22:58 -03
+"CoinRenderDepthContractTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+187/704 Testing: CoinRenderCompositionTest
+187/704 Test: CoinRenderCompositionTest
+Command: "/tmp/coin-retained-recording/bin/CoinRenderCompositionTest"
+Directory: /tmp/coin-retained-recording/testsuite/coinrender
+"CoinRenderCompositionTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+CoinRenderCompositionTest passed
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderCompositionTest" end time: Oct 27 22:58 -03
+"CoinRenderCompositionTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 27 22:58 -03

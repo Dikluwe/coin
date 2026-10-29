@@ -114,6 +114,7 @@ public:
   float getBalanceAdjustment(void) const;
 
   void doAction(SoAction * action) override;
+  void IRRender(SoIRRenderAction * action) override;
   void callback(SoCallbackAction * action) override;
   void GLRender(SoGLRenderAction * action) override;
   void audioRender(SoAudioRenderAction *action) override;

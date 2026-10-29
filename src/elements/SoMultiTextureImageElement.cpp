@@ -69,6 +69,14 @@ SO_ELEMENT_CUSTOM_CONSTRUCTOR_SOURCE(SoMultiTextureImageElement);
 
 #define PRIVATE(obj) obj->pimpl
 
+SbUniqueId
+SoMultiTextureImageElement::getNodeId(SoState * const state, const int unit)
+{
+  const auto * elem = static_cast<const SoMultiTextureImageElement *>(getConstElement(state, classStackIndex));
+  PRIVATE(elem)->ensureCapacity(unit);
+  return PRIVATE(elem)->unitdata[unit].nodeid;
+}
+
 SoMultiTextureImageElement::SoMultiTextureImageElement(void)
 {
   PRIVATE(this) = new SoMultiTextureImageElementP;

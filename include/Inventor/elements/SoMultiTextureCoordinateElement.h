@@ -161,6 +161,8 @@ public:
   }
 
 
+public:
+  static SbUniqueId getNodeId(SoState * state, int unit);
 protected:
   int getMaxUnits() const;
   UnitData & getUnitData(const int unit);

@@ -1,0 +1,1257 @@
+{
+  "schema_version": 1,
+  "branch": "codex/coinrender-retained-integration",
+  "base_commit": "e8c7003345a481a4d6d16bdec411ecf86f873d09",
+  "upstream": {
+    "repository": "https://github.com/FreeCAD/coin",
+    "revision": "17a9e4b21b643cb44d42e103183d8384eef6a6a5",
+    "branch": "stack/retained-instance-data",
+    "pull_request": "https://github.com/FreeCAD/coin/pull/80"
+  },
+  "scope": "Changed non-documentation files versus the integration base, plus non-ignored new files.",
+  "candidate_readiness": "Candidates are implemented/tested in the local integration, not validated as upstream-ready patches.",
+  "classified_files": 86,
+  "changed_files": 86,
+  "bucket_counts": {
+    "coinrender": 29,
+    "fork_candidate": 21,
+    "fork_candidate_review": 4,
+    "mixed_native": 6,
+    "mixed_registration": 5,
+    "port_compatibility": 21
+  },
+  "native_boundary_files": 31,
+  "unclassified": [],
+  "errors": [],
+  "files": [
+    {
+      "path": "cmake/patches/freecad-retained-contributions.json",
+      "bucket": "coinrender",
+      "features": [
+        "C8"
+      ],
+      "reason": "Local provenance and contribution audit metadata/tooling.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "72a74bbe15ef6d1836684745a49f6e480c9943f8de899cf747aed6f03cca8d10",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "cmake/patches/freecad-retained-origin.txt",
+      "bucket": "coinrender",
+      "features": [
+        "C8"
+      ],
+      "reason": "Local provenance and contribution audit metadata/tooling.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "1d6332ee533b21083cff27c9ed5a3832683a96f654240dac9aff4ffe0cdad267",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "examples/coinrender/coin_render_android_smoke.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "606da435c4d2274fedb59d97d796a3c5acf16cd055f609cc57f497e5780bb522",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "include/CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "C8",
+        "F6",
+        "C7"
+      ],
+      "reason": "Split native feature registration from importing the fork into this older Coin base.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "0ef5ecd66bb5beddd3bdb84ae05ee98c133040554dc2a8f1f2763016a963d722",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "a00ac349caf1f5590216a969aba623c559e03cae73e65aa48c5a56de06560385"
+      }
+    },
+    {
+      "path": "include/Inventor/SoPath.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "175ea18b2abe9e1c68fa22b3aec72271995ecf28cc9127506eb2adda70381dac",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "cd2fa6f1af456a7cc9817b4576534d470e8b617def9c132a2b3acc5572c87a09"
+      }
+    },
+    {
+      "path": "include/Inventor/actions/SoIRRenderAction.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F5",
+        "F7"
+      ],
+      "reason": "Capture/updater extensions share files with the imported baseline; rebase individual semantic changes onto the real fork implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "a04e611940fc57834dcfcdabc8b4a7f55a816599478e26fda3d32fed0c1043e3",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "c5081886d45f1b40d9c1f4a272c1da901c8bd8eeb7bef55d603edb9b1015cca8"
+      }
+    },
+    {
+      "path": "include/Inventor/elements/SoDevicePixelRatioElement.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "3541db7b13f8744c6775642207539e3102d3537d6cbbd0b28137f732f68369e8",
+      "upstream": {
+        "relation": "same_bytes",
+        "sha256": "3541db7b13f8744c6775642207539e3102d3537d6cbbd0b28137f732f68369e8"
+      }
+    },
+    {
+      "path": "include/Inventor/elements/SoLightElement.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F3"
+      ],
+      "reason": "Per-light source state is independent of the selected GPU executor.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "1ecfa9582baed3d1ab8d34748ca46872c6baba2a0aff5eb8b86b83a82a27a8a3",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "1a628b17db2154c2e4a88ae96b9c3c6e91ad04a58ccb78fc73c4d109d6ea919a"
+      }
+    },
+    {
+      "path": "include/Inventor/elements/SoMultiTextureCoordinateElement.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "8da7e857ab68825debc014b46f87c079b62141a83e73a2d6693c92d57655f946",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "79016067b59dad10bbae9edf8e48dd7c70b31e1bb74f9ef52262ac2803f970b9"
+      }
+    },
+    {
+      "path": "include/Inventor/elements/SoMultiTextureImageElement.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "b60baa661e3a818ff43cd0d64cbc39d31deaac8ae67497a71f53033fe8a38f1b",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "3de823879a1e0df6c75c01619b41bd0ad2c79755429da53719d7e1ac05a068c2"
+      }
+    },
+    {
+      "path": "include/Inventor/elements/SoRenderMatrixPolicyElement.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "60023c04d70e2958f74498bc8d17c96d1fe674c1354e9ec2192f50f13ff82a67",
+      "upstream": {
+        "relation": "same_bytes",
+        "sha256": "60023c04d70e2958f74498bc8d17c96d1fe674c1354e9ec2192f50f13ff82a67"
+      }
+    },
+    {
+      "path": "include/Inventor/nodes/SoCamera.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "824420fa6fda4e79893ade12a00a8e4a9862712db682fac2f110827f410cf9fd",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "2e34ef74277b6153f448dc4083506136b454267abb57698757b52043b7aea6ca"
+      }
+    },
+    {
+      "path": "include/Inventor/nodes/SoClipPlane.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "7e246d96b679bf3778d18d0ed7089261c30c08db7565902b1afdefa572267617",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "eb510e83c665fdf38502d85b2ebcb6d863cca136b9c365e3b1e42d67e2285cf8"
+      }
+    },
+    {
+      "path": "include/Inventor/nodes/SoComplexity.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1"
+      ],
+      "reason": "Match the logical state supplied by the existing callback path.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "3ef8cf65f42cd4051d99a24c2a5eb8780de2097c9d9c5bc6d0ce7547c72c7e69",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "1dc0fee6a4a688d429c7d7c1382d20086f2cedf515970c84f35d07b8708b5eeb"
+      }
+    },
+    {
+      "path": "include/Inventor/nodes/SoCube.h",
+      "bucket": "mixed_native",
+      "features": [
+        "F4",
+        "C7"
+      ],
+      "reason": "Port the shared cube resource delta, not the entire older-base shape implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "ef245ee35ad494bf5ca1ae411596ec0014f5b8a6e68d2979508590356ae7350e",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "6393cb4d19c1838301392d469eccc733d4b36169ec764815c8e7b8524618fb7d"
+      }
+    },
+    {
+      "path": "include/Inventor/nodes/SoDepthBuffer.h",
+      "bucket": "mixed_native",
+      "features": [
+        "F1",
+        "F6"
+      ],
+      "reason": "Logical depth capture can be reviewed separately from authored-mask provenance.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "9f1391f834e4a426713b31133ac90b21f8a38cf14ed4a5d531ee73062a11c913",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "4f82a4663390d35a7c21273e1d4bd9d05f27e06606eac8f2c3567da828f1da9b"
+      }
+    },
+    {
+      "path": "include/Inventor/nodes/SoEnvironment.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1"
+      ],
+      "reason": "Match the logical state supplied by the existing callback path.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "4662cdb3b4b2a81bea86e64c85e166cd213b83ea466cad3e0f0bc6bca8a43505",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "b45de5557afa83652b09bb309e201e61694260ca882464665babf8b9b5588e14"
+      }
+    },
+    {
+      "path": "include/Inventor/nodes/SoFaceSet.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "c68c7b927d60fab33e21c0799ecede3b6c6b4e3f95d7885f6aa0ebbf5f7d250b",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "904dde83326f6e441c25e9fc918633bb5add036ea36a334105e64344d166d3f2"
+      }
+    },
+    {
+      "path": "include/Inventor/nodes/SoLight.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "ad346dcaa51662d9f038117d21dee771f0e793cded244ac85a6021fa8fe7c274",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "ae211b6b95b7bff4e72447337ffc93a79236177264b0c1f167d3da8fea841eb6"
+      }
+    },
+    {
+      "path": "include/Inventor/nodes/SoNode.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "f60f05051b3ff074fd909d0641eb14d4650da78edf7078531c4abdf49fcdee5b",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "da0185e32cd37a04b481443eb1d1f98f43c786d3c25cb793c95e019bc3da7051"
+      }
+    },
+    {
+      "path": "include/Inventor/nodes/SoShape.h",
+      "bucket": "mixed_native",
+      "features": [
+        "F4",
+        "F5",
+        "C7"
+      ],
+      "reason": "Mixes imported primitive collection, object-center fix, path/storage work and existing callback/corner extensions; split by function/hunk.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "3c4367d6b121e3cf833574f604828b4e48fbf072f1bfa39fb51bd44bc1dc2945",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "11e8119499d4d2a59e5a6628e9790fb8a29b0d8438f9a1d674adc84f41446d2c"
+      }
+    },
+    {
+      "path": "include/Inventor/nodes/SoTexture2.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F7"
+      ],
+      "reason": "Source-image semantics need review before exporting the upload-hints implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "da8df9cc1b57173919d8cd89632e99d9c8127fa381a18063cc91e60bef9f8e9e",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "aa8eecd3e26f4dbf6fe5310f949a11f4fc47297560acb2cc52cd7cf4faef0358"
+      }
+    },
+    {
+      "path": "include/Inventor/rendering/CoinRenderRetainedRenderer.h",
+      "bucket": "coinrender",
+      "features": [
+        "C1"
+      ],
+      "reason": "Experimental facade, ownership and target-specific admission belong to CoinRender.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "329564b5cdef390f742c11aa0cda3d43682f273e981f54f866e63761794fb5d2",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "include/Inventor/rendering/SoRenderIR.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F3",
+        "F5",
+        "F6",
+        "F8"
+      ],
+      "reason": "Native data and value semantics; separate ordinary capture changes from compact-storage and provenance proposals.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "0d94ab5bce70466c8cf102f80468c0c16ad4c4b511b30588e48c4e2dd64631da",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "328f74172e3afdeba7ce3c5f4b36beaf945a1cd99e7376b94124505cff53d868"
+      }
+    },
+    {
+      "path": "scripts/coinrender/audit_retained_contribution_boundaries.py",
+      "bucket": "coinrender",
+      "features": [
+        "C8"
+      ],
+      "reason": "Local provenance and contribution audit metadata/tooling.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "17ed0299e02c12c8575405a8cc42578e5f960c76846661d86e3384d7d911c3e4",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/actions/CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "C8",
+        "F6",
+        "C7"
+      ],
+      "reason": "Split native feature registration from importing the fork into this older Coin base.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "fcd25974a58124f05c56f802d0874add1f4fb5ae8cefe0e3e35db9ab871b9a69",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "265d780e76b56f2b9c58b020b255cc25d81d75467c59fc5c7d9eb9540edc67d4"
+      }
+    },
+    {
+      "path": "src/actions/SoIRRenderAction.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F5",
+        "F7"
+      ],
+      "reason": "Capture/updater extensions share files with the imported baseline; rebase individual semantic changes onto the real fork implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "e8f4a9ea7e4b566b3845572b0764c5c1a6f5eeda6160884bbd50fca725bce77b",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "144624425397c6ca7e62f8c072a1c26552818b04e322a9584e98908cfd2fa3b3"
+      }
+    },
+    {
+      "path": "src/elements/CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "C8",
+        "F6",
+        "C7"
+      ],
+      "reason": "Split native feature registration from importing the fork into this older Coin base.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "b6ba7089321b9bdcf13eaacff10ae0e6800e5669e53af0f194dfe06c87fd4358",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "e796014340c012c90eaa50d434b5454a91324adfeeda7c568642f7eb82480ce1"
+      }
+    },
+    {
+      "path": "src/elements/SoDevicePixelRatioElement.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "a88d2c75b92ca25cedeef852cea35683917102189d47c1638c61e14289ab579e",
+      "upstream": {
+        "relation": "same_bytes",
+        "sha256": "a88d2c75b92ca25cedeef852cea35683917102189d47c1638c61e14289ab579e"
+      }
+    },
+    {
+      "path": "src/elements/SoLazyElementP.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Local bounded lazy-state snapshot shim. Never overwrite the fuller upstream SoLazyElementP/packed-alpha implementation with this file.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "268f1afd6a39665b2bfcb567a1bd567597880eeeb7b38775d6699bd8443e0986",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "d836c11e2ab6bf375bb5a53823e99bd15843a3db4b43e7fdb3a0178149fca0d1"
+      }
+    },
+    {
+      "path": "src/elements/SoLightElement.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F3"
+      ],
+      "reason": "Per-light source state is independent of the selected GPU executor.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "4c250f6fdc3bb97bcc30786b895065cf8dfab7de95d8c67d51fdfee9c25ae808",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "a59600507658ef9e9886b15b7106cc4e31a53c11756006cb1e0489e6ec2c3452"
+      }
+    },
+    {
+      "path": "src/elements/SoMultiTextureCoordinateElement.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "f6becae2cdd2910b14457757753f5f8789dda777e520e3535b460e036b109892",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "834f63baf1ce2efcb95b2c59f12190b53e69aa6272b2bddcd1f10a4783e1e218"
+      }
+    },
+    {
+      "path": "src/elements/SoMultiTextureImageElement.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "8da11d7db0d162d0d24327a65e895581bdfe87c9fe86816fb4ba54b59c577b90",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "6a3fc626a64340fb81ff7bda8720b042769b7589fdb3f935945d1d4035d14113"
+      }
+    },
+    {
+      "path": "src/elements/SoRenderDepthPolicyElement.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F6"
+      ],
+      "reason": "Requires a native fork use case; a generic name alone does not justify upstream API/data growth.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "b71dcf65f99314840f667e41fce4b18b688829c06bfcf915e8dc75ec075dc180",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/elements/SoRenderDepthPolicyElement.h",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F6"
+      ],
+      "reason": "Requires a native fork use case; a generic name alone does not justify upstream API/data growth.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "0ac1b129dadb5dc2058545c014418ce176fd01291546058ae1713647cdfe8ac4",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/elements/SoRenderMatrixPolicyElement.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "0723dc518fbdead9dfd6419926a656167abf73bc1f0dc709ca3d5ef6511e1127",
+      "upstream": {
+        "relation": "same_bytes",
+        "sha256": "0723dc518fbdead9dfd6419926a656167abf73bc1f0dc709ca3d5ef6511e1127"
+      }
+    },
+    {
+      "path": "src/elements/SoRenderPlacementElement.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "dfcac1e369bc095eb15de9049cefe337e43b285f2f13514d10d972add45210d1",
+      "upstream": {
+        "relation": "same_bytes",
+        "sha256": "dfcac1e369bc095eb15de9049cefe337e43b285f2f13514d10d972add45210d1"
+      }
+    },
+    {
+      "path": "src/elements/SoRenderPlacementElement.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "b876fa45831850aa0c14b6f4f5bd2a7b282605e6bf3b39f896633d2e2b95fe2c",
+      "upstream": {
+        "relation": "same_bytes",
+        "sha256": "b876fa45831850aa0c14b6f4f5bd2a7b282605e6bf3b39f896633d2e2b95fe2c"
+      }
+    },
+    {
+      "path": "src/misc/SoBase.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "1f163327de0c8717680db57324c438092c8fb82b6d10cceff2e4114c827a550a",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "6e2eb63352518e83c3a569ceb899ac01891e176da9d77e09ac754c406af8f24f"
+      }
+    },
+    {
+      "path": "src/misc/SoDB.cpp",
+      "bucket": "mixed_registration",
+      "features": [
+        "C8",
+        "F6",
+        "C7"
+      ],
+      "reason": "Split native feature registration from importing the fork into this older Coin base.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "f4698f379818ab71332cbdeee5120b73d901376684efcd0fb01b05e3666593e2",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "0728af1c35d01358ca97b3a6ab025d249d5aebeeaa5842601ef59ca536885e7e"
+      }
+    },
+    {
+      "path": "src/nodes/SoCamera.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "e6e213e96526a6a26e71134aaf5c003e1c1ba141cacd63811b3887dc89de97c7",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "5902c4dd9873c038f65ddcd99c2c13f60484e79cc546a328d9f769c5fd4e4993"
+      }
+    },
+    {
+      "path": "src/nodes/SoClipPlane.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "3882a4049cfcea4952da21a593600381b9ce1271ff0f02822c4759d0f61213f4",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "250fb864e3196ef0257bf98e5b64acc473bdd2ef9e619d53efbafe162b767cbe"
+      }
+    },
+    {
+      "path": "src/nodes/SoComplexity.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1"
+      ],
+      "reason": "Match the logical state supplied by the existing callback path.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "e8730cb641b08cfccf31597d9318f2df5f308e8989296f80c2774b4cf8bf8b42",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "e596a8feebe6d482012007d6d38cce44f39abb3b9736b2edf56b81cdb834b767"
+      }
+    },
+    {
+      "path": "src/nodes/SoDepthBuffer.cpp",
+      "bucket": "mixed_native",
+      "features": [
+        "F1",
+        "F6"
+      ],
+      "reason": "Logical depth capture can be reviewed separately from authored-mask provenance.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "a433bf44abf9ff5343d31c67d48de2545cc64abdde31bf2ed64911d49185788f",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "950c7f1a5da94c38b60f9a5ac17d1a526c08c260f7fe4e8485baaaf535053553"
+      }
+    },
+    {
+      "path": "src/nodes/SoEnvironment.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1"
+      ],
+      "reason": "Match the logical state supplied by the existing callback path.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "64dbd3d26a278423357ee3823a317956f7ca6ef43f56ea0090c1e1f8bb5c9309",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "62df4719d188b47a4f5bc26b451eda90c8ab591489a79f02a76ae54b2df06ff4"
+      }
+    },
+    {
+      "path": "src/nodes/SoLight.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "reason": "Logical state capture and world-state dependency hooks; no CoinRender target policy.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "6d9bf8d3df49d2d747ecdcf9b1e2bcf444e31b9fb1a16d1a5092b1a22797163d",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "99737b713614533eb5308ba47a6ec82d51b3b53aef2f221ce446da56ae92a796"
+      }
+    },
+    {
+      "path": "src/nodes/SoNode.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "c785217cc6957ab09a93ac9357004f9e1578c28ff51b57993a0e9f245dbbf850",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "6b6ac58da33851920ced9770551052e483996f25f285c5f1fb3a6514ac5ea166"
+      }
+    },
+    {
+      "path": "src/nodes/SoTexture2.cpp",
+      "bucket": "fork_candidate_review",
+      "features": [
+        "F7"
+      ],
+      "reason": "Source-image semantics need review before exporting the upload-hints implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "453c4957a152a01f1a7a90ae867be603355a5b123d0174be372c0dcf159b0f92",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "00f920dfae80aa20b2de7d48f8afbb65d4ef8d449a1993ea982a9ad8a8254d51"
+      }
+    },
+    {
+      "path": "src/rendering/CMakeLists.txt",
+      "bucket": "mixed_registration",
+      "features": [
+        "C8",
+        "F6",
+        "C7"
+      ],
+      "reason": "Split native feature registration from importing the fork into this older Coin base.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "668d56a4c0d2dfcc0633ebad248356d8a2d4c415821236ea2aeecd47d25a751f",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "2cfc71504e1e1e4d5e47525d681af5de6d8b2b31cb8e67db2b66288402897227"
+      }
+    },
+    {
+      "path": "src/rendering/SoInlineVector.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "194858a919b9e1a99594cb748cdcf0ec55ca988adaef36387c4e185a4d696003",
+      "upstream": {
+        "relation": "same_bytes",
+        "sha256": "194858a919b9e1a99594cb748cdcf0ec55ca988adaef36387c4e185a4d696003"
+      }
+    },
+    {
+      "path": "src/rendering/SoRenderBackend.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "a3f15128aead9df3f24920ff598f5390f98a3c8159ea741ebc9e26246c8d6a4c",
+      "upstream": {
+        "relation": "same_bytes",
+        "sha256": "a3f15128aead9df3f24920ff598f5390f98a3c8159ea741ebc9e26246c8d6a4c"
+      }
+    },
+    {
+      "path": "src/rendering/SoRenderBackend.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "1869d8a5ae994f8486d067ed949827328660c5c122dfeabce734aa8cd775166b",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "38918b59ff7d37560d6ceb968f91f7d5f01300f775ba91435acb8d2855808d51"
+      }
+    },
+    {
+      "path": "src/rendering/SoRenderIR.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F3",
+        "F5",
+        "F6",
+        "F8"
+      ],
+      "reason": "Native data and value semantics; separate ordinary capture changes from compact-storage and provenance proposals.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "851b24c161b0de87be5e8a3fd1e2e8376e20092f1bdd57140584c646e28539a5",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "24a18a61b47c333cc5769227082622ad3393af64c3273c7f88ccf4fe87c67b7c"
+      }
+    },
+    {
+      "path": "src/rendering/SoRenderIRP.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F1",
+        "F3",
+        "F5",
+        "F6",
+        "F8"
+      ],
+      "reason": "Native data and value semantics; separate ordinary capture changes from compact-storage and provenance proposals.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "508bd5c267b1110cd3443eec0b25978198d5405554449b9f8fa3945b00c3c3c2",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "df671448a8756598533c19047d3154ae5d46865789b5745786171213e9051b1b"
+      }
+    },
+    {
+      "path": "src/rendering/SoRenderPlan.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F4",
+        "F5"
+      ],
+      "reason": "Native order policies are portable; snapshot access changes also belong to the compact-storage proposal.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "49837cabb0692e6f468d74ae1b986516365060eec375cf142de2c0f59d241df7",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "1cbd69e849cc0d220a01cff00d42f851d463768c5fc7a8517106c59352fa973c"
+      }
+    },
+    {
+      "path": "src/rendering/SoRenderPlan.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F4",
+        "F5"
+      ],
+      "reason": "Native order policies are portable; snapshot access changes also belong to the compact-storage proposal.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "0e4a437aeb77bd844d3b2565d5d5d2e728d3b36a7e5f9db924ce9c635a1c44c2",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "34350878673a774dafcbda6d3d24286646688f6ca57cf4c50af0392c3c0e334f"
+      }
+    },
+    {
+      "path": "src/rendering/SoRetainedUpdater.cpp",
+      "bucket": "fork_candidate",
+      "features": [
+        "F2"
+      ],
+      "reason": "Projection qualification, dependency safety and conservative update rules; preserve the upstream notification authority.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "1134535fd74462ebecfe2c738fc2e266c89adf53eb7c355e5a6c842fadc88ac4",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "02d9f2cb4fa90cdf50c299c57e5d3720ec896edfd9af3d544cb97fab5f74eef5"
+      }
+    },
+    {
+      "path": "src/rendering/SoRetainedUpdater.h",
+      "bucket": "fork_candidate",
+      "features": [
+        "F2"
+      ],
+      "reason": "Projection qualification, dependency safety and conservative update rules; preserve the upstream notification authority.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "cccf4c17ade2c8021cef068729ff994ea484e2d2497dfef6cae434053e414372",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "2c12930d3901b1880ac2fb108770948ecc8bdf07b9f9dcba6d129e4f3f9bd204"
+      }
+    },
+    {
+      "path": "src/rendering/SoTextureQualityPolicy.h",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "61cf41850158158fed7bab238b43fe76297979b96d67d2a998a65292ca53e3f0",
+      "upstream": {
+        "relation": "same_bytes",
+        "sha256": "61cf41850158158fed7bab238b43fe76297979b96d67d2a998a65292ca53e3f0"
+      }
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxLowering.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4"
+      ],
+      "reason": "BGFX-specific execution and controls.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "825d347b84379a0ec8c5faa68eaf1ce24227151d3c7947fb3d75c97354250a9b",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxLowering.h",
+      "bucket": "coinrender",
+      "features": [
+        "C4"
+      ],
+      "reason": "BGFX-specific execution and controls.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "96f6995d0a0eaf3056618fe3d3c2d5759944f2acb8aea3bf6a6212d33a58059c",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxSubmit.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4"
+      ],
+      "reason": "BGFX-specific execution and controls.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "17b3d80643877aeaecf49b5e7b9e2560b32fa41dfb63a19ad8fd524826b78e63",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinrender/CMakeLists.txt",
+      "bucket": "coinrender",
+      "features": [
+        "C1",
+        "C2",
+        "C8"
+      ],
+      "reason": "CoinRender target source registration and linkage.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "0c41cfc86e315ba554eccf104a67d121b62d7db168ce3eaf3c13229d181d8359",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderComposition.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C3"
+      ],
+      "reason": "CoinRender frame identity, resolved composition and publication contracts.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "9cf479a5b51411974f0f029037d6e069201fc754b4825ad9592042a40bf671b0",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderComposition.h",
+      "bucket": "coinrender",
+      "features": [
+        "C3"
+      ],
+      "reason": "CoinRender frame identity, resolved composition and publication contracts.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "cd5d8aa0e5bec7eab5348364ef07e93d5a41169e78f936dc3a12b9a3cd1a258d",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderDepthPolicyElement.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C7",
+        "F6"
+      ],
+      "reason": "Compatibility alias/stub for the shared native element; fork review concerns the native implementation, not this alias.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "8af1875d1773c0334c5cec615462dd6d1dcb09f26de4308989cb6d0989dd04d3",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderDepthPolicyElement.h",
+      "bucket": "coinrender",
+      "features": [
+        "C7",
+        "F6"
+      ],
+      "reason": "Compatibility alias/stub for the shared native element; fork review concerns the native implementation, not this alias.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "d0b5fc2baa07136ab3d168b8a4df4743f140132421f93d13394fa4d8be7af9ad",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderFrameReuseCore.h",
+      "bucket": "coinrender",
+      "features": [
+        "C3"
+      ],
+      "reason": "CoinRender frame identity, resolved composition and publication contracts.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "1a8aca77b42423ad9ba2cde22779434a43c2d2db1bf60f1d1a225a67685730e1",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderRetainedRenderer.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C1"
+      ],
+      "reason": "Experimental facade, ownership and target-specific admission belong to CoinRender.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "306bef11735a21b1f24fe83719f9e2264ab2ff650246d62a60db245369f6aaf0",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderRetainedTransport.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C3"
+      ],
+      "reason": "Mechanical conversion and reuse of CoinRender-owned transport; not the native capture schema.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "b9665715a3e2c6e5e9ec11324da52acf68bea6552e5c3ed69d9b8f9e02211bf0",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderRetainedTransport.h",
+      "bucket": "coinrender",
+      "features": [
+        "C2",
+        "C3"
+      ],
+      "reason": "Mechanical conversion and reuse of CoinRender-owned transport; not the native capture schema.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "1e6868867312c019b67f20a12784774ed9024d9e90a70d278c7147eac9856bbf",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderSceneChanges.h",
+      "bucket": "coinrender",
+      "features": [
+        "C1"
+      ],
+      "reason": "Experimental facade, ownership and target-specific admission belong to CoinRender.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "c4a5a678a8d768277debd597ae4b2f5e2bcb8f39fe2cdbd428cdad48bc54cd69",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderTarget.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C3"
+      ],
+      "reason": "CoinRender frame identity, resolved composition and publication contracts.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "0b79e9e8a507c161bbdf266c29dd74f716f99eafcaf0b2090956c29ee47ecd25",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C5"
+      ],
+      "reason": "wgpu-specific transport packing.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "c750604449c770dec681eff1204ed0e4e3709cf6ee5aa6cd5e71b7d5497f79ee",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "src/shapenodes/SoCube.cpp",
+      "bucket": "mixed_native",
+      "features": [
+        "F4",
+        "C7"
+      ],
+      "reason": "Port the shared cube resource delta, not the entire older-base shape implementation.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "6b95daa0c119ff46e0ddc37a38b5198dbe8eb398d56f4dac50a6241627fc3b6d",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "6dd6c96183098766e245d41c469b2d0db2646aaac1f1b89ab954efe0017e2a1f"
+      }
+    },
+    {
+      "path": "src/shapenodes/SoFaceSet.cpp",
+      "bucket": "port_compatibility",
+      "features": [
+        "C7"
+      ],
+      "reason": "Existing upstream mechanisms or older-base accessor/dispatch/DLL adaptations; not a new fork contribution by themselves.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "2a7774b911557d558c346c87c53e46b2e4a22bb825fe51bd9e15c471e33c97f6",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "46b00cbdfd9d4c5f88a7dd715e8f1c1f39816076d55df2c3747b9dd45a0b3c8a"
+      }
+    },
+    {
+      "path": "src/shapenodes/SoShape.cpp",
+      "bucket": "mixed_native",
+      "features": [
+        "F4",
+        "F5",
+        "C7"
+      ],
+      "reason": "Mixes imported primitive collection, object-center fix, path/storage work and existing callback/corner extensions; split by function/hunk.",
+      "export_policy": "semantic_hunks_only",
+      "sha256": "2b44efed847c65a7a739b5ea28bcdfe2c5a82be42581e8647332838ffbb06df5",
+      "upstream": {
+        "relation": "different_bytes",
+        "sha256": "cd8b97f15fc22bb7d8a5d94a21c6a883ae4063791f4e7a1b5af95d9abff22634"
+      }
+    },
+    {
+      "path": "testsuite/coinbgfx/CoinBgfxCoreTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4"
+      ],
+      "reason": "BGFX-specific execution and controls.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "1ac497fb800bd548bbf7935a82535360190de284f8fd8a9e32b8be917a0b800e",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "testsuite/coinbgfx/CoinBgfxInstancingTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C4"
+      ],
+      "reason": "BGFX-specific execution and controls.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "f33e34b43bb22bae7fea5b60dbbe36a44e4b6a32ac7350fad076b3c6f7328119",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "testsuite/coinrender/CMakeLists.txt",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "a0994c57ccb983c42d2e9f2757428f8584ffb29930a9a4e4545ac50de52e256e",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedBenchmark.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "f367cd72b479c40c95d339adddd738563b68b666c4ec3ab3d7c6973b11c13581",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedCityTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "6f4478c840ae33b61b6c77c10123c280b8986cfe5000ec6298eb8551aab7d2e2",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedConnectorTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "b52698a7be31270614ee6af14a94a2b7541e34286bd3fe0da9e82ff8b12c4f83",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedFeaturesTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "6a2cd0e12814dabb9051e8df1f9da4338b57bb639df8f328feb96f356462c485",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedIncrementalTest.cpp",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "184b4ef63219992a60519dbad82c05c058c0a29b205499cf2358c62a62a2c802",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRetainedTestRenderer.h",
+      "bucket": "coinrender",
+      "features": [
+        "C6"
+      ],
+      "reason": "Tests/benchmarks exercise CoinRender targets; transfer portable scenarios to native fork tests separately.",
+      "export_policy": "keep_in_coinrender_or_local_port",
+      "sha256": "c5eef0d84ca8d5c1912efa0c446b6bf601af5011c5b2088543933107bbe4a88a",
+      "upstream": {
+        "relation": "not_in_pinned_upstream"
+      }
+    }
+  ]
+}

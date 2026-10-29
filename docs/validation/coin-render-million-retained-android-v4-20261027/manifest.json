@@ -1,0 +1,28 @@
+{
+  "branch": "codex/coinrender-retained-integration",
+  "base_commit": "e8c7003345a481a4d6d16bdec411ecf86f873d09",
+  "uncommitted_source_sha256": {
+    "examples/coinrender/coin_render_android_smoke.cpp": "606da435c4d2274fedb59d97d796a3c5acf16cd055f609cc57f497e5780bb522",
+    "include/Inventor/rendering/SoRenderIR.h": "0792479d88cc426b470636b5c03f18d421dddd6d34817e9040c07495906c712c",
+    "include/Inventor/rendering/CoinRenderRetainedRenderer.h": "8dc10720a943311d2e28ff3ec9996ea4eb8ca354903d4739f85edc3dbbba487f",
+    "include/Inventor/actions/SoIRRenderAction.h": "9cb2c3e67a32c0f3547c91c962e99a948cb8bb0e20eca9f9795b21b79447d4ce",
+    "src/rendering/SoRenderIR.cpp": "36c85a6f2571924cc4dee796065ed1fb0d3da7545ea5920bd83fcb834e0c1010",
+    "src/rendering/coinrender/CoinRenderComposition.h": "57b84fb43a3610062e98c7193e4ffb6ceebaafe6a400884cb4dfe295a525630d",
+    "src/rendering/coinrender/CoinRenderComposition.cpp": "a11aa86b880deb346327dbe7e2bbf62cff60a73a5b06742333fffdfea108424c",
+    "src/rendering/coinrender/CoinRenderTarget.cpp": "0b79e9e8a507c161bbdf266c29dd74f716f99eafcaf0b2090956c29ee47ecd25",
+    "src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp": "c750604449c770dec681eff1204ed0e4e3709cf6ee5aa6cd5e71b7d5497f79ee",
+    "src/rendering/coinbgfx/CoinBgfxLowering.cpp": "825d347b84379a0ec8c5faa68eaf1ce24227151d3c7947fb3d75c97354250a9b",
+    "testsuite/coinbgfx/CoinBgfxInstancingTest.cpp": "f33e34b43bb22bae7fea5b60dbbe36a44e4b6a32ac7350fad076b3c6f7328119",
+    "src/rendering/SoRenderPlan.cpp": "4123541b414a9c524a716439b77c4e83d27f218676e20438d9f8142d0e38d7b2",
+    "src/actions/SoIRRenderAction.cpp": "82e5f1b218fcd97eb99f7f50b1a5adfca6e3bec91475b08ecea40cb4d930345e",
+    "src/rendering/coinrender/CoinRenderRetainedBackend.cpp": "110da2c243561a13d83c3ff7d3e33a55fa73a7aeb99c74aba1bf6947bf72b0c9",
+    "src/rendering/coinrender/CoinRenderRetainedRenderer.cpp": "cc55f49789105eb29ada905b3b09f4d4a02fc716573643f25ec40f12abfcb68f",
+    "src/shapenodes/SoCube.cpp": "6b95daa0c119ff46e0ddc37a38b5198dbe8eb398d56f4dac50a6241627fc3b6d",
+    "testsuite/coinrender/CoinRenderRetainedCityTest.cpp": "6f4478c840ae33b61b6c77c10123c280b8986cfe5000ec6298eb8551aab7d2e2"
+  },
+  "apk_sha256": {
+    "previous.apk": "2c780da1dfdbd4d4d0758f57b6d1e37bec5706185775db8b17b23582ad0f98ac",
+    "coin-render-million-ab.apk": "9dc873128a5fa115cf9003b751a0e4aca0b4de09b344f5c562c30371532d864d"
+  },
+  "scene_sha256": "b52a2ce714bf94129d3ddf7a02f910ffacadf915a72b61c8c86acb40ed72ab19"
+}

@@ -1,0 +1,23 @@
+# Build the current native worker and effect tests.
+cmake --build /tmp/coin-retained-bgfx --target CoinRenderFreeCADViewportWorker CoinRenderPbrEffectsTest -j 4
+
+# Fixed-camera native benchmark: 3 independent processes/mode, 8 warmup, 40 timed repaints.
+python3 scripts/coinrender/benchmark_freecad_pbr_effects.py --freecad /mnt/Laranja/Git/externos/freecad-build/bin/FreeCAD --worker /tmp/coin-retained-bgfx/bin/CoinRenderFreeCADViewportWorker --environment /tmp/coin-retained-ibl/environments/studio.cibl --assembly /mnt/Laranja/Git/externos/freecad-source/data/examples/AssemblyExample.FCStd --qt-root /home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt --output /tmp/fresh-effects-static --repeats 3 --samples 40 --warmup 8 --expect-static-reuse
+
+# Separate full-shading GPU timing probe. Profiling bypasses static reuse; do not
+# compare its CPU wall times with the normal benchmark (it drains GPU queries).
+env COIN_RENDER_TRACE_PHASES=1 COIN_WGPU_GPU_TIMESTAMPS=1 python3 scripts/coinrender/benchmark_freecad_pbr_effects.py --freecad /mnt/Laranja/Git/externos/freecad-build/bin/FreeCAD --worker /tmp/coin-retained-bgfx/bin/CoinRenderFreeCADViewportWorker --environment /tmp/coin-retained-ibl/environments/studio.cibl --assembly /mnt/Laranja/Git/externos/freecad-source/data/examples/AssemblyExample.FCStd --qt-root /home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt --output /tmp/fresh-effects-gpu --repeats 1 --samples 10 --warmup 2
+
+# Native admission, rejection/retry and shutdown after pending static present.
+xvfb-run -a -s '-screen 0 1680x1200x24' python3 scripts/coinrender/test_native_pbr_reuse.py --worker /tmp/coin-retained-bgfx/bin/CoinRenderFreeCADViewportWorker --scene /tmp/fresh-effects-static/0-off/session/scene.iv --request /tmp/fresh-effects-static/0-off/request.txt --environment /tmp/coin-retained-ibl/environments/studio.cibl --output /tmp/fresh-native-admission
+
+# Existing 19-stage actual FreeCAD GUI/lifecycle and independent callback controls.
+python3 scripts/coinrender/run_freecad_retained_viewport.py --freecad /mnt/Laranja/Git/externos/freecad-build/bin/FreeCAD --worker /tmp/coin-retained-bgfx/bin/CoinRenderFreeCADViewportWorker --environment /tmp/coin-retained-ibl/environments/studio.cibl --assembly /mnt/Laranja/Git/externos/freecad-source/data/examples/AssemblyExample.FCStd --qt-root /home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt --output /tmp/fresh-native-gui --presentation native --xvfb
+
+ctest --test-dir /tmp/coin-retained-bgfx -R '^(CoinRenderPbrEffectsTest|CoinRenderRetainedIBL.*|CoinRenderIBLBake.*|CoinRenderRetainedPBRGalleryTest|CoinRenderRetainedConnectorTest|CoinRenderRetainedNoBorrowTest|CoinBgfxCoreTest|CoinBgfxInstancingTest|CoinEnvironmentTest|SoRetainedPBRTest)$' --output-on-failure
+python3 scripts/coinrender/audit_retained_contribution_boundaries.py
+
+# The measured pre-optimization worker/library are frozen in
+# /tmp/coin-effects-baseline/{bin,lib}, with hashes recorded in before-summary.json.
+# To execute that binary later, put its frozen library directory first in the
+# worker LD_LIBRARY_PATH; FreeCAD itself must keep its bundled Coin ABI.

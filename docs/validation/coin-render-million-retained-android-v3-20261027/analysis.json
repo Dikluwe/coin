@@ -1,0 +1,124 @@
+{
+  "summary": {
+    "current": {
+      "first_render_ms": 10993.072,
+      "steady_median_ms": 20.9982915,
+      "steady_p90_ms": 22.5942975,
+      "sampled_peak_rss_kib": 5259472.0,
+      "memory": {
+        "reported_pss_kib": 3874980.0,
+        "rss_kib": 3989314.0,
+        "swap_kib": 74.0,
+        "native_alloc_kib": 3845620.0
+      }
+    },
+    "previous": {
+      "first_render_ms": 6297.101000000001,
+      "steady_median_ms": 20.7034275,
+      "steady_p90_ms": 22.392483,
+      "sampled_peak_rss_kib": 4439414.0,
+      "memory": {
+        "reported_pss_kib": 4106653.0,
+        "rss_kib": 4221486.0,
+        "swap_kib": 74.0,
+        "native_alloc_kib": 4088671.0
+      }
+    },
+    "retained": {
+      "first_render_ms": 4585.2474999999995,
+      "steady_median_ms": 21.02306825,
+      "steady_p90_ms": 22.687848,
+      "sampled_peak_rss_kib": 4096882.0,
+      "memory": {
+        "reported_pss_kib": 3936702.0,
+        "rss_kib": 4051558.0,
+        "swap_kib": 74.0,
+        "native_alloc_kib": 3897780.5
+      }
+    }
+  },
+  "equivalence": [
+    {
+      "trial": 1,
+      "mode": "previous",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    },
+    {
+      "trial": 2,
+      "mode": "retained",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    },
+    {
+      "trial": 3,
+      "mode": "current",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    },
+    {
+      "trial": 4,
+      "mode": "current",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    },
+    {
+      "trial": 5,
+      "mode": "retained",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    },
+    {
+      "trial": 6,
+      "mode": "previous",
+      "rgba_max_delta": 0,
+      "rgba_different_channels": 0,
+      "depth_max_delta": 0.0,
+      "depth_different_values": 0,
+      "depth_nonfinite": 0,
+      "display_different_channels_excluding_100_top_bottom": 0
+    }
+  ],
+  "sha256": {
+    "1-previous/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "1-previous/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "1-previous/frame.times": "a9e5e061a36da7cf6dd4a98cd531b58f2d8752ae5c7ad2f876e2d72072c6ee37",
+    "2-retained/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "2-retained/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "2-retained/frame.times": "21ca570b5cae5fb43df3ac6aa4c489c69dedbfe5ef80f66162190751df0f9912",
+    "3-current/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "3-current/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "3-current/frame.times": "3fc909b0801598b08ea1ad0e4e5c653466baa88bb675b80dec5c58d2ff8962c6",
+    "4-current/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "4-current/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "4-current/frame.times": "12e68e5417e22fac5f7b4544c4e197488d1c4ca82cbc0f17e44434033c1a4433",
+    "5-retained/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "5-retained/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "5-retained/frame.times": "a5bf22be1bddccda34baf1f1c8a733d008accc06ee89dd39854a468d80984d6a",
+    "6-previous/frame.rgba": "c603f4eed00512ae824c331dfbdd9f489a9dd7ace9eeca01f65a3ab692b99a20",
+    "6-previous/frame.depth": "791de884fb0c43645a4db818d907c757d07a49170934a030e905f33f13555bd3",
+    "6-previous/frame.times": "554d9c87c5af7948bcdafe277076b8811b89a39b6e0f1af0ab59f07e3993fe08",
+    "previous.apk": "c9aa9a135ee6e6976534094f4ba33709672467272ed065d6e43b910198937ae9",
+    "coin-render-million-ab.apk": "2c780da1dfdbd4d4d0758f57b6d1e37bec5706185775db8b17b23582ad0f98ac"
+  }
+}

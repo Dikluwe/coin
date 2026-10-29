@@ -2,6 +2,7 @@
 #define COIN_RENDER_FRAME_PLAN_H
 
 #include <Inventor/rendering/CoinRenderOptions.h>
+#include "rendering/coinrender/CoinRenderPbrMaterial.h"
 #include <Inventor/CoinRenderExport.h>
 #include "rendering/coinrender/CoinRenderTransparencyCore.h"
 #include "rendering/coinrender/CoinRenderBumpMapCore.h"
@@ -46,6 +47,12 @@ struct CoinRenderVertexSnapshot {
   float textureQ[COIN_RENDER_MAX_TEXTURE_UNITS] = {1,1,1,1,1,1,1,1};
 };
 
+// Optional, per-corner PBR attributes. Plain geometry retains its old stride.
+struct CoinRenderPbrSurfaceVertex {
+  uint32_t vertexIndex=0;
+  float normalUv[3]={0,0,1};
+  float normalTangent[4]={},directionTangent[4]={};
+};
 struct CoinRenderBumpCoordOverride {
   uint32_t vertexIndex = 0;
   uint32_t imageSlot = 0; // One-based; zero means only an authored UV override.
@@ -146,6 +153,8 @@ struct CoinRenderRasterOccurrence {
 };
 
 struct CoinRenderMaterialSnapshot {
+  CoinRenderMaterialModel model = CoinRenderMaterialModel::LEGACY;
+  CoinRenderPbrMaterialSnapshot pbr;
   float ambient[4] = {0.2f, 0.2f, 0.2f, 1.0f};
   float diffuse[4] = {0.8f, 0.8f, 0.8f, 1.0f};
   float specular[4] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -414,6 +423,10 @@ struct CoinRenderRenderStateSnapshot {
   SbMatrix view = SbMatrix::identity();
   SbMatrix projectionCoin = SbMatrix::identity();
   uint32_t materialSlot = 0;
+  uint32_t pbrNormalImageSlot=UINT32_MAX, pbrNormalSamplerSlot=0;
+  int pbrNormalCoordinateUnit=0;
+  SbMatrix pbrDirectionMatrix=SbMatrix::identity();
+  SbMatrix pbrNormalMatrix=SbMatrix::identity();
   uint32_t lightingSlot = 0;
   uint32_t cameraSlot = 0;
   uint32_t viewportSlot = 0;
@@ -524,6 +537,7 @@ struct CoinRenderFramePlan {
   std::vector<CoinRenderVertexSnapshot> vertices;
   // Sparse because authored bump UVs are rare and GPU vertex strides stay fixed.
   // Vertices without an entry use their unit-0 texcoord.
+  std::vector<CoinRenderPbrSurfaceVertex> pbrSurfaceVertices;
   std::vector<CoinRenderBumpCoordOverride> bumpCoords;
   std::vector<CoinRenderBumpTangentOverride> bumpTangents;
   std::vector<CoinRenderBumpImage> bumpImages;

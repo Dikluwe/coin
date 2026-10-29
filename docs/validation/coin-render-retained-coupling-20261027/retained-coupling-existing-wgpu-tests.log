@@ -1,0 +1,49 @@
+Internal ctest changing into directory: /tmp/coin-retained-wgpu
+Test project /tmp/coin-retained-wgpu
+      Start 115: CoinRenderCameraReuseReferenceTest
+ 1/15 Test #115: CoinRenderCameraReuseReferenceTest ............***Skipped   0.01 sec
+      Start 159: CoinRenderMaterialTest
+ 2/15 Test #159: CoinRenderMaterialTest ........................   Passed    0.59 sec
+      Start 160: CoinRenderTextureTest
+ 3/15 Test #160: CoinRenderTextureTest .........................   Passed    9.51 sec
+      Start 162: CoinRenderTextureSamplingCaptureTest
+ 4/15 Test #162: CoinRenderTextureSamplingCaptureTest ..........   Passed    0.19 sec
+      Start 163: CoinRenderTextureSamplingConfigLimitTest
+ 5/15 Test #163: CoinRenderTextureSamplingConfigLimitTest ......   Passed    0.01 sec
+      Start 164: CoinRenderTextureSamplingGpuTest
+ 6/15 Test #164: CoinRenderTextureSamplingGpuTest ..............***Failed    4.93 sec
+sampling_test_policy=0
+adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) renderer=1 vendor=4318 device=9568
+quality-0.100000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+Coin warning in glxglue_context_create_software(): Couldn't create GLX context.
+quality-0.100000/nc-1/model-8448/units-1: mandatory CoinGL
+
+      Start 180: CoinRenderTextureQualitycontextsTest
+ 7/15 Test #180: CoinRenderTextureQualitycontextsTest ..........   Passed    0.10 sec
+      Start 181: CoinRenderTextureQualityseparatorTest
+ 8/15 Test #181: CoinRenderTextureQualityseparatorTest .........   Passed    0.07 sec
+      Start 182: CoinRenderTextureQualityflagsTest
+ 9/15 Test #182: CoinRenderTextureQualityflagsTest .............   Passed    0.09 sec
+      Start 183: CoinRenderTextureQualityupgradeTest
+10/15 Test #183: CoinRenderTextureQualityupgradeTest ...........   Passed    0.08 sec
+      Start 184: CoinRenderTextureQualityTransitionUnit0Test
+11/15 Test #184: CoinRenderTextureQualityTransitionUnit0Test ...   Passed    0.08 sec
+      Start 185: CoinRenderTextureQualityTransitionUnit3Test
+12/15 Test #185: CoinRenderTextureQualityTransitionUnit3Test ...   Passed    0.09 sec
+      Start 215: CoinRenderLightingTest
+13/15 Test #215: CoinRenderLightingTest ........................   Passed    0.61 sec
+      Start 217: CoinRenderFogTest
+14/15 Test #217: CoinRenderFogTest .............................   Passed    5.28 sec
+      Start 218: CoinRenderClipPlaneTest
+15/15 Test #218: CoinRenderClipPlaneTest .......................   Passed    5.34 sec
+
+93% tests passed, 1 tests failed out of 15
+
+Total Test time (real) =  27.01 sec
+
+The following tests did not run:
+	115 - CoinRenderCameraReuseReferenceTest (Skipped)
+
+The following tests FAILED:
+	164 - CoinRenderTextureSamplingGpuTest (Failed)
+Errors while running CTest

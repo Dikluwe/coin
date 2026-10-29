@@ -152,6 +152,7 @@
 // *************************************************************************
 
 #include <Inventor/nodes/SoMaterial.h>
+#include "elements/SoPBRMaterialElement.h"
 
 #include <cstdlib>
 
@@ -490,6 +491,7 @@ SoMaterial::doAction(SoAction * action)
 #undef TEST_OVERRIDE
 
   if (bitmask) {
+    if (SoPBRMaterialElement::get(state)) SoPBRMaterialElement::selectLegacy(state);
     SbColor dummycolor(0.8f, 0.8f, 0.0f);
     float dummyval = 0.2f;
     const SbColor * diffuseptr = this->diffuseColor.getValues(0);

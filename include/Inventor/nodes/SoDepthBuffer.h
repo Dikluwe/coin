@@ -65,6 +65,7 @@ public:
   SoSFVec2f range;
 
   void GLRender(SoGLRenderAction * action) override;
+  void doAction(SoAction * action) override;
 
 protected:
   virtual ~SoDepthBuffer();

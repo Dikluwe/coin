@@ -30,8 +30,13 @@ set(COIN_RENDER_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/CoinRenderSceneManager.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/CoinRenderShaderModule.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/CoinRenderTarget.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/CoinRenderRetainedRenderer.h
 )
 list(REMOVE_ITEM COMMON_HDRS ${COIN_RENDER_PUBLIC_HEADERS})
+# The optional CPU environment module owns its API; default Coin does not install it.
+file(GLOB COIN_ENVIRONMENT_PUBLIC_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/environment/*.h)
+list(APPEND COIN_ENVIRONMENT_PUBLIC_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/CoinEnvironmentExport.h)
+list(REMOVE_ITEM COMMON_HDRS ${COIN_ENVIRONMENT_PUBLIC_HEADERS})
 
 set(COIN_DOCUMENTATION_FILES
   ${COIN_DOCUMENTATION_FILES}

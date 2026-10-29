@@ -17,6 +17,8 @@
 #include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
+#include <Inventor/rendering/CoinRenderRetainedRenderer.h>
+#include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoMaterial.h>
@@ -35,6 +37,10 @@
 #include <Inventor/system/gl-headers.h>
 #include <memory>
 #include <vector>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <deque>
 
 namespace {
 const char * const tag = "CoinRenderP23";
@@ -43,7 +49,7 @@ const char * const tag = "CoinRenderP23";
 // for emulator diagnostics, never enabled for normal APK launches/hardware.
 bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer,
                        bool & city, bool & continuous, bool & trace, bool & million,
-                       uint32_t & samples) {
+                       uint32_t & samples, bool & retained, bool & comparison) {
   char qemu[PROP_VALUE_MAX] = {};
   __system_property_get("ro.kernel.qemu", qemu);
   const bool isEmulator = std::strcmp(qemu, "1") == 0;
@@ -84,6 +90,12 @@ bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer,
       name = env->NewStringUTF("coinrender_million_city");
       million = env->CallBooleanMethod(intent, getBool, name, million ? JNI_TRUE : JNI_FALSE) == JNI_TRUE;
       env->DeleteLocalRef(name);
+      name = env->NewStringUTF("coinrender_retained");
+      retained = env->CallBooleanMethod(intent, getBool, name, JNI_FALSE) == JNI_TRUE;
+      env->DeleteLocalRef(name);
+      name = env->NewStringUTF("coinrender_compare");
+      comparison = env->CallBooleanMethod(intent, getBool, name, JNI_FALSE) == JNI_TRUE;
+      env->DeleteLocalRef(name);
     }
     env->DeleteLocalRef(type);
   }
@@ -103,10 +115,122 @@ uint64_t checksum(const std::vector<uint8_t> & bytes) {
   return value;
 }
 
+// Android's input/lifecycle looper must acknowledge events even while a large
+// scene is parsing or capturing. All Coin and GPU work stays on one worker;
+// the looper passes only copied motion values and acquired window references.
+struct HostEvent {
+  int command = 0;
+  int action = 0;
+  float x = 0, y = 0;
+  bool motion = false;
+  ANativeWindow * window = nullptr;
+};
+struct HostEvents {
+  std::mutex mutex;
+  std::condition_variable ready;
+  std::deque<HostEvent> pending;
+  bool stop = false, done = false;
+  ~HostEvents() {
+    for (const auto & event : pending) if (event.window) ANativeWindow_release(event.window);
+  }
+  void push(const HostEvent & event) {
+    std::lock_guard<std::mutex> lock(mutex);
+    // Consecutive moves may collapse; DOWN/UP and lifecycle boundaries remain.
+    if (event.motion && event.action == AMOTION_EVENT_ACTION_MOVE && !pending.empty() &&
+        pending.back().motion && pending.back().action == AMOTION_EVENT_ACTION_MOVE)
+      pending.back() = event;
+    else pending.push_back(event);
+    ready.notify_one();
+  }
+};
+
 struct Host {
   android_app * app = nullptr;
   SoSeparator * scene = nullptr;
   std::unique_ptr<CoinRenderAction> action;
+  std::unique_ptr<CoinRenderRetainedRenderer> retained;
+  bool retainedPath = false, comparison = false, comparisonReady = false;
+  std::vector<double> comparisonTimes;
+  unsigned comparisonWarmup = 0;
+  const char * pathName() const { return retainedPath ? "retained" : "current"; }
+  CoinRenderAction::Status selectedRender(CoinRenderTarget & output, const SbViewportRegion & viewport) {
+    if (retainedPath) {
+      if (!retained) retained.reset(new CoinRenderRetainedRenderer(viewport));
+      retained->setViewportRegion(viewport);
+      return retained->render(scene, output);
+    }
+    if (!action) action.reset(new CoinRenderAction(viewport));
+    // These setters invalidate CoinRenderAction's capture even for identical
+    // values. Preserve its ordinary hot-cache path in the comparison.
+    if (!(action->getViewportRegion() == viewport)) action->setViewportRegion(viewport);
+    if (action->getRenderTarget() != &output) action->setRenderTarget(&output);
+    action->apply(scene);
+    return action->getLastStatus();
+  }
+  void logRetained() {
+    if (!retained) return;
+    const auto stats = retained->getStatistics();
+    __android_log_print(ANDROID_LOG_INFO, tag,
+      "retained_stats captures=%llu plans=%llu transport_builds=%llu retained_frames=%llu commands=%llu resources=%llu vertices=%llu cameras=%llu materials=%llu command_storage_bytes=%llu path_storage_bytes=%llu dependency_ranges=%llu compaction_passes=%llu schedule_bytes=%llu",
+      (unsigned long long)stats.captures, (unsigned long long)stats.planBuilds,
+      (unsigned long long)stats.transportBuilds,(unsigned long long)stats.retainedFrames,
+      (unsigned long long)stats.nativeCommands,(unsigned long long)stats.nativeGeometryResources,
+      (unsigned long long)stats.transportVertices,(unsigned long long)stats.transportCameras,(unsigned long long)stats.materialSlots,(unsigned long long)stats.nativeCommandStorageBytes,(unsigned long long)stats.nativePathStorageBytes,(unsigned long long)stats.nativeDependencyRanges,(unsigned long long)stats.nativeCompactionPasses,(unsigned long long)stats.transportScheduleBytes);
+  }
+  bool writeComparison(const char * suffix, const void * data, size_t bytes) {
+    const std::string name = std::string(app->activity->internalDataPath) + "/million-" + pathName() + suffix;
+    FILE * file = std::fopen(name.c_str(), "wb");
+    if (!file) return false;
+    const bool ok = std::fwrite(data, 1, bytes, file) == bytes;
+    return std::fclose(file) == 0 && ok;
+  }
+  void renderComparison(bool qualify, const SbVec2i32 & size) {
+    const SbViewportRegion viewport(size[0],size[1]);
+    const auto start = std::chrono::steady_clock::now();
+    const auto status = selectedRender(*target, viewport);
+    const double milliseconds = std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
+    if (status != CoinRenderAction::SUCCESS) {
+      failed = true; resumed = false;
+      __android_log_print(ANDROID_LOG_ERROR, tag,"comparison_failed path=%s status=%d reason=%s",pathName(),int(status),
+        retainedPath ? retained->getLastError().getString() : action->getLastError().getString());
+      return;
+    }
+    if (qualify || !comparisonReady) {
+      // Same viewport/projection for both paths and both targets. The retained
+      // action/list/plan is reused for window -> offscreen -> window; only the
+      // owned executor transport changes target. No second capture/planner.
+      __android_log_print(ANDROID_LOG_INFO,tag,"comparison_first path=%s render_ms=%.3f size=%dx%d camera=%.9g,%.9g,%.9g focal=%.9g near=%.9g far=%.9g",
+        pathName(),milliseconds,size[0],size[1],cityCamera?cityCamera->position.getValue()[0]:0,
+        cityCamera?cityCamera->position.getValue()[1]:0,cityCamera?cityCamera->position.getValue()[2]:0,
+        cityCamera?cityCamera->focalDistance.getValue():0,cityCamera?cityCamera->nearDistance.getValue():0,cityCamera?cityCamera->farDistance.getValue():0);
+      CoinRenderOptions options;options.renderer=renderer;options.sampleCount=samples;
+      captureTarget.reset(CoinRenderTarget::createOffscreen(size,options));
+      const auto captured = selectedRender(*captureTarget,viewport);
+      if (captured != CoinRenderAction::SUCCESS) { failed=true;resumed=false;__android_log_print(ANDROID_LOG_ERROR,tag,"comparison_capture_failed path=%s reason=%s",pathName(),retainedPath?retained->getLastError().getString():action->getLastError().getString());return; }
+      std::vector<uint8_t> image;std::vector<float> depth;
+      captureTarget->readbackRGBA(image);captureTarget->readbackDepth(depth);
+      if (image.size()!=size_t(size[0])*size[1]*4 || depth.size()!=size_t(size[0])*size[1] ||
+          !writeComparison(".rgba",image.data(),image.size()) || !writeComparison(".depth",depth.data(),depth.size()*sizeof(float))) {
+        failed=true;resumed=false;return;
+      }
+      __android_log_print(ANDROID_LOG_INFO,tag,"comparison_capture path=%s rgba_fnv64=%016llx pixels=%zu",pathName(),(unsigned long long)checksum(image),image.size()/4);
+      if (selectedRender(*target,viewport)!=CoinRenderAction::SUCCESS) { failed=true;resumed=false;return; }
+      captureTarget.reset();comparisonReady=true;comparisonTimes.clear();comparisonWarmup=0;
+      logRetained();
+      return;
+    }
+    if (++comparisonWarmup <= 10) return;
+    comparisonTimes.push_back(milliseconds);
+    if (comparisonTimes.size()==120) {
+      auto sorted=comparisonTimes;std::sort(sorted.begin(),sorted.end());
+      const double median=(sorted[59]+sorted[60])*.5;
+      __android_log_print(ANDROID_LOG_INFO,tag,"comparison_perf path=%s samples=120 median_ms=%.6f p90_ms=%.6f serial=%llu",
+        pathName(),median,sorted[107],(unsigned long long)target->getLastSubmissionSerial());
+      writeComparison(".times",comparisonTimes.data(),comparisonTimes.size()*sizeof(double));
+      logRetained();
+    }
+    if (comparisonTimes.size()>120) comparisonTimes.pop_back();
+  }
   std::unique_ptr<CoinRenderTarget> target;
   // Keep the independent capture target alive across window recreations.
   std::unique_ptr<CoinRenderTarget> captureTarget;
@@ -130,8 +254,9 @@ struct Host {
 
   void releaseSurface() {
     if (action) action->setRenderTarget(nullptr);
+    retained.reset(); comparisonReady=false;
     target.reset();
-    if (million) action.reset(new CoinRenderAction);
+    if (million && !retainedPath) action.reset(new CoinRenderAction);
   }
 
   void render(bool qualify = true) {
@@ -153,6 +278,7 @@ struct Host {
     // there too; the million-city callback deliberately skips unchanged sizes.
     qualify = qualify || resized;
     const SbViewportRegion viewport(size[0], size[1]);
+    if (comparison || retainedPath) { renderComparison(qualify || resized,size); return; }
     if (million && qualify) {
       // Requalification cannot reuse the old plan. Drop it before recapture
       // so resize/resume also avoid retaining two multi-GB CPU plans.
@@ -305,7 +431,7 @@ struct Host {
       return;
     }
     ++surfaceGeneration;
-    action->setRenderTarget(target.get());
+    if (action) action->setRenderTarget(target.get());
     if (cityCamera) {
       // The camera belongs to this Activity, not to an ANativeWindow. A
       // TERM_WINDOW/INIT_WINDOW pair must keep the user's orbit and zoom.
@@ -339,11 +465,9 @@ struct Host {
   }
 };
 
-int32_t onInput(android_app * app, AInputEvent * event) {
+int32_t onMotion(android_app * app, int action, float x, float y) {
   Host & host = *static_cast<Host *>(app->userData);
-  if (!host.cityCamera || AInputEvent_getType(event) != AINPUT_EVENT_TYPE_MOTION) return 0;
-  const int action = AMotionEvent_getAction(event) & AMOTION_EVENT_ACTION_MASK;
-  const float x = AMotionEvent_getX(event, 0), y = AMotionEvent_getY(event, 0);
+  if (!host.cityCamera) return 0;
   if (action == AMOTION_EVENT_ACTION_DOWN) {
     host.dragging = true;
     host.touchX = x;
@@ -431,10 +555,10 @@ void onCommand(android_app * app, int32_t command) {
 }
 }
 
-extern "C" void android_main(android_app * app) {
+static void runRenderer(android_app * app, HostEvents & events) {
   setenv("COIN_WGPU_LOG", "debug", 0);
   CoinRenderRenderer requestedRenderer = COIN_ANDROID_SMOKE_RENDERER;
-  bool city = true, continuous = true, trace = false, million = false;
+  bool city = true, continuous = true, trace = false, million = false, retainedPath = false, comparison = false;
   uint32_t samples = 1;
   const std::string selectionPath = std::string(app->activity->internalDataPath) + "/coinrender-city-selection.txt";
   if (FILE * file = std::fopen(selectionPath.c_str(), "r")) {
@@ -442,7 +566,7 @@ extern "C" void android_main(android_app * app) {
     if (std::fscanf(file, "%d", &grid) == 1) million = grid == 1000;
     std::fclose(file);
   }
-  const bool emulatedVulkan = readLaunchOptions(app, requestedRenderer, city, continuous, trace, million, samples);
+  const bool emulatedVulkan = readLaunchOptions(app, requestedRenderer, city, continuous, trace, million, samples, retainedPath, comparison);
   if (samples != 1 && samples != 2 && samples != 4) {
     __android_log_print(ANDROID_LOG_ERROR, tag, "unsupported sample count=%u", samples);
     ANativeActivity_finish(app->activity);
@@ -468,12 +592,14 @@ extern "C" void android_main(android_app * app) {
   host.samples = samples;
   host.city = city;
   host.million = million;
-  host.continuous = continuous;
+  host.continuous = continuous; host.retainedPath=retainedPath; host.comparison=comparison || retainedPath;
+  __android_log_print(ANDROID_LOG_INFO,tag,"render_path=%s comparison=%d",host.pathName(),host.comparison?1:0);
   __android_log_print(ANDROID_LOG_INFO, tag, "requested_renderer=%u", unsigned(host.renderer));
   __android_log_print(ANDROID_LOG_INFO, tag, "requested_samples=%u", samples);
-  host.action.reset(new CoinRenderAction);
+  if (!retainedPath) host.action.reset(new CoinRenderAction);
   host.scene = new SoSeparator;
   host.scene->ref();
+  if (host.comparison) host.scene->addChild(new SoDepthBuffer); // Same explicit LESS state for both paths.
   if (city) {
     AAsset * asset = AAssetManager_open(app->activity->assetManager, million ? "city-1000000.iv" : "city-40000.iv", AASSET_MODE_BUFFER);
     if (!asset) {
@@ -541,23 +667,30 @@ extern "C" void android_main(android_app * app) {
 #endif
 
   app->userData = &host;
-  app->onAppCmd = onCommand;
-  app->onInputEvent = onInput;
-
-  while (!app->destroyRequested) {
-    int events = 0;
-    android_poll_source * source = nullptr;
-    const int timeout = host.resumed && host.target ? (host.continuous ? 0 : 50) : -1;
-    const int id = ALooper_pollOnce(timeout, nullptr, &events,
-                                   reinterpret_cast<void **>(&source));
-    if (id >= 0 && source) {
-      source->process(app, source);
-      // A large frame must not separate each queued layout/input command.
-      // Drain ready events first so focus loss, pause and BACK are serviced
-      // promptly; callbacks still qualify actual surface changes.
-      if (host.continuous) continue;
+  while (true) {
+    std::deque<HostEvent> batch;
+    {
+      std::unique_lock<std::mutex> lock(events.mutex);
+      if (events.pending.empty() && !events.stop && !(host.resumed && host.target && host.continuous))
+        events.ready.wait(lock, [&] { return events.stop || !events.pending.empty(); });
+      if (events.stop) break;
+      batch.swap(events.pending);
     }
-    if (!app->destroyRequested && !host.failed && host.continuous) host.render(false);
+    for (auto & event : batch) {
+      if (event.motion) onMotion(app, event.action, event.x, event.y);
+      else {
+        if (event.command == APP_CMD_INIT_WINDOW) {
+          host.releaseSurface();
+          if (app->window) ANativeWindow_release(app->window);
+          app->window = event.window; event.window = nullptr;
+        }
+        onCommand(app, event.command);
+        if (event.command == APP_CMD_TERM_WINDOW && app->window) {
+          ANativeWindow_release(app->window); app->window = nullptr;
+        }
+      }
+    }
+    if (!host.failed && host.continuous) host.render(false);
   }
   host.releaseSurface();
   host.action.reset();
@@ -565,6 +698,48 @@ extern "C" void android_main(android_app * app) {
   host.captureAction.reset();
   host.captureTarget.reset();
   host.scene->unref();
+  if (app->window) { ANativeWindow_release(app->window); app->window = nullptr; }
   __android_log_print(host.failed ? ANDROID_LOG_ERROR : ANDROID_LOG_INFO, tag,
                       "P23 smoke finished: %s", host.failed ? "FAILED" : "OK");
+}
+
+extern "C" void android_main(android_app * app) {
+  HostEvents events;
+  app->userData = &events;
+  app->onAppCmd = [](android_app * source, int32_t command) {
+    auto & queue = *static_cast<HostEvents *>(source->userData);
+    HostEvent event; event.command = command;
+    if (command == APP_CMD_INIT_WINDOW && source->window) {
+      event.window = source->window; ANativeWindow_acquire(event.window);
+    }
+    queue.push(event);
+  };
+  app->onInputEvent = [](android_app * source, AInputEvent * input) -> int32_t {
+    if (AInputEvent_getType(input) != AINPUT_EVENT_TYPE_MOTION) return 0;
+    HostEvent event; event.motion = true;
+    event.action = AMotionEvent_getAction(input) & AMOTION_EVENT_ACTION_MASK;
+    event.x = AMotionEvent_getX(input, 0); event.y = AMotionEvent_getY(input, 0);
+    static_cast<HostEvents *>(source->userData)->push(event);
+    return 1;
+  };
+  std::thread renderer([&] {
+    // A private view avoids racing android_app.window/userData. NativeActivity
+    // remains alive until android_main joins this worker during destruction.
+    android_app view{}; view.activity = app->activity;
+    runRenderer(&view, events);
+    { std::lock_guard<std::mutex> lock(events.mutex); events.done = true; }
+    ALooper_wake(app->looper);
+  });
+  while (!app->destroyRequested) {
+    int flags = 0;
+    android_poll_source * source = nullptr;
+    const int id = ALooper_pollOnce(-1, nullptr, &flags, reinterpret_cast<void **>(&source));
+    if (id >= 0 && source) source->process(app, source);
+    bool done;
+    { std::lock_guard<std::mutex> lock(events.mutex); done = events.done; }
+    if (done && !app->destroyRequested) ANativeActivity_finish(app->activity);
+  }
+  { std::lock_guard<std::mutex> lock(events.mutex); events.stop = true; }
+  events.ready.notify_one();
+  renderer.join();
 }

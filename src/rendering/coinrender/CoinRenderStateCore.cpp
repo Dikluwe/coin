@@ -84,6 +84,11 @@ unsigned long
 coin_render_state_hash(const CoinRenderRenderStateSnapshot & state)
 {
   uint64_t hash = UINT64_C(14695981039346656037);
+  hash=stateHashValue(hash,state.pbrNormalImageSlot);
+  hash=stateHashValue(hash,state.pbrNormalSamplerSlot);
+  hash=stateHashValue(hash,state.pbrNormalCoordinateUnit);
+  hash=stateHashMatrix(hash,state.pbrDirectionMatrix);
+  hash=stateHashMatrix(hash,state.pbrNormalMatrix);
   hash = stateHashValue(hash, state.portableShaderSlot);
   hash = stateHashValue(hash, state.clipPlanesWorld.size());
   for (const auto & plane : state.clipPlanesWorld) {
@@ -169,7 +174,8 @@ bool
 coin_render_same_state(const CoinRenderRenderStateSnapshot &existing,
                        const CoinRenderRenderStateSnapshot &rs)
 {
-  return existing.portableShaderSlot == rs.portableShaderSlot &&
+  return existing.pbrNormalImageSlot==rs.pbrNormalImageSlot && existing.pbrNormalSamplerSlot==rs.pbrNormalSamplerSlot &&
+         existing.pbrNormalCoordinateUnit==rs.pbrNormalCoordinateUnit && existing.pbrDirectionMatrix==rs.pbrDirectionMatrix && existing.pbrNormalMatrix==rs.pbrNormalMatrix && existing.portableShaderSlot == rs.portableShaderSlot &&
          existing.clipPlanesWorld == rs.clipPlanesWorld &&
          existing.materialSlot == rs.materialSlot &&
          existing.shadowGroupSlot == rs.shadowGroupSlot && existing.shadowStyle == rs.shadowStyle &&
@@ -231,7 +237,7 @@ bool
 coin_render_same_state_except_camera(const CoinRenderRenderStateSnapshot &a,
                                      const CoinRenderRenderStateSnapshot &b)
 {
-  return a.portableShaderSlot == b.portableShaderSlot && a.clipPlanesWorld == b.clipPlanesWorld && a.model == b.model &&
+  return a.pbrNormalImageSlot==b.pbrNormalImageSlot && a.pbrNormalSamplerSlot==b.pbrNormalSamplerSlot && a.pbrNormalCoordinateUnit==b.pbrNormalCoordinateUnit && a.pbrDirectionMatrix==b.pbrDirectionMatrix && a.pbrNormalMatrix==b.pbrNormalMatrix && a.portableShaderSlot == b.portableShaderSlot && a.clipPlanesWorld == b.clipPlanesWorld && a.model == b.model &&
          a.materialSlot == b.materialSlot && a.lightingSlot == b.lightingSlot &&
          a.shadowGroupSlot == b.shadowGroupSlot && a.shadowStyle == b.shadowStyle &&
          a.shadowMapSize == b.shadowMapSize &&

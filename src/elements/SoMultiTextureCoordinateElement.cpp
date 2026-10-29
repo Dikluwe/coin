@@ -643,3 +643,8 @@ SoMultiTextureCoordinateElement::getMaxUnits() const
 }
 
 #undef PRIVATE
+
+SbUniqueId SoMultiTextureCoordinateElement::getNodeId(SoState * state, int unit) {
+  const auto * element = static_cast<const SoMultiTextureCoordinateElement *>(getConstElement(state, classStackIndex));
+  return element->getUnitData(unit).nodeid;
+}

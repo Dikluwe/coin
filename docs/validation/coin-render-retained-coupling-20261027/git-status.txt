@@ -1,0 +1,99 @@
+ M docs/coin-render-architecture.md
+ M examples/coinrender/coin_render_android_smoke.cpp
+ M include/CMakeLists.txt
+ M include/Inventor/SoPath.h
+ M include/Inventor/elements/SoLightElement.h
+ M include/Inventor/elements/SoMultiTextureCoordinateElement.h
+ M include/Inventor/elements/SoMultiTextureImageElement.h
+ M include/Inventor/nodes/SoCamera.h
+ M include/Inventor/nodes/SoClipPlane.h
+ M include/Inventor/nodes/SoComplexity.h
+ M include/Inventor/nodes/SoCube.h
+ M include/Inventor/nodes/SoDepthBuffer.h
+ M include/Inventor/nodes/SoEnvironment.h
+ M include/Inventor/nodes/SoFaceSet.h
+ M include/Inventor/nodes/SoLight.h
+ M include/Inventor/nodes/SoNode.h
+ M include/Inventor/nodes/SoShape.h
+ M include/Inventor/nodes/SoTexture2.h
+ M src/actions/CMakeLists.txt
+ M src/elements/CMakeLists.txt
+ M src/elements/SoLightElement.cpp
+ M src/elements/SoMultiTextureCoordinateElement.cpp
+ M src/elements/SoMultiTextureImageElement.cpp
+ M src/misc/SoBase.cpp
+ M src/misc/SoDB.cpp
+ M src/nodes/SoCamera.cpp
+ M src/nodes/SoClipPlane.cpp
+ M src/nodes/SoComplexity.cpp
+ M src/nodes/SoDepthBuffer.cpp
+ M src/nodes/SoEnvironment.cpp
+ M src/nodes/SoLight.cpp
+ M src/nodes/SoNode.cpp
+ M src/nodes/SoTexture2.cpp
+ M src/rendering/CMakeLists.txt
+ M src/rendering/coinbgfx/CoinBgfxLowering.cpp
+ M src/rendering/coinbgfx/CoinBgfxLowering.h
+ M src/rendering/coinbgfx/CoinBgfxSubmit.cpp
+ M src/rendering/coinrender/CMakeLists.txt
+ M src/rendering/coinrender/CoinRenderComposition.cpp
+ M src/rendering/coinrender/CoinRenderComposition.h
+ M src/rendering/coinrender/CoinRenderDepthPolicyElement.cpp
+ M src/rendering/coinrender/CoinRenderDepthPolicyElement.h
+ M src/rendering/coinrender/CoinRenderFrameReuseCore.h
+ M src/rendering/coinrender/CoinRenderTarget.cpp
+ M src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+ M src/shapenodes/SoCube.cpp
+ M src/shapenodes/SoFaceSet.cpp
+ M src/shapenodes/SoShape.cpp
+ M testsuite/coinbgfx/CoinBgfxCoreTest.cpp
+ M testsuite/coinbgfx/CoinBgfxInstancingTest.cpp
+ M testsuite/coinrender/CMakeLists.txt
+?? cmake/patches/freecad-retained-origin.txt
+?? docs/coin-render-million-memory-android.md
+?? docs/coin-render-million-retained-android-v2.md
+?? docs/coin-render-million-retained-android-v3.md
+?? docs/coin-render-million-retained-android-v4.md
+?? docs/coin-render-million-retained-android.md
+?? docs/coin-render-retained-android.md
+?? docs/coin-render-retained-benchmark-v2.jsonl
+?? docs/coin-render-retained-benchmark-v2.md
+?? docs/coin-render-retained-benchmark.jsonl
+?? docs/coin-render-retained-benchmark.md
+?? docs/coin-render-retained-bgfx-static-ablation-v2.jsonl
+?? docs/coin-render-retained-coupling-android.md
+?? docs/coin-render-retained-integration.md
+?? docs/validation/
+?? include/Inventor/actions/SoIRRenderAction.h
+?? include/Inventor/elements/SoDevicePixelRatioElement.h
+?? include/Inventor/elements/SoRenderMatrixPolicyElement.h
+?? include/Inventor/rendering/CoinRenderRetainedRenderer.h
+?? include/Inventor/rendering/SoRenderIR.h
+?? src/actions/SoIRRenderAction.cpp
+?? src/elements/SoDevicePixelRatioElement.cpp
+?? src/elements/SoLazyElementP.h
+?? src/elements/SoRenderDepthPolicyElement.cpp
+?? src/elements/SoRenderDepthPolicyElement.h
+?? src/elements/SoRenderMatrixPolicyElement.cpp
+?? src/elements/SoRenderPlacementElement.cpp
+?? src/elements/SoRenderPlacementElement.h
+?? src/rendering/SoInlineVector.h
+?? src/rendering/SoRenderBackend.cpp
+?? src/rendering/SoRenderBackend.h
+?? src/rendering/SoRenderIR.cpp
+?? src/rendering/SoRenderIRP.h
+?? src/rendering/SoRenderPlan.cpp
+?? src/rendering/SoRenderPlan.h
+?? src/rendering/SoRetainedUpdater.cpp
+?? src/rendering/SoRetainedUpdater.h
+?? src/rendering/SoTextureQualityPolicy.h
+?? src/rendering/coinrender/CoinRenderRetainedRenderer.cpp
+?? src/rendering/coinrender/CoinRenderRetainedTransport.cpp
+?? src/rendering/coinrender/CoinRenderRetainedTransport.h
+?? src/rendering/coinrender/CoinRenderSceneChanges.h
+?? testsuite/coinrender/CoinRenderRetainedBenchmark.cpp
+?? testsuite/coinrender/CoinRenderRetainedCityTest.cpp
+?? testsuite/coinrender/CoinRenderRetainedConnectorTest.cpp
+?? testsuite/coinrender/CoinRenderRetainedFeaturesTest.cpp
+?? testsuite/coinrender/CoinRenderRetainedIncrementalTest.cpp
+?? testsuite/coinrender/CoinRenderRetainedTestRenderer.h

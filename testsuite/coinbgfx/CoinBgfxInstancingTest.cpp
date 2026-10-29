@@ -373,6 +373,20 @@ int main() {
   if (std::getenv("COIN_RENDER_INSTANCING_CANONICAL_COVERAGE")) target.options.rasterizationPolicy=COIN_RENDER_RASTER_CANONICAL_8BIT;
   target.depthReadbackEnabled = false;
   auto frame = makeFrame(256, 256);
+  {
+    auto explicitFrame=frame;std::string diagnostic;CoinBgfxPlan accepted;
+    for(uint32_t mask : {0u,1u,2u,4u,8u,15u}) {
+      for(auto & state:explicitFrame.renderStates)state.explicitDepthMask=mask;
+      if(!check(CoinBgfxLowering::lowerInstanced(explicitFrame,256,256,false,accepted,diagnostic,nullptr,false),
+        "resolved opaque depth must admit instancing regardless of authored mask: "+diagnostic))return 1;
+    }
+    explicitFrame.renderStates[0].explicitDepthMask=16;
+    if(!check(!CoinBgfxLowering::lowerInstanced(explicitFrame,256,256,false,accepted,diagnostic,nullptr,false),
+      "unknown depth provenance bits must not be admitted"))return 1;
+    explicitFrame=frame;explicitFrame.renderStates[0].depthWrite=false;
+    if(!check(!CoinBgfxLowering::lowerInstanced(explicitFrame,256,256,false,accepted,diagnostic,nullptr,false),
+      "depth write semantics must remain qualified"))return 1;
+  }
   const CoinRenderFrameReuseDecision rebuild(CoinRenderFrameReuseKind::FULL_REBUILD, 0);
   std::vector<uint8_t> image;
   int result = compareRoutes(target, frame, rebuild, optout, "affine PHONG directional+point", true, image, true);
@@ -439,9 +453,37 @@ int main() {
   result = compareRoutes(target, frame, rebuild, optout, "return from clip", true, image);
   if (result || !check(image == beforeClip, "return from clip must restore the instanced image")) return 1;
 
+  // The retained connector's unlit profile must match the general encoder,
+  // including static reuse, instance subranges, camera patches and depth.
+  target.depthReadbackEnabled = true;
+  ++frame.revision;
+  for (auto & state : frame.renderStates) state.lightModel = CoinRenderLightModel::BASE_COLOR;
+  result = compareRoutes(target, frame, rebuild, optout, "BASE_COLOR with depth", true, image);
+  if (result) return result;
+  previous = frame;
+  ++frame.revision;
+  frame.renderStates[0].model[3][0] += .035f;
+  result = compareRoutes(target, frame,
+    CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::RESOURCE_REBUILD, previous.revision),
+    optout, "BASE_COLOR single instance transform", true, image);
+  if (result) return result;
+  previous = frame;
+  ++frame.revision;
+  frame.materials[0].diffuse[0] = .85f; frame.materials[0].diffuse[1] = .12f;
+  result = compareRoutes(target, frame, CoinRenderFrameReuseCore::classify(previous, frame),
+    optout, "BASE_COLOR material subranges", true, image);
+  if (result) return result;
+  previous = frame;
+  ++frame.revision;
+  frame.cameras[0].viewMatrix = previous.cameras[0].viewMatrix * cameraShift;
+  for (auto & state : frame.renderStates) state.view = frame.cameras[0].viewMatrix;
+  result = compareRoutes(target, frame, CoinRenderFrameReuseCore::classify(previous, frame),
+    optout, "BASE_COLOR camera patch", true, image);
+  if (result) return result;
+
   ++frame.revision;
   for (auto & state : frame.renderStates) state.depthFunction = CoinRenderDepthFunction::LEQUAL;
-  result = compareRoutes(target, frame, rebuild, optout, "uniform LEQUAL PHONG", true, image);
+  result = compareRoutes(target, frame, rebuild, optout, "uniform LEQUAL BASE_COLOR", true, image);
   if (result) return result;
   result = coplanarLastWins(target, optout, frame.revision + 1);
   if (result) return result;

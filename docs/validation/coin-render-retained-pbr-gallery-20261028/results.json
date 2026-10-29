@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-28",
+  "branch": "codex/coinrender-retained-integration",
+  "reference_revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+  "reference_build": "Unmodified pinned codex/pbr-clean, same installed BGFX/shaderc; gallery compiled with COIN_PBR_GALLERY_CURRENT",
+  "comparison": {
+    "status": "PASS",
+    "paths": [
+      "current",
+      "retained",
+      "reference"
+    ],
+    "scenes": [
+      "materials",
+      "cad"
+    ],
+    "exposure_stops": [
+      -2,
+      0,
+      2
+    ],
+    "dimensions": [
+      1200,
+      840
+    ],
+    "exact_buffers": 12,
+    "sha256": {
+      "cad--2.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+      "cad--2.rgba": "140a41d8a169d1a82f3569332673ca4f6738f4a2ec8f1ba304698b4bfcca8f31",
+      "cad-0.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+      "cad-0.rgba": "9ab65ffb4325e7d5b7d590cc2b192aed3574fd7c6563d939c9f208b177a6ee1f",
+      "cad-2.depth": "9af890d713549ce853e529f7f213fc19bacc77f5082e222b3c1a6f1f501dc439",
+      "cad-2.rgba": "a166268ba317a807308da39293f8a1c33e57de468263b0e65fc8414c4a0b892c",
+      "materials--2.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+      "materials--2.rgba": "6523a3e42027a851895a9f18f7ebbc5404f2e538fe56fbb587c77c9e6adf329f",
+      "materials-0.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+      "materials-0.rgba": "af2b55005555e86c97c3c7f2233c4196c9647f74303fbfdd5b54967553dd3f11",
+      "materials-2.depth": "ba25e97e77fb1eaa09871d526e36ca997dfe4ed17ee9a51b26c8b0296e6e4992",
+      "materials-2.rgba": "17892dab02171475f03503fda57705e72765235839fb279f5a47c36aeda7e435"
+    },
+    "retained_reuse": {
+      "captures": 1,
+      "plans": 1,
+      "transport_builds": 1
+    },
+    "assertions": [
+      "Exposure changes/restores color",
+      "Exposure preserves depth",
+      "Invalid stops preserve configuration/publication"
+    ]
+  },
+  "tests": {
+    "passed": 3,
+    "failed": 0,
+    "names": [
+      "CoinRenderRetainedPBRGalleryTest",
+      "CoinRenderRetainedPBRGpuTest",
+      "CoinRenderRetainedConnectorTest"
+    ]
+  },
+  "local_sha256": {
+    "examples/coinrender/coin_render_retained_pbr_gallery.cpp": "c9ffbbeeef52154885c135ad8c9670c36a5d4f5174b4dcbd85939f7441b46237",
+    "examples/coinrender/CMakeLists.txt": "f0bb526c73560ad5477e8804cde78d50100295eb4b452846688a066e78bb44ba",
+    "include/Inventor/rendering/CoinRenderOptions.h": "03e3ba7d0039e6e0d0af3e8e165ebf497319fb7e7e50b878812eaaddee5d8e1a",
+    "include/Inventor/rendering/CoinRenderTarget.h": "416d4bdfe15992d25797fabb2305ea4b4b0a6557dcfed37225b35d1ad33ca876",
+    "src/rendering/coinrender/CoinRenderTarget.cpp": "a90b47b6374bd756045fe56b9840d334c036b2a58baa846118cced026ae5e7cd",
+    "src/rendering/coinrender/CoinRenderSelectionCore.cpp": "57c1e0e86c6637df724dca42571f4a0b27fc5d4960c05ad09c2a21fd74e6e40b",
+    "src/rendering/coinbgfx/CoinBgfxPbr.cpp": "b106c41a3cf220a884239b18f7965447cb6ee077b6b7bb1b0cf89677bcd6721c",
+    "src/rendering/coinbgfx/CoinBgfxBackend.h": "0b87489e14bc77ed528db8e9916c533525c8645e8d9b0d5deca404ac8f470edf",
+    "scripts/coinrender/run_retained_pbr_gallery.py": "6e4be1f1cbb347722625dc110355775478705407ed9bfe825c96fe20b80ecc08",
+    "scripts/coinrender/render_retained_pbr_gallery.py": "7a5db7fa892878f8f6380cf7209b0325bd4a4bb5c2b08cc4cdc859d584eea6c4"
+  },
+  "binary_sha256": {
+    "/tmp/coin-pbr-reference-gallery": "bf5352679be8183233f625cbe6edf2685024fddb4bde4aaedab7e207a4788955",
+    "/tmp/coin-pbr-reference-build/lib/libCoinRender.so": "ead6d13360c9f3ad19f87400463ecd40e72b18f7e2cb92c22921779b24ef0942",
+    "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedPBRGallery": "2cf09bc0adbff5b1f5a32f91b0855a74618447c9a7aae61c28582effbe4cb620",
+    "/tmp/coin-retained-bgfx/bin/CoinRenderCurrentPBRGallery": "66b6e4c691061a1bf2fdd355a33b0f22060c62967166050dd4a150c6d563ec43",
+    "/tmp/coin-retained-bgfx/lib/libCoinRender.so": "a09daa2e3da9e6bcfb73cf7f9104de0fccc0f797781d6a35d4ef4ded49ff22f5"
+  },
+  "previews": {
+    "cad--2.png": "b46378576b20eac73f0031c6bd5287d95c7a580b4cecaafc9ce983247ea87cf1",
+    "cad-0.png": "d12cb84e4eb70d3a79008122453b316a2c3b51f610f62bc201aa3d6b55c0066b",
+    "cad-2.png": "eb7c2ae1ebdbe1ba28c98a8363761d19627ed79f191ab066e71ef6cc5ec83cf3",
+    "exposure-gallery.png": "3211aadb7b8a88fb2dfece7116cfcfe92b230470feecfd1b52f94f09060c3f86",
+    "materials--2.png": "9eca52e5410b8559093fd2cd8455cf5e650fd6cb29e21f064a9e088963a2ca59",
+    "materials-0.png": "1853151680be44782ead713f21edc0bd09fa4a2ccb47bdc5497338619cb8bc01",
+    "materials-2.png": "48a1dc62239b407e0463f00a1c91f58047d835d729b781243d1c9aa86357f781",
+    "materials-gallery.png": "ce9bb03705ee6a1b6f008cc694dfd276bc69eb2a3558a85986d0389791eaa995"
+  },
+  "assertions": [
+    "Output exposure 0 -> -2 -> +2 -> 0 visibly changes and exactly restores pixels.",
+    "Depth is unchanged for all exposures.",
+    "One capture, one plan and one transport build per scene.",
+    "Setters do not publish until rendering.",
+    "NaN, infinity and out-of-range setters preserve output/configuration/serial."
+  ],
+  "separation": "Output exposure is C9 target/executor policy. Native F9 capture schema and planning were not changed.",
+  "limits": [
+    "Only the connected BGFX/Vulkan offscreen opaque direct-light profile.",
+    "No IBL, PBR textures, shadows, Android or million-building PBR performance qualification.",
+    "No new performance gain claimed.",
+    "Labeled images are composed from real readbacks; only the exposure strip crops unused background and resizes for display."
+  ]
+}

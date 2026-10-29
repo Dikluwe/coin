@@ -181,3 +181,18 @@ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
 		CoinRenderBenchmarkAnimation.h generate_large_scene.py
 		DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples/coinrender COMPONENT development)
 endif()
+if(COIN_BUILD_RENDER AND COIN_RENDER_BACKEND STREQUAL "BGFX")
+  add_executable(coin_render_freecad_viewport coin_render_freecad_viewport.cpp)
+  target_compile_definitions(coin_render_freecad_viewport PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+  target_include_directories(coin_render_freecad_viewport PRIVATE
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+  target_link_libraries(coin_render_freecad_viewport PRIVATE CoinRender Coin ${COIN_RENDER_LINK_LIBRARIES})
+  add_executable(coin_render_retained_ibl_gallery coin_render_retained_ibl_gallery.cpp)
+  target_include_directories(coin_render_retained_ibl_gallery PRIVATE ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+  target_link_libraries(coin_render_retained_ibl_gallery PRIVATE CoinRender Coin)
+  add_executable(coin_render_retained_pbr_gallery coin_render_retained_pbr_gallery.cpp)
+  target_include_directories(coin_render_retained_pbr_gallery PRIVATE
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+  target_link_libraries(coin_render_retained_pbr_gallery PRIVATE CoinRender Coin)
+endif()

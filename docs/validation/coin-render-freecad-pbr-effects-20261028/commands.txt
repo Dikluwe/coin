@@ -1,0 +1,11 @@
+# Native FreeCAD preview (Qt paths are environment-specific)
+export COIN_VIEWPORT_SOURCE=/path/to/this/coin
+export COIN_VIEWPORT_WORKER=/path/to/build/bin/CoinRenderFreeCADViewportWorker
+export COIN_VIEWPORT_ENVIRONMENT=/path/to/studio.cibl
+export COIN_VIEWPORT_ASSEMBLY=/path/to/FreeCAD/data/examples/AssemblyExample.FCStd
+export COIN_ASSEMBLY_PREVIEW_OUTPUT=/tmp/fresh-effects-preview
+# COIN_ASSEMBLY_EFFECTS_PREVIEW defaults to 1; use 0 for the older material-only preview.
+xvfb-run -a -s '-screen 0 1680x1200x24' /path/to/FreeCAD --user-cfg /tmp/fresh-effects-preview/user.cfg --system-cfg /tmp/fresh-effects-preview/system.cfg examples/coinrender/freecad_assembly_appearance.FCMacro
+python3 scripts/coinrender/compare_freecad_pbr_effects.py --worker "$COIN_VIEWPORT_WORKER" --environment "$COIN_VIEWPORT_ENVIRONMENT" --preview "$COIN_ASSEMBLY_PREVIEW_OUTPUT"
+ctest --test-dir /path/to/build -R '^(CoinRenderPbrEffectsTest|CoinRenderRetainedIBL.*|CoinRenderIBLBake.*|CoinRenderRetainedPBRGalleryTest|CoinRenderRetainedConnectorTest|CoinBgfxCoreTest|CoinBgfxInstancingTest|CoinEnvironmentTest|SoRetainedPBRTest)$' --output-on-failure
+python3 scripts/coinrender/audit_retained_contribution_boundaries.py

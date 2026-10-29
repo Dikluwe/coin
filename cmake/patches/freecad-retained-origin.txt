@@ -1,0 +1,146 @@
+Retained capture integration source
+
+Upstream: https://github.com/FreeCAD/coin
+Revision: 17a9e4b21b643cb44d42e103183d8384eef6a6a5
+Branch at inspection: stack/retained-instance-data (PR #80, unmerged)
+
+This integration imports the retained action, IR and planner and the necessary
+primitive collection hooks. It does not import the FreeCAD application or Quarter.
+The retained connector is experimental and has an explicitly bounded profile.
+The original CoinRender capture remains available while coverage is migrated.
+
+Imported files cover SoIRRenderAction, SoRenderIR, SoRenderPlan, SoRenderBackend,
+SoRenderPlacementElement, SoRenderMatrixPolicyElement, SoDevicePixelRatioElement,
+SoInlineVector, SoTextureQualityPolicy and SoRetainedUpdater. Native primitive collector and dispatch
+sections are transplanted into the existing SoShape implementation to preserve
+CoinRender's existing callback/corner extensions and GL renderer code.
+
+Local adaptations: build registration, native action initialization, SoPath friend
+access, export annotations for the backend/planner DLL boundary, texture source
+revision accessor, and a bounded lazy-state snapshot compatibility seam. The
+SoLazyElementP helper does not import FreeCAD's complete packed-alpha/separate-
+blend changes: the connector rejects the affected profiles. No complete manager,
+GL executor or prepared-instance cache is imported here.
+
+Additional retained integration: direct SoFaceSet resource generation, logical
+SoDepthBuffer::doAction (with callback depth element enabled), and a bounded
+notification collector adapted from SoRenderManagerRootSensor. Existing fork
+SoBase::getAuditors fixes are required by updater parent checks: initialize the
+new snapshot list and clear every old entry when refreshing it.
+
+Standalone apply(root) includes the root in command paths, unlike the upstream
+manager additional-root traversal. State-dependency prefix matching selects the
+correct offset for both forms. SoRenderParams view/projection defaults explicitly
+use identity because this base SbMatrix default constructor is uninitialized.
+The adapter owns frame identity/revision and preserves native invalidation domains;
+it grants no reuse authority to raw external mutable list/plan callers.
+
+See docs/coin-render-retained-integration.md for supported input and verification.
+
+Local follow-up: committed native geometry deltas patch owned transport spans
+without rebuilding the frame. Native plan invalidations refresh the supplied
+schedule only. Material values use shared slots with copy-on-write ownership.
+BGFX's existing instance shader now admits uniform BASE_COLOR with its PHONG
+flag disabled; instance upload patches compare owned mesh/index contents first.
+These are connector/executor adaptations, not additional upstream imports.
+
+Android city follow-up: local SoLight::IRRender adds logical directional-light
+state, and SoCube::generateRetainedPrimitives registers shared overall-material
+cube resources using native node/revision identity. The connector maps PHONG
+normals and directional lights, interns shared geometry/cameras, and rebinds its
+CPU frame across compatible window/offscreen targets without recapture or
+replanning. This does not import the upstream prepared-instance executor cache.
+
+Compact command follow-up: local opt-in command-template storage preserves native
+list indices and revisions, with value snapshots for native planner/updater and
+connector. Legacy reference/pointer access expands ordinary storage on demand.
+SoCube now emits the same face corners/UVs/normals as generate_cube using 24
+vertices and 36 indices; the connector reserves transport from supplied operations.
+No additional capture, scene traversal, classifier or planner is introduced.
+
+Direct compact capture follow-up: opt-in command interning during native emission,
+exact six-coefficient occurrence records plus ten template matrix coefficients,
+fixed-buffer command keys, flat node ownership/dependency index, uint32 checked
+path/dependency indices and consecutive dependency intervals. Compatible legacy
+array access and native per-command updater publication remain intact.
+
+Resolved schedule follow-up: native operation order is consumed as implicit draw
+identity or a uint32 permutation, with per-item resolved fields read from owned
+transport, no additional classifier/planner. Flat node ownership replaces the
+redundant ordinary ownership vector; path lengths derive from adjacent offsets.
+BGFX admits known authored-depth masks when the resolved opaque depth values
+already satisfy its instancing profile; the combined depth regression is tested.
+
+Local broader coupling: native fog/clip/texture-matrix/depth-provenance payloads,
+logical Environment/Complexity capture, per-light attenuation, shared stroke
+lowering, vertex material conversion and existing target execution policies.
+These local extensions preserve the fork as the single capture/updater/planner;
+they are not presented as code imported from the pinned upstream revision.
+
+Local coupling also adds explicit native order policies and qualified single-camera
+projection updates. These extensions are branch work, not upstream claims.
+
+Contribution boundaries are recorded in freecad-retained-contributions.json and
+docs/coin-render-retained-integration.md (Contribution boundaries). Candidate
+features are semantic deltas requiring a port/test on the real pinned fork.
+Whole mixed files, the local SoLazyElementP shim, CoinRender transport/targets and
+executor-specific code are not upstream exports. Compact storage, authored depth
+provenance and retained upload-quality implementation have explicit review gates.
+
+Initial PBR capture connection: authored node factors and element semantics adapted
+from codex/pbr-clean at ce72805f0536f8f0ef07dc5575d301b3ddffa507. SoPBRMaterial,
+SoPBRMaterialData and SoPBRMaterialElement now belong to native Coin in this port;
+immutable owned descriptors enter IR and native command keys/comparisons. This is
+candidate F9, pending native API/resource review. No shader, IBL, environment or
+GPU qualification was imported. CoinRender transport explicitly refuses PBR until
+its executor contract is connected; no legacy shading fallback is claimed.
+
+PBR transport/shading follow-up (C9): CoinRender typed material DTO and explicit
+native-to-transport value conversion; original PBR BRDF, material and output
+shaders adapted through a dedicated varying declaration to the modular BGFX
+executor. Native Vulkan offscreen opaque factors/clearcoat use RGBA16F and the
+original D24S8-preferred depth policy, then Neutral/sRGB output. Native capture
+and plan remain authoritative. Extended PBR resources/passes are not imported.
+The same fixture is compared against an unmodified build of the pinned PBR branch
+and the callback capture control. This executor work is not a native fork export.
+
+PBR output/examples follow-up: C9 owns the target exposure option/setter and HDR
+output multiplier. Exposure changes add no native capture or planning state.
+The reusable 3D gallery exercises curved/generated primitives, clearcoat and
+-2/0/+2 exposure with color/depth equivalence against current and pinned-source
+PBR paths; one capture/plan/transport remains sufficient for each scene.
+
+Global IBL follow-up: CoinEnvironment CPU package/math sources are imported
+unchanged from codex/pbr-clean ce72805f0536f8f0ef07dc5575d301b3ddffa507 into a
+separate Coin-only library (candidate F10; local packaging must be split).
+C10 retains immutable CPU snapshots in the target and uploads GGX specular cube,
+LUT/average textures and SH9 to BGFX. Scalar rotation/intensity/exposure reuse
+capture, plan, transport and texture upload. Native IR/planner are unchanged.
+The source IBL shader/helpers and non-array isotropic profile are compared using
+the same packages against callback, retained and unmodified pinned-source paths.
+No skybox, local probes, anisotropic arrays or transactional bundle-swap API is
+claimed by this connection. Corrupt input/budget refusals preserve publication.
+
+C11 FreeCAD viewport follow-up: an opt-in application-side Python adapter imports
+rigid Assembly link meshes once, then sends camera/pose/visibility/interaction
+state to an isolated CoinRender worker. The worker has one retained capture and
+native planner; no FreeCAD Coin ABI crosses the boundary. BGFX Vulkan readback is
+presented by a Qt widget in the real FreeCAD 3D area, with legacy scene rendering
+disabled and audited. This is not a native BGFX swapchain or an implementation of
+FreeCAD custom-node IRRender methods. Picking uses FreeCAD's existing graph and
+selection model; object-wide PBR highlight uses the same worker capture. Source
+ingress, process/Qt presentation and GUI tests stay entirely in the C11 lane.
+
+C12 replaces the default FreeCAD Qt pixel presentation with a native Xlib child
+surface owned by the toolkit and presented by the isolated BGFX Vulkan worker.
+The existing HDR/Neutral output pass now admits the native window target. No
+native IR, updater or planner state is added. The worker performs no pixel
+readback in this mode; Qt receives acknowledgements/statistics only. A Gui
+document-lifetime observer retires the target before FreeCAD deletes its views;
+view/surface teardown and API-thread ownership are also fenced. The existing
+readback mode remains an explicit qualification control, not a fallback.
+Native surface screenshots are taken only by the test after presentation and
+compared with separate callback/retained offscreen replays. None is used for
+display. This host/executor change is not a FreeCAD/coin native contribution.
+The capture/planning origin remains the pinned retained stack above, including
+commit 17a9e4b21 authored by Joao Matos <joao@tritao.eu>.

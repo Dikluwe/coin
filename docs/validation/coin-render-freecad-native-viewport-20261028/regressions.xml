@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="9"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="45"
+	timestamp="2026-10-28T22:48:32"
+	>
+	<testcase name="CoinRenderIBLBake-studio" classname="CoinRenderIBLBake-studio" time="1.05415" status="run">
+		<properties/>
+		<system-out>IBL baked: face=128 lut=128 levels=8 bytes=1966172 identity=11261952938219930909
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedIBL-studio" classname="CoinRenderRetainedIBL-studio" time="6.3109" status="run">
+		<properties/>
+		<system-out>IBL PASS: 2 scenes, 5 states, 20 exact buffers, 2 paths
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIBLBake-asymmetric" classname="CoinRenderIBLBake-asymmetric" time="0.9541" status="run">
+		<properties/>
+		<system-out>IBL baked: face=128 lut=128 levels=8 bytes=1966172 identity=5126869629112700977
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedIBL-asymmetric" classname="CoinRenderRetainedIBL-asymmetric" time="6.17995" status="run">
+		<properties/>
+		<system-out>IBL PASS: 2 scenes, 5 states, 20 exact buffers, 2 paths
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedIBLAdmissionTest" classname="CoinRenderRetainedIBLAdmissionTest" time="1.07515" status="run">
+		<properties/>
+		<system-out>IBL admission, retry, frozen source and GPU budget: PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPBRGalleryTest" classname="CoinRenderRetainedPBRGalleryTest" time="3.42491" status="run">
+		<properties/>
+		<system-out>PBR gallery PASS: 2 scenes, 3 exposures, 12 exact buffers, 2 paths
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedConnectorTest" classname="CoinRenderRetainedConnectorTest" time="0.547129" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxCoreTest" classname="CoinBgfxCoreTest" time="0.642302" status="run">
+		<properties/>
+		<system-out>CoinBgfxCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxInstancingTest" classname="CoinBgfxInstancingTest" time="25.6936" status="run">
+		<properties/>
+		<system-out>affine PHONG directional+point max_rgb_error=1 mean_rgb_error=1.01725e-05 changed_pixels=2 pixels_over_3=0 worst_xy=47,28 instanced_rgb=131,36,30 general_rgb=132,36,30
+classified camera update max_rgb_error=1 mean_rgb_error=5.08626e-06 changed_pixels=1 pixels_over_3=0 worst_xy=216,196 instanced_rgb=22,55,156 general_rgb=22,55,157
+classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+resized target max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from fog max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+re...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

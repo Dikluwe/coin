@@ -1,8 +1,75 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
 #include "rendering/coinrender/CoinRenderComposition.h"
+
+thread_local const CoinRenderResolvedCompositionScope * CoinRenderResolvedCompositionScope::active = nullptr;
+CoinRenderResolvedCompositionScope::CoinRenderResolvedCompositionScope(
+  const CoinRenderFramePlan & value, const std::vector<CoinRenderCompositionItem> & schedule)
+  : previous(active), frame(&value), revision(value.revision), order(&schedule) { active = this; }
+CoinRenderResolvedCompositionScope::~CoinRenderResolvedCompositionScope() { active = previous; }
+const std::vector<CoinRenderCompositionItem> *
+CoinRenderResolvedCompositionScope::forFrame(const CoinRenderFramePlan & candidate) {
+  return active && active->frame == &candidate && active->revision == candidate.revision
+    ? active->order : nullptr;
+}
+
+CoinRenderResolvedCompositionScope::CoinRenderResolvedCompositionScope(
+  const CoinRenderFramePlan & value,const std::vector<uint32_t> & schedule)
+  : previous(active),frame(&value),revision(value.revision),compactOrder(&schedule){active=this;}
+const std::vector<uint32_t> * CoinRenderResolvedCompositionScope::compactForFrame(const CoinRenderFramePlan & value){
+  return active && active->frame==&value && active->revision==value.revision ? active->compactOrder : nullptr;
+}
+namespace {
+CoinRenderCompositionItem resolvedCompactItem(const CoinRenderFramePlan & frame,
+    const std::vector<uint32_t> & indices,size_t ordinal){
+  CoinRenderCompositionItem item;item.drawIndex=indices.empty()?ordinal:indices[ordinal];
+  const auto & draw=frame.draws[item.drawIndex];const auto & state=frame.renderStates[draw.renderStateSlot];
+  item.firstIndex=draw.geometry.firstIndex;item.indexCount=draw.geometry.indexCount;
+  item.blend = state.transparentMaterial;
+  switch (state.transparencyType) {
+  case SoGLRenderAction::NONE: item.blend = false; break;
+  case SoGLRenderAction::SCREEN_DOOR:
+    item.blend = false; item.screenDoor = true;
+    if (state.polygonOffsetPrimitiveStyle == 1)
+      item.screenDoorLevel = static_cast<uint32_t>(std::min(64, std::max(0, int(state.screenDoorTransparency * 64.0f))));
+    break;
+  case SoGLRenderAction::ADD: item.additive = true; break;
+  case SoGLRenderAction::BLEND: break;
+  case SoGLRenderAction::DELAYED_ADD: item.additive = true; item.deferred = item.blend; break;
+  case SoGLRenderAction::DELAYED_BLEND: item.deferred = item.blend; break;
+  case SoGLRenderAction::SORTED_OBJECT_ADD: item.additive = true; [[fallthrough]];
+  case SoGLRenderAction::SORTED_OBJECT_BLEND: item.sortObject = true; item.deferred = item.blend; break;
+  case SoGLRenderAction::SORTED_LAYERS_BLEND:
+    item.deferred = item.blend; item.transparencyStrategy = CoinRenderCompositionItem::SORTED_LAYERS; break;
+  }
+  if (item.blend && item.deferred && !item.additive) {
+    const auto required = item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS
+      ? COIN_RENDER_MECHANISM_PEELING : COIN_RENDER_MECHANISM_OBJECT;
+    const auto selected = coin_render_requested_mechanism(frame.transparency.mode, required, true);
+    item.transparencyStrategy = selected.mechanism == COIN_RENDER_MECHANISM_PEELING
+      ? CoinRenderCompositionItem::SORTED_LAYERS : selected.mechanism == COIN_RENDER_MECHANISM_WEIGHTED_OIT
+        ? CoinRenderCompositionItem::WEIGHTED_OIT : CoinRenderCompositionItem::OBJECT;
+  }
+  item.depthTest=state.depthTest;item.depthWrite=state.depthWrite;item.depthFunction=state.depthFunction;
+  if (item.deferred) {
+    if (!(state.explicitDepthMask & 1)) item.depthTest = true;
+    if (!(state.explicitDepthMask & 2) && !frame.delayedObjDepthWrite) item.depthWrite = false;
+    if (!(state.explicitDepthMask & 4)) item.depthFunction = CoinRenderDepthFunction::LEQUAL;
+  }
+  std::copy(state.depthRange,state.depthRange+2,item.depthRange);return item;
+}
+void expandResolvedCompact(const CoinRenderFramePlan & frame,const std::vector<uint32_t> & indices,
+    std::vector<CoinRenderCompositionItem> & result){
+  const size_t count=indices.empty()?frame.draws.size():indices.size();
+  result.clear();result.reserve(count);
+  for(size_t i=0;i<count;++i)result.push_back(resolvedCompactItem(frame,indices,i));
+}
+}
+CoinRenderCompositionItem CoinRenderCompositionScheduleView::item(size_t index)const{
+  return compact ? resolvedCompactItem(*source,*compact,index) : (*items)[index];
+}
+
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
@@ -10,6 +77,12 @@
 #include <cstring>
 #include <limits>
 #include <new>
+#ifdef COIN_WGPU_TEST_HOOKS
+#include <atomic>
+namespace { std::atomic<uint64_t> compositionClassifications{0}; }
+uint64_t coin_render_composition_classification_count_for_tests()
+{ return compositionClassifications.load(std::memory_order_relaxed); }
+#endif
 
 bool
 coin_render_composition_borrow_enabled()
@@ -43,7 +116,18 @@ CoinRenderCompositionScheduleView::prepare(const CoinRenderFramePlan & frame,
 {
   items = &owned;
   trace.copiedItems = trace.borrowedItems = trace.computedItems = 0;
+  compact=preflight ? preflight->compactCompositionFor(frame) : nullptr;
+  if(!compact)compact=CoinRenderResolvedCompositionScope::compactForFrame(frame);
+  if(compact){source=&frame;trace.borrowedItems=size();diagnostic.clear();return true;}
   const auto qualifyBegin = trace.begin();
+  if (preflight) {
+    if (const auto * resolved = preflight->resolvedCompositionFor(frame)) {
+      items = resolved;
+      trace.borrowedItems = resolved->size();
+      diagnostic.clear();
+      return true;
+    }
+  }
   const auto * loan = coin_render_composition_borrow_enabled() && preflight
     ? preflight->opaqueCompositionFor(frame) : nullptr;
   trace.qualifyMs += trace.elapsed(qualifyBegin);
@@ -78,16 +162,19 @@ CoinRenderFramePreflight::invalidate()
   frame = nullptr;
   revision = 0;
   opaqueIdentity = false;
+  resolvedSchedule = false;
+  compactOrder = nullptr;
   order.clear();
 }
 
 const std::vector<CoinRenderCompositionItem> *
 CoinRenderFramePreflight::compositionFor(const CoinRenderFramePlan &candidate) const
 {
-  return frame == &candidate && revision == candidate.revision &&
-                 coin_render_same_transparency_options(transparency, candidate.transparency)
-             ? &order
-             : nullptr;
+  return hasCompositionFor(candidate) && !compactOrder ? &order : nullptr;
+}
+bool CoinRenderFramePreflight::hasCompositionFor(const CoinRenderFramePlan & candidate) const {
+  return frame==&candidate && revision==candidate.revision &&
+    coin_render_same_transparency_options(transparency,candidate.transparency);
 }
 
 const std::vector<CoinRenderCompositionItem> *
@@ -246,6 +333,24 @@ coin_render_composition_order(const CoinRenderFramePlan &frame,
                               std::string &diagnostic, bool deferUnresolvedAlpha,
                               bool *opaqueIdentity)
 {
+  if (const auto * indices=CoinRenderResolvedCompositionScope::compactForFrame(frame)) {
+    expandResolvedCompact(frame,*indices,order);
+    if(opaqueIdentity) *opaqueIdentity = indices->empty() &&
+      std::all_of(frame.renderStates.begin(), frame.renderStates.end(),
+        [](const CoinRenderRenderStateSnapshot & state) { return !state.transparentMaterial && state.polygonOffsetPrimitiveStyle == 1 &&
+            state.transparencyType != SoGLRenderAction::SCREEN_DOOR && state.transparencyType != SoGLRenderAction::ADD &&
+            state.transparencyType != SoGLRenderAction::DELAYED_ADD && state.transparencyType != SoGLRenderAction::SORTED_OBJECT_ADD; });
+    diagnostic.clear();return true;
+  }
+  if (const auto * resolved = CoinRenderResolvedCompositionScope::forFrame(frame)) {
+    order = *resolved;
+    if (opaqueIdentity) *opaqueIdentity = false;
+    diagnostic.clear();
+    return true;
+  }
+#ifdef COIN_WGPU_TEST_HOOKS
+  compositionClassifications.fetch_add(1, std::memory_order_relaxed);
+#endif
   if (!coin_render_scene_layers_valid(frame, diagnostic)) return false;
   CoinRenderPhaseTimer timer("composition_detail");
   if (opaqueIdentity)
@@ -648,8 +753,16 @@ coin_render_composition_schedule(const CoinRenderFramePlan &frame,
                                  std::vector<CoinRenderCompositionItem> &schedule,
                                  std::string &diagnostic, const CoinRenderFramePreflight *preflight)
 {
+  if(preflight)if(const auto * indices=preflight->compactCompositionFor(frame)){
+    expandResolvedCompact(frame,*indices,schedule);diagnostic.clear();return true;
+  }
   std::vector<CoinRenderCompositionItem> computedOrder;
   const auto *cachedOrder = preflight ? preflight->compositionFor(frame) : nullptr;
+  if (preflight && preflight->resolvedCompositionFor(frame)) {
+    schedule = *cachedOrder;
+    diagnostic.clear();
+    return true;
+  }
   if (!cachedOrder && !coin_render_composition_order(frame, computedOrder, diagnostic))
     return false;
   const auto &order = cachedOrder ? *cachedOrder : computedOrder;

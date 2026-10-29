@@ -53,13 +53,17 @@ enum CoinRenderNativeSurfaceType {
  * 1. Coin DOES NOT own the native window, display, connection or presentation layer.
  * 2. The host application must keep these handles valid until CoinRenderTarget is destroyed.
  * 3. CoinRenderTarget must be destroyed BEFORE destroying the underlying window or toolkit.
- * 4. Creation, resize, apply and destruction must occur on the thread owning the window.
+ * 4. Creation, resize, apply and destruction use the renderer API thread; the
+ *    host follows its toolkit's native-window ownership/thread rules.
  * 5. Size passed to CoinRenderTarget must be in framebuffer pixels, not logical window points.
  * 6. For Win32, hwnd is required and hinstance may be null; the caller keeps HWND alive.
  * 7. For Wayland, display and surface are required; the caller dispatches events.
  * 8. For AppKit, metalLayer is a CAMetalLayer retained by the host on the UI thread.
  * 9. For Android, nativeWindow is an ANativeWindow; release the target before
  *    APP_CMD_TERM_WINDOW returns and create a new target for each new window.
+ * 10. An Xlib renderer may open its own connection to the host's X server and
+ *     present into a foreign host XID. Display pointers never cross processes.
+ *     The host must fence target retirement before destroying that XID.
  */
 struct CoinRenderNativeSurfaceDescriptor {
   uint32_t abiVersion;

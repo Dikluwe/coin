@@ -1,0 +1,310 @@
+Start testing: Oct 27 23:03 -03
+----------------------------------------------------------
+115/1714 Testing: CoinRenderCameraReuseReferenceTest
+115/1714 Test: CoinRenderCameraReuseReferenceTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderCameraReuseReferenceTest"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderCameraReuseReferenceTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderCameraReuseReferenceTest" end time: Oct 27 23:03 -03
+"CoinRenderCameraReuseReferenceTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+159/1714 Testing: CoinRenderMaterialTest
+159/1714 Test: CoinRenderMaterialTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderMaterialTest"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderMaterialTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+Running CoinRenderMaterialTest...
+[PASS] testAbiVersionCheck
+[PASS] testMaterialBindingsFaceVsLineNoGpu
+[PASS] testInvalidMaterialIndexHandling
+[PASS] testStorageBufferLimitsAndSlotValidation
+[PASS] testBaseColorVsPhongLitAndUnlitGpu
+[PASS] testShininessZeroAndExponentConversion
+[PASS] testOpaqueRuleForAlpha
+[PASS] testMaterialMutationWithGeometryCacheHit
+ALL 8 CoinRenderMaterialTest SUITES PASSED!
+<end of output>
+Test time =   0.59 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderMaterialTest" end time: Oct 27 23:03 -03
+"CoinRenderMaterialTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+160/1714 Testing: CoinRenderTextureTest
+160/1714 Test: CoinRenderTextureTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderTextureTest"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderTextureTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+========================================================
+Running CoinRenderTextureTest (Subwave 3B: 2D Texture Pipeline)
+========================================================
+-> Test 1: Texture formats (1, 2, 3, 4 components) with MODULATE...
+-> Test 2: MODULATE model color verification...
+-> Test 3: Strict UNSUPPORTED rejections outside the texture profile...
+Coin error in SbImage::readFile(): couldn't find 'non_existent_file_dummy_test_123.png'.
+Coin warning in SoTexture2::filenameSensorCB(): Image file 'non_existent_file_dummy_test_123.png' could not be read
+-> Test 4: UV coordinates (explicit vs procedural vs out-of-bounds)...
+-> Test 5: Texture transformation and wrap modes...
+-> Test 6: Multiple draws with different textures in same frame...
+-> Test 7: Texture image deduplication with different samplers...
+-> Test 8: Texture quality 0.0 disables texture smoothly...
+
+ALL CoinRenderTextureTest checks PASSED successfully!
+<end of output>
+Test time =   9.51 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTextureTest" end time: Oct 27 23:03 -03
+"CoinRenderTextureTest" time elapsed: 00:00:09
+----------------------------------------------------------
+
+162/1714 Testing: CoinRenderTextureSamplingCaptureTest
+162/1714 Test: CoinRenderTextureSamplingCaptureTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderTextureSamplingTest"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderTextureSamplingCaptureTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+sampling_test_policy=0
+P07 sampling cases=234 rejected=4 GPU=0
+<end of output>
+Test time =   0.19 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTextureSamplingCaptureTest" end time: Oct 27 23:03 -03
+"CoinRenderTextureSamplingCaptureTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+163/1714 Testing: CoinRenderTextureSamplingConfigLimitTest
+163/1714 Test: CoinRenderTextureSamplingConfigLimitTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderTextureSamplingTest" "--reject-config"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderTextureSamplingConfigLimitTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+sampling_test_policy=0
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTextureSamplingConfigLimitTest" end time: Oct 27 23:03 -03
+"CoinRenderTextureSamplingConfigLimitTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+164/1714 Testing: CoinRenderTextureSamplingGpuTest
+164/1714 Test: CoinRenderTextureSamplingGpuTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderTextureSamplingTest" "--gpu"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderTextureSamplingGpuTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+sampling_test_policy=0
+adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) renderer=1 vendor=4318 device=9568
+quality-0.100000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+Coin warning in glxglue_context_create_software(): Couldn't create GLX context.
+quality-0.100000/nc-1/model-8448/units-1: mandatory CoinGL
+<end of output>
+Test time =   4.93 sec
+----------------------------------------------------------
+Test Failed.
+"CoinRenderTextureSamplingGpuTest" end time: Oct 27 23:03 -03
+"CoinRenderTextureSamplingGpuTest" time elapsed: 00:00:04
+----------------------------------------------------------
+
+180/1714 Testing: CoinRenderTextureQualitycontextsTest
+180/1714 Test: CoinRenderTextureQualitycontextsTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderTextureQualityStateTest" "--contexts"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderTextureQualitycontextsTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+quality_state context=3 min=9986 mag=9729 uploads=4 initial=1 state=1 upload_gate=1
+quality_state context=4 min=9987 mag=9729 uploads=4 initial=1 state=1 upload_gate=1
+quality_state context=3 min=9986 mag=9729 uploads=0 initial=0 state=1 upload_gate=1
+quality_state context=4 min=9987 mag=9729 uploads=0 initial=0 state=1 upload_gate=1
+quality_state context=3 min=9987 mag=9729 uploads=0 initial=0 state=1 upload_gate=1
+quality_state context=3 min=9986 mag=9729 uploads=0 initial=0 state=1 upload_gate=1
+<end of output>
+Test time =   0.10 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTextureQualitycontextsTest" end time: Oct 27 23:03 -03
+"CoinRenderTextureQualitycontextsTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+181/1714 Testing: CoinRenderTextureQualityseparatorTest
+181/1714 Test: CoinRenderTextureQualityseparatorTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderTextureQualityStateTest" "--separator"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderTextureQualityseparatorTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+quality_state context=2 min=9986 mag=9729 uploads=4 initial=1 state=1 upload_gate=1
+quality_state context=2 min=9986 mag=9729 uploads=0 initial=0 state=1 upload_gate=1
+quality_state context=2 min=9986 mag=9729 uploads=0 initial=0 state=1 upload_gate=1
+<end of output>
+Test time =   0.07 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTextureQualityseparatorTest" end time: Oct 27 23:03 -03
+"CoinRenderTextureQualityseparatorTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+182/1714 Testing: CoinRenderTextureQualityflagsTest
+182/1714 Test: CoinRenderTextureQualityflagsTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderTextureQualityStateTest" "--flags"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderTextureQualityflagsTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+quality_flags flags=14 min=9729 mag=9729 mip1_width=0 uploaded_quality=0.8 pass=1
+quality_flags flags=20 min=9985 mag=9729 mip1_width=2 uploaded_quality=0.8 pass=1
+quality_flags flags=28 min=9987 mag=9729 mip1_width=2 uploaded_quality=0.8 pass=1
+quality_flags flags=32768 min=9987 mag=9729 mip1_width=2 uploaded_quality=0.8 pass=1
+<end of output>
+Test time =   0.09 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTextureQualityflagsTest" end time: Oct 27 23:03 -03
+"CoinRenderTextureQualityflagsTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+183/1714 Testing: CoinRenderTextureQualityupgradeTest
+183/1714 Test: CoinRenderTextureQualityupgradeTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderTextureQualityStateTest" "--upgrade"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderTextureQualityupgradeTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+quality_upgrade step=0 quality=0.1 red=44 expected=44 min=9728 mag=9728 mip1_width=0 texture_id=1 uploaded_quality=0.1 gl_uploads=1 resource=1 color=1
+quality_upgrade step=1 quality=0.8 red=70 expected=70 min=9987 mag=9729 mip1_width=4 texture_id=1 uploaded_quality=0.8 gl_uploads=4 resource=1 color=1
+quality_upgrade step=2 quality=0.3 red=42 expected=42 min=9729 mag=9729 mip1_width=4 texture_id=1 uploaded_quality=0.8 gl_uploads=0 resource=1 color=1
+quality_upgrade step=3 quality=0.6 red=50 expected=50 min=9986 mag=9729 mip1_width=4 texture_id=1 uploaded_quality=0.8 gl_uploads=0 resource=1 color=1
+quality_upgrade step=4 quality=0.8 red=70 expected=70 min=9987 mag=9729 mip1_width=4 texture_id=1 uploaded_quality=0.8 gl_uploads=0 resource=1 color=1
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTextureQualityupgradeTest" end time: Oct 27 23:03 -03
+"CoinRenderTextureQualityupgradeTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+184/1714 Testing: CoinRenderTextureQualityTransitionUnit0Test
+184/1714 Test: CoinRenderTextureQualityTransitionUnit0Test
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderTextureQualityTransitionTest" "--unit0"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderTextureQualityTransitionUnit0Test" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+quality_transition unit=0 step=0 quality=0.6 rgb_red=50 texture_id=1 min=9986 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=0 step=1 quality=0.8 rgb_red=70 texture_id=1 min=9987 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=0 step=2 quality=0.6 rgb_red=50 texture_id=1 min=9986 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=0 step=3 quality=0.3 rgb_red=42 texture_id=1 min=9729 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=0 step=4 quality=0.1 rgb_red=44 texture_id=1 min=9728 mag=9728 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=0 step=5 quality=0.8 rgb_red=70 texture_id=1 min=9987 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=0 step=6 quality=0.6 rgb_red=50 texture_id=1 min=9986 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTextureQualityTransitionUnit0Test" end time: Oct 27 23:03 -03
+"CoinRenderTextureQualityTransitionUnit0Test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+185/1714 Testing: CoinRenderTextureQualityTransitionUnit3Test
+185/1714 Test: CoinRenderTextureQualityTransitionUnit3Test
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderTextureQualityTransitionTest" "--unit3"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderTextureQualityTransitionUnit3Test" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+quality_transition unit=3 step=0 quality=0.6 rgb_red=50 texture_id=2 min=9986 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=3 step=1 quality=0.8 rgb_red=70 texture_id=2 min=9987 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=3 step=2 quality=0.6 rgb_red=50 texture_id=2 min=9986 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=3 step=3 quality=0.3 rgb_red=42 texture_id=2 min=9729 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=3 step=4 quality=0.1 rgb_red=44 texture_id=2 min=9728 mag=9728 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=3 step=5 quality=0.8 rgb_red=70 texture_id=2 min=9987 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+quality_transition unit=3 step=6 quality=0.6 rgb_red=50 texture_id=2 min=9986 mag=9729 mip1_width=4 gl_error=0 state=1 color=1
+<end of output>
+Test time =   0.09 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTextureQualityTransitionUnit3Test" end time: Oct 27 23:03 -03
+"CoinRenderTextureQualityTransitionUnit3Test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+215/1714 Testing: CoinRenderLightingTest
+215/1714 Test: CoinRenderLightingTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderLightingTest"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderLightingTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+Coin warning in glxglue_context_create_software(): Couldn't create GLX context.
+[SKIP] Coin/GL offscreen reference unavailable
+Gouraud oracle PASS: curved normals: specular before interpolation
+Gouraud oracle PASS: broad point-light face: vertex distance
+Gouraud oracle PASS: spot cone misses vertices: no fragment relighting
+Gouraud oracle PASS: spot drop-off: vertex cone factor
+Gouraud oracle PASS: negative N.H: no artificial specular floor
+Curved sphere Gouraud PASS: light=0
+Curved sphere Gouraud PASS: light=1
+Curved sphere Gouraud PASS: light=2
+CoinRenderLightingTest passed
+<end of output>
+Test time =   0.61 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderLightingTest" end time: Oct 27 23:03 -03
+"CoinRenderLightingTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+217/1714 Testing: CoinRenderFogTest
+217/1714 Test: CoinRenderFogTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderFogTest"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderFogTest" start time: Oct 27 23:03 -03
+Output:
+----------------------------------------------------------
+Coin warning in glxglue_context_create_software(): Couldn't create GLX context.
+[SKIP] Coin/GL fog reference unavailable
+CoinRenderFogTest passed
+<end of output>
+Test time =   5.28 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderFogTest" end time: Oct 27 23:04 -03
+"CoinRenderFogTest" time elapsed: 00:00:05
+----------------------------------------------------------
+
+218/1714 Testing: CoinRenderClipPlaneTest
+218/1714 Test: CoinRenderClipPlaneTest
+Command: "/tmp/coin-retained-wgpu/bin/CoinRenderClipPlaneTest"
+Directory: /tmp/coin-retained-wgpu/testsuite/coinrender
+"CoinRenderClipPlaneTest" start time: Oct 27 23:04 -03
+Output:
+----------------------------------------------------------
+Coin warning in glxglue_context_create_software(): Couldn't create GLX context.
+[SKIP] Optional Coin/GL clipping reference unavailable
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =   5.34 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlaneTest" end time: Oct 27 23:04 -03
+"CoinRenderClipPlaneTest" time elapsed: 00:00:05
+----------------------------------------------------------
+
+End testing: Oct 27 23:04 -03

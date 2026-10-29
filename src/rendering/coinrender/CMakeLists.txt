@@ -1,6 +1,10 @@
 # CMakeLists.txt for CoinRender shared library
 
 set(COIN_RENDER_SOURCES
+	CoinRenderPbrSurfaceCore.cpp
+	third_party/mikktspace/mikktspace.c
+	CoinRenderRetainedTransport.cpp
+	CoinRenderRetainedRenderer.cpp
 	CoinRenderBackend.cpp
 	CoinRenderBackendRuntime.cpp
 	CoinRenderAlphaTestCapture.cpp
@@ -41,7 +45,6 @@ set(COIN_RENDER_SOURCES
 	CoinRenderTransparencyCore.cpp
 	CoinRenderBackendFactory.cpp
 	CoinRenderDiagnosticShell.cpp
-	CoinRenderDepthPolicyElement.cpp
 	CoinRenderFramePlan.cpp
 	CoinRenderFramePlanBuilder.cpp
 	CoinRenderText2Capture.cpp
@@ -108,6 +111,51 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 				--bin2c coin_bgfx_cs_raster_image_${_renderer} -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 			DEPENDS ${_coin_bgfx_shader_dir}/cs_raster_image.sc ${_coin_bgfx_shader_dir}/coin_cube.sh VERBATIM)
 		list(APPEND COIN_RENDER_SOURCES ${_shader_output})
+	endforeach()
+	set(_ibl_output ${_coin_bgfx_generated_dir}/coin_bgfx_fs_pbr_ibl_spirv.h)
+	add_custom_command(OUTPUT ${_ibl_output}
+		COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE} -f ${_coin_bgfx_shader_dir}/fs_pbr.sc
+		-o ${_ibl_output} --type fragment --platform linux --profile spirv --define COIN_PBR_IBL=1
+		--bin2c coin_bgfx_fs_pbr_ibl_spirv -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
+		--varyingdef ${_coin_bgfx_shader_dir}/pbr-varying.def.sc
+		DEPENDS ${_coin_bgfx_shader_dir}/fs_pbr.sc ${_coin_bgfx_shader_dir}/coin_pbr_brdf.sh
+		${_coin_bgfx_shader_dir}/coin_pbr_ibl.sh ${_coin_bgfx_shader_dir}/coin_pbr_environment.sh
+		${_coin_bgfx_shader_dir}/coin_pbr_rough_planar.sh ${_coin_bgfx_shader_dir}/coin_depth.sh
+		${_coin_bgfx_shader_dir}/pbr-varying.def.sc ${_coin_bgfx_shader_dir}/coin_pbr_view_effects.sh VERBATIM)
+	list(APPEND COIN_RENDER_SOURCES ${_ibl_output})
+  set(_anis_output ${_coin_bgfx_generated_dir}/coin_bgfx_fs_pbr_array_ibl_spirv.h)
+  add_custom_command(OUTPUT ${_anis_output}
+    COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE} -f ${_coin_bgfx_shader_dir}/fs_pbr.sc
+      -o ${_anis_output} --type fragment --platform linux --profile spirv
+      --define "COIN_PBR_IBL=1;COIN_PBR_ENVIRONMENT_ARRAY=1;COIN_PBR_DISTANT_ONLY=1"
+      --bin2c coin_bgfx_fs_pbr_array_ibl_spirv -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
+      --varyingdef ${_coin_bgfx_shader_dir}/pbr-varying.def.sc
+    DEPENDS ${_coin_bgfx_shader_dir}/fs_pbr.sc ${_coin_bgfx_shader_dir}/coin_pbr_brdf.sh
+      ${_coin_bgfx_shader_dir}/coin_pbr_ibl.sh ${_coin_bgfx_shader_dir}/coin_pbr_environment.sh
+      ${_coin_bgfx_shader_dir}/coin_pbr_anisotropic.sh ${_coin_bgfx_shader_dir}/coin_pbr_rough_planar.sh
+      ${_coin_bgfx_shader_dir}/coin_depth.sh ${_coin_bgfx_shader_dir}/coin_pbr_view_effects.sh
+      ${_coin_bgfx_shader_dir}/pbr-varying.def.sc VERBATIM)
+  list(APPEND COIN_RENDER_SOURCES ${_anis_output})
+
+	foreach(_pbr_shader vs_pbr vs_pbr_output fs_pbr fs_pbr_output vs_pbr_depth fs_pbr_depth)
+		if(_pbr_shader MATCHES "^vs")
+			set(_pbr_type vertex)
+		else()
+			set(_pbr_type fragment)
+		endif()
+		foreach(_pbr_renderer spirv)
+			set(_pbr_output ${_coin_bgfx_generated_dir}/coin_bgfx_${_pbr_shader}_${_pbr_renderer}.h)
+			add_custom_command(OUTPUT ${_pbr_output}
+				COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE} -f ${_coin_bgfx_shader_dir}/${_pbr_shader}.sc
+				-o ${_pbr_output} --type ${_pbr_type} --platform linux --profile spirv
+				--bin2c coin_bgfx_${_pbr_shader}_${_pbr_renderer}
+				-i ${COIN_BGFX_SHADER_INCLUDE_DIR} --varyingdef ${_coin_bgfx_shader_dir}/pbr-varying.def.sc
+				DEPENDS ${_coin_bgfx_shader_dir}/${_pbr_shader}.sc
+				${_coin_bgfx_shader_dir}/coin_pbr_brdf.sh ${_coin_bgfx_shader_dir}/coin_pbr_output.sh
+				${_coin_bgfx_shader_dir}/coin_pbr_rough_planar.sh ${_coin_bgfx_shader_dir}/coin_depth.sh
+				${_coin_bgfx_shader_dir}/pbr-varying.def.sc ${_coin_bgfx_shader_dir}/coin_pbr_view_effects.sh VERBATIM)
+			list(APPEND COIN_RENDER_SOURCES ${_pbr_output})
+		endforeach()
 	endforeach()
 	foreach(_stage vs fs)
 		if(_stage STREQUAL "vs")
@@ -349,6 +397,11 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxRaster.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxAttachments.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxDraw.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxPbr.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxPbrReflection.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxPbrReuse.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxPbrEnvironment.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxPbrEffects.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxSubmit.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxReadback.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxRtt.cpp
@@ -397,7 +450,7 @@ target_include_directories(CoinRender PRIVATE
 	$<$<STREQUAL:${COIN_RENDER_BACKEND},BGFX>:${_coin_bgfx_generated_dir}>
 )
 
-target_link_libraries(CoinRender PRIVATE Coin)
+target_link_libraries(CoinRender PRIVATE Coin CoinEnvironment)
 if(COIN_RENDER_BACKEND STREQUAL "BGFX")
 	# BGFX is an implementation dependency of the shared module. In-tree
 	# backend tests use its headers/symbols, but installed public consumers do not.
@@ -448,3 +501,5 @@ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
 		NAMESPACE CoinRender::
 		DESTINATION ${_coin_render_package_dir} COMPONENT development)
 endif()
+
+set_source_files_properties(third_party/mikktspace/mikktspace.c PROPERTIES COMPILE_DEFINITIONS "genTangSpace=coin_render_mikk_generate;genTangSpaceDefault=coin_render_mikk_generate_default")

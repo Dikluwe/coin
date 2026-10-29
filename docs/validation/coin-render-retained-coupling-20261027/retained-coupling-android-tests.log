@@ -1,0 +1,89 @@
+mkdir 0 
+push-libCoin.so 0 /tmp/coin-retained-android-wgpu/lib/libCoin.so: 1 file pushed, 0 skipped. 273.0 MB/s (45139000 bytes in 0.158s)
+
+push-libCoinRender.so 0 /tmp/coin-retained-android-wgpu/lib/libCoinRender.so: 1 file pushed, 0 skipped. 274.8 MB/s (41962080 bytes in 0.146s)
+
+push-libc++_shared.so 0 /home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/libc++_shared.so: 1 file pushed, 0 skipped. 312.1 MB/s (9091400 bytes in 0.028s)
+
+push-CoinRenderRetainedFeaturesTest 0 /tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedFeaturesTest: 1 file pushed, 0 skipped. 208.4 MB/s (513368 bytes in 0.002s)
+
+push-CoinRenderRetainedCityTest 0 /tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedCityTest: 1 file pushed, 0 skipped. 228.3 MB/s (608408 bytes in 0.003s)
+
+push-CoinRenderRetainedIncrementalTest 0 /tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedIncrementalTest: 1 file pushed, 0 skipped. 127.4 MB/s (203688 bytes in 0.002s)
+
+push-CoinRenderRetainedConnectorTest 0 /tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedConnectorTest: 1 file pushed, 0 skipped. 173.3 MB/s (255912 bytes in 0.001s)
+
+CoinRenderRetainedFeaturesTest 0 =fog 1
+fixture=fog 2
+fixture=fog 3
+fixture=attenuation captured at light
+fixture=texture 1 model 8448
+fixture=texture 1 model 7681
+fixture=texture 1 model 3042
+fixture=texture 2 model 8448
+fixture=texture 2 model 7681
+fixture=texture 2 model 3042
+fixture=texture 3 model 8448
+fixture=texture 3 model 7681
+fixture=texture 3 model 8449
+fixture=texture 3 model 3042
+fixture=texture 4 model 8448
+fixture=texture 4 model 7681
+fixture=texture 4 model 8449
+fixture=texture 4 model 3042
+fixture=texture quality/matrix 0.000000
+fixture=texture quality/matrix 0.100000
+fixture=texture quality/matrix 0.300000
+fixture=texture quality/matrix 0.600000
+fixture=texture quality/matrix 0.820000
+fixture=texture quality/matrix 0.950000
+fixture=sorted material transparency
+fixture=blend
+fixture=add
+fixture=textured alpha test
+fixture=small nonzero transparency
+fixture=wide lines
+fixture=wide points
+fixture=world clipping plane
+fixture=explicit indexed texture coordinates
+fixture=per-vertex materials
+fixture=vertex property geometry
+fixture=high intensity light
+fixture=high intensity ambient
+fixture=spot half sphere cutoff
+fixture=camera far fog 1
+fixture=camera far fog 2
+fixture=camera far fog 3
+fixture=translated light scope
+fixture=translated clipping scope
+fixture=translated camera scope
+fixture=per-face object transparency
+fixture=implicit depth with coplanar geometry
+retained_test_renderer requested=2 observed=2 gpu_available=1 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Rust/wgpu adapter probe succeeded
+
+CoinRenderRetainedCityTest 0 city channels_different=0 maximum=0 depth_different=0
+commands=400 geometry=1 vertices=24 cameras=1
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+retained_test_renderer requested=2 observed=2 gpu_available=1 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Rust/wgpu adapter probe succeeded
+
+CoinRenderRetainedIncrementalTest 0 retained_test_renderer requested=2 observed=2 gpu_available=1 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Rust/wgpu adapter probe succeeded
+
+CoinRenderRetainedConnectorTest 0 retained_test_renderer requested=2 observed=2 gpu_available=1 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Rust/wgpu adapter probe succeeded
+
+CoinRenderRetainedConnectorTest-no-borrow 0 retained_test_renderer requested=2 observed=2 gpu_available=1 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Rust/wgpu adapter probe succeeded
+
+CoinRenderRetainedMsaaTest 0 profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--msaa4 opaque cube
+fixture=--msaa4 PHONG
+fixture=--msaa4 blend
+fixture=--msaa4 texture
+fixture=--msaa4 mixed opaque/transparent order
+fixture=--msaa4 per-face transparency
+retained_test_renderer requested=2 observed=2 gpu_available=1 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl) diagnostic=Rust/wgpu adapter probe succeeded
+

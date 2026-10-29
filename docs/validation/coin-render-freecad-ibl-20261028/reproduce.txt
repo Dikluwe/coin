@@ -1,0 +1,13 @@
+Run from the Coin checkout root. Requires the existing /tmp/coin-retained-bgfx build and studio.cibl fixture.
+The helper is an adaptation of coin_render_retained_ibl_gallery.cpp; the fixture deliberately uses /tmp/freecad-retained-ibl.
+
+mkdir -p /tmp/freecad-retained-ibl/{current,retained}
+cp docs/validation/coin-render-freecad-ibl-20261028/{export.py,compare.cpp} /tmp/freecad-retained-ibl/
+env PYTHONPATH=/mnt/Laranja/Git/externos/freecad-build/lib:/mnt/Laranja/Git/externos/freecad-build/Mod/Part /usr/bin/python3 /tmp/freecad-retained-ibl/export.py
+
+Compile compare.cpp with -std=c++17 -Iexamples/coinrender -Iinclude -I/tmp/coin-retained-bgfx/include -L/tmp/coin-retained-bgfx/lib -Wl,-rpath,/tmp/coin-retained-bgfx/lib -lCoinRender -lCoin.
+For the callback control add -DCOIN_PBR_GALLERY_CURRENT.
+For retained upload assertions also add -DCOIN_INTERNAL -DCOIN_PBR_IBL_TELEMETRY -Isrc -I/tmp/coin-retained-bgfx/src -I/mnt/Laranja/Git/externos/coin/build-bgfx-recovery/bgfx-prefix/include.
+
+Run the two binaries serially, each with OUTPUT_DIRECTORY /tmp/coin-retained-ibl/environments/studio.cibl.
+Compare all ten .rgba/.depth files byte for byte. Each binary additionally asserts coverage, finite depth, scalar changes, restoration, invalid setters and successful renders after source package deletion.

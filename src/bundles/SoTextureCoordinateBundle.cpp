@@ -54,6 +54,11 @@
 #include <Inventor/nodes/SoShape.h>
 #include <Inventor/nodes/SoVertexProperty.h>
 #include <Inventor/actions/SoPickAction.h>
+#include <Inventor/actions/SoIRRenderAction.h>
+#include <Inventor/actions/SoCallbackAction.h>
+#include "elements/SoPBRMaterialElement.h"
+#include <array>
+#include <algorithm>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/caches/SoBoundingBoxCache.h>
 
@@ -106,6 +111,21 @@ SoTextureCoordinateBundle(SoAction * const action,
   int lastenabled = -1;
   const SbBool * multienabled = 
     SoMultiTextureEnabledElement::getEnabledUnits(this->state, lastenabled);
+  // Retained PBR needs primitive UVs/indices even without a color image.
+  // This is coordinate demand only: never enable a logical image/sampler.
+  std::array<SbBool,8> coordinateUnits{};
+  if(action->isOfType(SoIRRenderAction::getClassTypeId()) || action->isOfType(SoCallbackAction::getClassTypeId())) {
+    const auto * physical=SoPBRMaterialElement::get(this->state);
+    if(physical && physical->model==SoRenderMaterialModel::PBR &&
+       (physical->material.anisotropy>0 || SoBumpMapElement::getSource(this->state))) {
+      const int tangentUnit=physical->material.tangentCoordinateUnit;
+      if(tangentUnit>=0 && tangentUnit<8 && lastenabled<8) {
+        for(int unit=0;unit<=lastenabled;++unit)coordinateUnits[unit]=multienabled[unit];
+        coordinateUnits[0]=coordinateUnits[tangentUnit]=TRUE;
+        lastenabled=std::max(lastenabled,tangentUnit);multienabled=coordinateUnits.data();
+      }
+    }
+  }
   SbBool needinit = lastenabled >= 0;
   SbBool glrender = forRendering || action->isOfType(SoGLRenderAction::getClassTypeId());
   SbBool bumpenabled = glrender && (SoBumpMapElement::get(this->state) != NULL);

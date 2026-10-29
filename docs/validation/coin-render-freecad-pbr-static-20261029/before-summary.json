@@ -1,0 +1,203 @@
+{
+  "status": "PASS",
+  "modes": {
+    "off": {
+      "runs": 3,
+      "samples": 120,
+      "render_median_ms": 31.1514,
+      "render_p95_ms": 41.4059,
+      "ack_median_ms": 31.603676528902724,
+      "run_render_medians_ms": [
+        36.64635,
+        30.785400000000003,
+        30.9731
+      ],
+      "cold_render_median_ms": 537.781,
+      "worker_pss_median_bytes": 228982784,
+      "worker_rss_median_bytes": 306434048,
+      "freecad_pss_median_bytes": 509223936,
+      "total_pss_median_bytes": 738255872,
+      "effect_attachment_bytes": 0,
+      "bgfx_render_target_bytes": 13119888,
+      "bgfx_texture_bytes": 1229812,
+      "warm_to_end_worker_pss_bytes": [
+        147456,
+        147456,
+        143360
+      ],
+      "captures": 1,
+      "plans": 1,
+      "transport_builds": 1,
+      "shadow_passes": 0,
+      "ao_depth_passes": 0,
+      "static_reuses": 0
+    },
+    "shadows": {
+      "runs": 3,
+      "samples": 120,
+      "render_median_ms": 31.1265,
+      "render_p95_ms": 33.2061,
+      "ack_median_ms": 31.590114493155852,
+      "run_render_medians_ms": [
+        31.802999999999997,
+        31.00795,
+        27.9538
+      ],
+      "cold_render_median_ms": 526.964,
+      "worker_pss_median_bytes": 229215232,
+      "worker_rss_median_bytes": 306622464,
+      "freecad_pss_median_bytes": 507897856,
+      "total_pss_median_bytes": 737125376,
+      "effect_attachment_bytes": 33554432,
+      "bgfx_render_target_bytes": 46674320,
+      "bgfx_texture_bytes": 1229812,
+      "warm_to_end_worker_pss_bytes": [
+        69632,
+        73728,
+        73728
+      ],
+      "captures": 1,
+      "plans": 1,
+      "transport_builds": 1,
+      "shadow_passes": 1,
+      "ao_depth_passes": 0,
+      "static_reuses": 0
+    },
+    "ao": {
+      "runs": 3,
+      "samples": 120,
+      "render_median_ms": 32.0993,
+      "render_p95_ms": 35.8747,
+      "ack_median_ms": 32.562206499278545,
+      "run_render_medians_ms": [
+        32.4326,
+        33.1113,
+        31.0264
+      ],
+      "cold_render_median_ms": 562.022,
+      "worker_pss_median_bytes": 229228544,
+      "worker_rss_median_bytes": 306679808,
+      "freecad_pss_median_bytes": 507470848,
+      "total_pss_median_bytes": 736699392,
+      "effect_attachment_bytes": 8746592,
+      "bgfx_render_target_bytes": 21866480,
+      "bgfx_texture_bytes": 1229812,
+      "warm_to_end_worker_pss_bytes": [
+        69632,
+        73728,
+        69632
+      ],
+      "captures": 1,
+      "plans": 1,
+      "transport_builds": 1,
+      "shadow_passes": 0,
+      "ao_depth_passes": 1,
+      "static_reuses": 0
+    },
+    "both": {
+      "runs": 3,
+      "samples": 120,
+      "render_median_ms": 30.842599999999997,
+      "render_p95_ms": 33.7546,
+      "ack_median_ms": 31.272878986783326,
+      "run_render_medians_ms": [
+        31.4037,
+        30.73505,
+        30.5412
+      ],
+      "cold_render_median_ms": 527.043,
+      "worker_pss_median_bytes": 229197824,
+      "worker_rss_median_bytes": 306626560,
+      "freecad_pss_median_bytes": 508590080,
+      "total_pss_median_bytes": 737778688,
+      "effect_attachment_bytes": 42301024,
+      "bgfx_render_target_bytes": 55420912,
+      "bgfx_texture_bytes": 1229812,
+      "warm_to_end_worker_pss_bytes": [
+        40960,
+        36864,
+        36864
+      ],
+      "captures": 1,
+      "plans": 1,
+      "transport_builds": 1,
+      "shadow_passes": 1,
+      "ao_depth_passes": 1,
+      "static_reuses": 0
+    }
+  },
+  "camera": [
+    1,
+    990.7005004882812,
+    636.4349365234375,
+    1247.7991943359375,
+    0.25620660185813904,
+    0.49544891715049744,
+    0.7372509837150574,
+    0.38124731183052063,
+    1.0,
+    5000.0,
+    1588.238037109375,
+    0.7853981852531433
+  ],
+  "scene_sha256": "62f2dde732a10968c911dcd317ad257b0bdb4d00aa49ca301fa9cd376064612d",
+  "worker_sha256": "35e71d6a25c314643e17ee3ca9d5491f7c1ba7904bd91afa20e3d6dcb92d647e",
+  "assembly_sha256": "fef362c529aae88cb32905ac7dda5d056832a22aa13cf4089ec9f0da773efcb2",
+  "environment_sha256": "ed0d8f67fce21ebdafbe58dac8385a446b7ad32578828d0083ebff05eb7217d7",
+  "viewport": [
+    1234,
+    886
+  ],
+  "order": [
+    [
+      0,
+      "ao"
+    ],
+    [
+      0,
+      "shadows"
+    ],
+    [
+      0,
+      "off"
+    ],
+    [
+      0,
+      "both"
+    ],
+    [
+      1,
+      "ao"
+    ],
+    [
+      1,
+      "off"
+    ],
+    [
+      1,
+      "shadows"
+    ],
+    [
+      1,
+      "both"
+    ],
+    [
+      2,
+      "off"
+    ],
+    [
+      2,
+      "shadows"
+    ],
+    [
+      2,
+      "ao"
+    ],
+    [
+      2,
+      "both"
+    ]
+  ],
+  "method": "Fresh FreeCAD and worker for every mode/repetition; identical scene/camera/poses/materials/IBL; contiguous forced static repaints after warmup; cold submit reported separately. Native Vulkan, zero renderer/Qt pixel transport. No screenshot or memory sampling inside render_ms. PSS is read at warmup/end, host and worker separately. Timing is submission/renderer-thread-fence wall time, not a GPU timestamp or vsync FPS.",
+  "library_sha256": "10579b647208c4d5b27891f137c219bcecfe00680132d13b6052541d7ce5ab2c"
+}

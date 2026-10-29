@@ -1,0 +1,11 @@
+From this Coin checkout, build the worker in a configured BGFX build:
+cmake --build /tmp/coin-retained-bgfx --target CoinRenderFreeCADViewportWorker -j 4
+
+Run the real GUI qualification plus independent callback replay:
+python3 scripts/coinrender/run_freecad_retained_viewport.py --freecad /mnt/Laranja/Git/externos/freecad-build/bin/FreeCAD --worker /tmp/coin-retained-bgfx/bin/CoinRenderFreeCADViewportWorker --environment /tmp/coin-retained-ibl/environments/studio.cibl --assembly /mnt/Laranja/Git/externos/freecad-source/data/examples/AssemblyExample.FCStd --output /tmp/fresh-coin-freecad-viewport --qt-root /home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt --xvfb
+
+Studio package is also preserved in ../coin-render-retained-ibl-20261028/environment-packages.tar.gz. Paths to builds/Qt may need adapting on another host.
+
+For interactive use, set COIN_VIEWPORT_SOURCE to the checkout, COIN_VIEWPORT_WORKER to that binary, COIN_VIEWPORT_ENVIRONMENT to studio.cibl, and optionally COIN_VIEWPORT_ASSEMBLY to the FCStd. Launch FreeCAD with examples/coinrender/freecad_retained_viewport.FCMacro. Use a compatible Qt/PySide environment, as above. Escape detaches.
+
+The scene.iv contains immutable local meshes; requests.txt contains exact camera/placement/visibility/highlight/IBL changes. Replaying with worker --current exercises the independent callback capture, never part of the interactive render path. All 38 buffers are byte-identical.

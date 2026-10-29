@@ -57,6 +57,12 @@ static_assert(sizeof(CoinBgfxVertexPrefix) == offsetof(CoinBgfxVertex, extraTexc
 static_assert(sizeof(CoinBgfxVertex) == 236, "BGFX projective vertex stride");
 
 struct CoinBgfxDraw {
+  bool pbr = false;
+  float pbrTangentParity=1.f;
+  SbMatrix pbrViewToWorld = SbMatrix::identity();
+  float pbrBaseMetallic[4] = {}, pbrEmissionRoughness[4] = {}, pbrClearcoat[4] = {};
+  float pbrCamera[4] = {};
+  SbMatrix pbrModelView = SbMatrix::identity(), pbrNormalToView = SbMatrix::identity();
   float mvp[16];
   // Eye-space instance payload is anchored in the first camera. Columns 0..2
   // apply its camera delta; columns 3..5 transform normals. 3.w enables it.
@@ -254,6 +260,11 @@ public:
   // Detects a material-only lowered-plan change and returns the minimal
   // contiguous vertex ranges that must be uploaded.
   static bool materialPatchRanges(const CoinBgfxPlan & base,
+                                  const CoinBgfxPlan & updated,
+                                  std::vector<CoinBgfxVertexRange> & ranges);
+  // Compare owned packed mesh/index contents before reusing their GPU buffers.
+  // Changed material/model instance records are returned as contiguous ranges.
+  static bool instancePatchRanges(const CoinBgfxPlan & base,
                                   const CoinBgfxPlan & updated,
                                   std::vector<CoinBgfxVertexRange> & ranges);
   // Requires a validated CAMERA_PATCH relationship with the cached base.

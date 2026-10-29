@@ -4,10 +4,47 @@
 
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include <cstdio>
+#include <cmath>
+
+bool coin_render_valid_pbr_effects(const CoinRenderPbrEffects & e,std::string & diagnostic) {
+  const auto n=e.reflectionPlane.getNormal();
+  if(!std::isfinite(n[0])||!std::isfinite(n[1])||!std::isfinite(n[2])||
+     std::abs(n.sqrLength()-1.f)>.0001f||!std::isfinite(e.reflectionPlane.getDistanceFromOrigin())||
+     !std::isfinite(e.reflectionPlaneTolerance)||e.reflectionPlaneTolerance<=0||
+     (e.reflectionScale!=1&&e.reflectionScale!=2&&e.reflectionScale!=4)||!e.reflectionBudgetBytes) {
+    diagnostic="Invalid PBR planar reflection plane/scale/budget";return false;
+  }
+  if(!e.resourceBudgetBytes||e.shadowMapSize<128||e.shadowMapSize>4096||(e.shadowMapSize&(e.shadowMapSize-1))||
+     !std::isfinite(e.shadowBias)||e.shadowBias<0||e.shadowBias>.05f||
+     !std::isfinite(e.occlusionRadius)||e.occlusionRadius<=0||e.occlusionRadius>1000000||
+     !std::isfinite(e.occlusionStrength)||e.occlusionStrength<0||e.occlusionStrength>1) {
+    diagnostic="Invalid PBR shadow/AO parameters";return false;
+  }
+  for(int i=0;i<3;++i)if(!std::isfinite(e.backgroundTop[i])||!std::isfinite(e.backgroundBottom[i])||
+      e.backgroundTop[i]<0||e.backgroundTop[i]>1||e.backgroundBottom[i]<0||e.backgroundBottom[i]>1) {
+    diagnostic="PBR background requires finite sRGB colors in [0,1]";return false;
+  }
+  return true;
+}
 
 bool
 coin_render_valid_options(const CoinRenderOptions &options, std::string &diagnostic)
 {
+  if(options.pbrAnisotropicEnvironmentSamples>128 || !options.pbrAnisotropyCpuBudgetBytes) {diagnostic="Invalid anisotropic IBL sample bound/CPU budget";return false;}
+  if(!coin_render_valid_pbr_effects(options.pbrEffects,diagnostic))return false;
+  if (!std::isfinite(options.pbrExposureStops) || options.pbrExposureStops < -16.0f ||
+      options.pbrExposureStops > 16.0f) {
+    diagnostic = "PBR exposure must be finite in [-16,16] stops";
+    return false;
+  }
+  if (!std::isfinite(options.pbrEnvironmentRotation) || !std::isfinite(options.pbrEnvironmentIntensity) ||
+      options.pbrEnvironmentIntensity < 0 || options.pbrEnvironmentIntensity > 64 ||
+      !options.pbrEnvironmentBudgetBytes || !std::isfinite(options.pbrSpecularFilterVariance) ||
+      options.pbrSpecularFilterVariance < 0 || options.pbrSpecularFilterVariance > 1 ||
+      !std::isfinite(options.pbrSpecularFilterThreshold) || options.pbrSpecularFilterThreshold < 0 ||
+      options.pbrSpecularFilterThreshold > 1) {
+    diagnostic = "Invalid PBR environment parameters/budget/quality"; return false;
+  }
   if (options.sampleCount != 1 && options.sampleCount != 2 && options.sampleCount != 4) {
     diagnostic = "MSAA sample count must be 1, 2 or 4; no fallback was applied";
     return false;

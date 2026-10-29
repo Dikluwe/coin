@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="5"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-10-28T20:29:32"
+	>
+	<testcase name="SoRetainedPBRTest" classname="SoRetainedPBRTest" time="0.011041" status="run">
+		<properties/>
+		<system-out>Native retained PBR: PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPBRBoundaryTest" classname="CoinRenderRetainedPBRBoundaryTest" time="0.0105318" status="run">
+		<properties/>
+		<system-out>Retained PBR admission and publication: PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedFeaturesTest" classname="CoinRenderRetainedFeaturesTest" time="0.195946" status="run">
+		<properties/>
+		<system-out>fixture=sphere
+fixture=cone
+fixture=cylinder
+fixture=indexed faces
+fixture=triangle strip
+fixture=indexed triangle strip
+fixture=quad mesh
+fixture=lines
+fixture=indexed lines
+fixture=points
+fixture=directional sphere
+fixture=point light
+fixture=spot light
+fixture=environment attenuation
+fixture=polygon offset
+fixture=switch
+fixture=explicit normals
+fixture=per-face materials
+fixture=fog 1
+fixture=fog 2
+fixture=fog 3
+fixture=attenuation captured at light
+fixture=texture 1 model 8448
+fixture=texture 1 model 7681
+fixture=texture 1 model 3042
+fixture=texture 2 model 8448
+fixture=texture 2 model 7681
+fixture=texture 2 model 3042
+fixture=texture 3 model 8448
+fixture=texture 3 model 7681
+fixture=texture 3 model 8449
+fixture=texture 3 model 3042
+fixture=texture 4 model 8448
+fixture=texture 4 model 7681
+fixture=texture 4 model 8449
+fixture=texture 4 model 3042
+fixture=texture quality/matrix 0.000000
+fixture=texture quality/matrix 0.100000
+fixture=texture quality/matrix 0.300000
+fixture=texture quality/matrix 0.600000
+...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedIncrementalTest" classname="CoinRenderRetainedIncrementalTest" time="0.0160549" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedConnectorTest" classname="CoinRenderRetainedConnectorTest" time="0.0116018" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+</testsuite>

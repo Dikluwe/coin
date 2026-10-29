@@ -497,6 +497,9 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
                               bool allowInstancing, bool allowBump, bool allowUnresolved)
 {
   outDiagnostic.clear();
+  for (const auto & material:frame.materials) if(material.model==CoinRenderMaterialModel::PBR) {
+    outDiagnostic="wgpu PBR shading is not connected"; return false;
+  }
   if (frame.numPasses > 1) {
     // Per-sample projection payloads require the ordinary state-preserving
     // packer; specialized immutable/instancing snapshots describe one MVP.
@@ -1360,7 +1363,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
     sourceNormal = std::max(sourceNormal, mesh.maxNormal[c]);
   }
   for (size_t i = 0; i < order.size(); ++i) {
-    const auto & matrix = this->bakeMatrices[frame.draws[order[i].drawIndex].renderStateSlot];
+    const auto & matrix = this->bakeMatrices[frame.draws[order.item(i).drawIndex].renderStateSlot];
     float transport[16];
     if (!diagonalPositionMatrix(matrix.modelView, occurrences[i].scale, transport)) return false;
     for (int c = 0; c < 3; ++c) {
@@ -1392,7 +1395,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
   }
   this->instances.resize(order.size());
   for (size_t i = 0; i < order.size(); ++i) {
-    const auto & draw = frame.draws[order[i].drawIndex];
+    const auto & draw = frame.draws[order.item(i).drawIndex];
     auto & instance = this->instances[i];
     const auto & matrix = this->bakeMatrices[draw.renderStateSlot];
     // Position factorization is not an authored model change: the captured
@@ -1566,7 +1569,7 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
     sameOpaqueInput(this->opaqueInputIndices, frame.indices) &&
     sameOpaqueInput(this->opaqueInputMaterials, frame.materials);
   for (size_t i = 0; incremental && i < order.size(); ++i) {
-    const auto & item = order[i];
+    const auto & item = order.item(i);
     const auto & draw = frame.draws[item.drawIndex];
     const auto & previous = this->opaqueRanges[i];
     incremental = previous.drawIndex == item.drawIndex &&
@@ -1614,7 +1617,7 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
     outputVertex += range.vertexCount;
     outputIndex += range.indexCount;
   }
-  const auto & source = frame.draws[order.front().drawIndex];
+  const auto & source = frame.draws[order.item(0).drawIndex];
   CoinWgpuDraw merged{};
   merged.vertex_count = static_cast<uint32_t>(nextVertex);
   merged.index_count = static_cast<uint32_t>(nextIndex);
@@ -1660,8 +1663,8 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
       this->opaqueRanges.resize(order.size());
       this->opaqueStateMaterialSlots.resize(frame.renderStates.size());
       for (size_t i = 0; i < order.size(); ++i) {
-        const auto & draw = frame.draws[order[i].drawIndex];
-        this->opaqueRanges[i] = {order[i].drawIndex, draw.geometry, draw.renderStateSlot, draw.drawOrdinal};
+        const auto & draw = frame.draws[order.item(i).drawIndex];
+        this->opaqueRanges[i] = {order.item(i).drawIndex, draw.geometry, draw.renderStateSlot, draw.drawOrdinal};
       }
       for (size_t i = 0; i < frame.renderStates.size(); ++i)
         this->opaqueStateMaterialSlots[i] = frame.renderStates[i].materialSlot;

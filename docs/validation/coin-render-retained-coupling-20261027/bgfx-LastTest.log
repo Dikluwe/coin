@@ -1,0 +1,546 @@
+Start testing: Oct 27 22:58 -03
+----------------------------------------------------------
+87/1846 Testing: CoinRenderRetainedFeaturesTest
+87/1846 Test: CoinRenderRetainedFeaturesTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedFeaturesTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=sphere
+fixture=cone
+fixture=cylinder
+fixture=indexed faces
+fixture=triangle strip
+fixture=indexed triangle strip
+fixture=quad mesh
+fixture=lines
+fixture=indexed lines
+fixture=points
+fixture=directional sphere
+fixture=point light
+fixture=spot light
+fixture=environment attenuation
+fixture=polygon offset
+fixture=switch
+fixture=explicit normals
+fixture=per-face materials
+fixture=fog 1
+fixture=fog 2
+fixture=fog 3
+fixture=attenuation captured at light
+fixture=texture 1 model 8448
+fixture=texture 1 model 7681
+fixture=texture 1 model 3042
+fixture=texture 2 model 8448
+fixture=texture 2 model 7681
+fixture=texture 2 model 3042
+fixture=texture 3 model 8448
+fixture=texture 3 model 7681
+fixture=texture 3 model 8449
+fixture=texture 3 model 3042
+fixture=texture 4 model 8448
+fixture=texture 4 model 7681
+fixture=texture 4 model 8449
+fixture=texture 4 model 3042
+fixture=texture quality/matrix 0.000000
+fixture=texture quality/matrix 0.100000
+fixture=texture quality/matrix 0.300000
+fixture=texture quality/matrix 0.600000
+fixture=texture quality/matrix 0.820000
+fixture=texture quality/matrix 0.950000
+fixture=sorted material transparency
+fixture=blend
+fixture=add
+fixture=textured alpha test
+fixture=small nonzero transparency
+fixture=wide lines
+fixture=wide points
+fixture=world clipping plane
+fixture=explicit indexed texture coordinates
+fixture=per-vertex materials
+fixture=vertex property geometry
+fixture=high intensity light
+fixture=high intensity ambient
+fixture=spot half sphere cutoff
+fixture=camera far fog 1
+fixture=camera far fog 2
+fixture=camera far fog 3
+fixture=translated light scope
+fixture=translated clipping scope
+fixture=translated camera scope
+fixture=per-face object transparency
+fixture=implicit depth with coplanar geometry
+<end of output>
+Test time =   6.92 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedFeaturesTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedFeaturesTest" time elapsed: 00:00:06
+----------------------------------------------------------
+
+88/1846 Testing: CoinRenderRetainedMsaaTest
+88/1846 Test: CoinRenderRetainedMsaaTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--msaa4"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedMsaaTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--msaa4 opaque cube
+fixture=--msaa4 PHONG
+fixture=--msaa4 blend
+fixture=--msaa4 texture
+fixture=--msaa4 mixed opaque/transparent order
+fixture=--msaa4 per-face transparency
+<end of output>
+Test time =  11.00 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedMsaaTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedMsaaTest" time elapsed: 00:00:11
+----------------------------------------------------------
+
+89/1846 Testing: CoinRenderRetainedPortableTest
+89/1846 Test: CoinRenderRetainedPortableTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--portable"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedPortableTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--portable opaque cube
+fixture=--portable PHONG
+fixture=--portable blend
+fixture=--portable texture
+fixture=--portable mixed opaque/transparent order
+fixture=--portable per-face transparency
+<end of output>
+Test time =   0.61 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedPortableTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedPortableTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+90/1846 Testing: CoinRenderRetainedCanonicalTest
+90/1846 Test: CoinRenderRetainedCanonicalTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--canonical"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedCanonicalTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--canonical opaque cube
+fixture=--canonical PHONG
+fixture=--canonical blend
+fixture=--canonical texture
+fixture=--canonical mixed opaque/transparent order
+fixture=--canonical per-face transparency
+<end of output>
+Test time =   0.53 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedCanonicalTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedCanonicalTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+91/1846 Testing: CoinRenderRetainedSrgbTest
+91/1846 Test: CoinRenderRetainedSrgbTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--srgb"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedSrgbTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--srgb opaque cube
+fixture=--srgb PHONG
+fixture=--srgb blend
+fixture=--srgb texture
+fixture=--srgb mixed opaque/transparent order
+fixture=--srgb per-face transparency
+<end of output>
+Test time =   0.54 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedSrgbTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedSrgbTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+92/1846 Testing: CoinRenderRetainedWeightedTest
+92/1846 Test: CoinRenderRetainedWeightedTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--weighted"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedWeightedTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--weighted opaque cube
+fixture=--weighted PHONG
+fixture=--weighted blend
+fixture=--weighted texture
+fixture=--weighted mixed opaque/transparent order
+fixture=--weighted per-face transparency
+<end of output>
+Test time =  10.66 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedWeightedTest" end time: Oct 27 22:58 -03
+"CoinRenderRetainedWeightedTest" time elapsed: 00:00:10
+----------------------------------------------------------
+
+93/1846 Testing: CoinRenderRetainedPeelingTest
+93/1846 Test: CoinRenderRetainedPeelingTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--peeling"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedPeelingTest" start time: Oct 27 22:58 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--peeling opaque cube
+fixture=--peeling PHONG
+fixture=--peeling blend
+fixture=--peeling texture
+fixture=--peeling mixed opaque/transparent order
+fixture=--peeling per-face transparency
+<end of output>
+Test time =   5.42 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedPeelingTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedPeelingTest" time elapsed: 00:00:05
+----------------------------------------------------------
+
+94/1846 Testing: CoinRenderRetainedMode-noneTest
+94/1846 Test: CoinRenderRetainedMode-noneTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--none"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedMode-noneTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--none opaque cube
+fixture=--none PHONG
+fixture=--none blend
+fixture=--none texture
+fixture=--none mixed opaque/transparent order
+fixture=--none per-face transparency
+<end of output>
+Test time =   0.56 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedMode-noneTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedMode-noneTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+95/1846 Testing: CoinRenderRetainedMode-screen-doorTest
+95/1846 Test: CoinRenderRetainedMode-screen-doorTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--screen-door"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedMode-screen-doorTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--screen-door opaque cube
+fixture=--screen-door PHONG
+fixture=--screen-door blend
+fixture=--screen-door texture
+fixture=--screen-door mixed opaque/transparent order
+fixture=--screen-door per-face transparency
+<end of output>
+Test time =   0.60 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedMode-screen-doorTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedMode-screen-doorTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+96/1846 Testing: CoinRenderRetainedMode-blendTest
+96/1846 Test: CoinRenderRetainedMode-blendTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--blend"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedMode-blendTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--blend opaque cube
+fixture=--blend PHONG
+fixture=--blend blend
+fixture=--blend texture
+fixture=--blend mixed opaque/transparent order
+fixture=--blend per-face transparency
+<end of output>
+Test time =   0.55 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedMode-blendTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedMode-blendTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+97/1846 Testing: CoinRenderRetainedMode-addTest
+97/1846 Test: CoinRenderRetainedMode-addTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--add"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedMode-addTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--add opaque cube
+fixture=--add PHONG
+fixture=--add blend
+fixture=--add texture
+fixture=--add mixed opaque/transparent order
+fixture=--add per-face transparency
+<end of output>
+Test time =   0.54 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedMode-addTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedMode-addTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+98/1846 Testing: CoinRenderRetainedMode-delayed-blendTest
+98/1846 Test: CoinRenderRetainedMode-delayed-blendTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--delayed-blend"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedMode-delayed-blendTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--delayed-blend opaque cube
+fixture=--delayed-blend PHONG
+fixture=--delayed-blend blend
+fixture=--delayed-blend texture
+fixture=--delayed-blend mixed opaque/transparent order
+fixture=--delayed-blend per-face transparency
+<end of output>
+Test time =   0.55 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedMode-delayed-blendTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedMode-delayed-blendTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+99/1846 Testing: CoinRenderRetainedMode-delayed-addTest
+99/1846 Test: CoinRenderRetainedMode-delayed-addTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--delayed-add"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedMode-delayed-addTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--delayed-add opaque cube
+fixture=--delayed-add PHONG
+fixture=--delayed-add blend
+fixture=--delayed-add texture
+fixture=--delayed-add mixed opaque/transparent order
+fixture=--delayed-add per-face transparency
+<end of output>
+Test time =   0.54 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedMode-delayed-addTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedMode-delayed-addTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+100/1846 Testing: CoinRenderRetainedMode-layersTest
+100/1846 Test: CoinRenderRetainedMode-layersTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedFeaturesTest" "--layers"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedMode-layersTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+profile maxTextureAnisotropy=1: selected adapter does not expose anisotropy
+fixture=--layers opaque cube
+fixture=--layers PHONG
+fixture=--layers blend
+fixture=--layers texture
+fixture=--layers mixed opaque/transparent order
+fixture=--layers per-face transparency
+<end of output>
+Test time =   0.66 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedMode-layersTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedMode-layersTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+101/1846 Testing: CoinRenderRetainedCityTest
+101/1846 Test: CoinRenderRetainedCityTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedCityTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedCityTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+city channels_different=0 maximum=0 depth_different=0
+commands=400 geometry=1 vertices=24 cameras=1
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+<end of output>
+Test time =   0.33 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedCityTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedCityTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+102/1846 Testing: CoinRenderRetainedIncrementalTest
+102/1846 Test: CoinRenderRetainedIncrementalTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedIncrementalTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedIncrementalTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.33 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedIncrementalTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedIncrementalTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+103/1846 Testing: CoinRenderRetainedConnectorTest
+103/1846 Test: CoinRenderRetainedConnectorTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedConnectorTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedConnectorTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.28 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedConnectorTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedConnectorTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+104/1846 Testing: CoinRenderRetainedNoBorrowTest
+104/1846 Test: CoinRenderRetainedNoBorrowTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedConnectorTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedNoBorrowTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.29 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedNoBorrowTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedNoBorrowTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+105/1846 Testing: CoinRenderRetainedGLReferenceTest
+105/1846 Test: CoinRenderRetainedGLReferenceTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedConnectorTest" "--gl-reference"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedGLReferenceTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+GL reference renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2
+GL reference: compared=3588 differing_channels=0
+<end of output>
+Test time =   0.39 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedGLReferenceTest" end time: Oct 27 22:59 -03
+"CoinRenderRetainedGLReferenceTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+162/1846 Testing: CoinBgfxCoreTest
+162/1846 Test: CoinBgfxCoreTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinBgfxCoreTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinBgfxCoreTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+CoinBgfxCoreTest passed
+<end of output>
+Test time =   0.47 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxCoreTest" end time: Oct 27 22:59 -03
+"CoinBgfxCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+168/1846 Testing: CoinRenderDepthContractTest
+168/1846 Test: CoinRenderDepthContractTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderDepthContractTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderDepthContractTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+color_write_depth_only PASS gpu=0
+color_write_channels PASS gpu=0
+<end of output>
+Test time =   0.09 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDepthContractTest" end time: Oct 27 22:59 -03
+"CoinRenderDepthContractTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+174/1846 Testing: CoinBgfxInstancingTest
+174/1846 Test: CoinBgfxInstancingTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinBgfxInstancingTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinBgfxInstancingTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+resized target max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from fog max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from clip max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+BASE_COLOR with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR with depth max_depth_error=5.96046e-08
+BASE_COLOR single instance transform max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR single instance transform max_depth_error=5.96046e-08
+BASE_COLOR material subranges max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR material subranges max_depth_error=5.96046e-08
+BASE_COLOR camera patch max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR camera patch max_depth_error=5.96046e-08
+uniform LEQUAL BASE_COLOR max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+uniform LEQUAL BASE_COLOR max_depth_error=5.96046e-08
+LEQUAL coplanar materials max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+LEQUAL coplanar materials max_depth_error=5.96046e-08
+coplanar last occurrence must win max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+coplanar first-vs-last reference pixels_over_20=48
+outside viewport depth readback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+outside viewport depth readback max_depth_error=0
+return from outside viewport with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+return from outside viewport with depth max_depth_error=5.96046e-08
+CoinBgfxInstancingTest passed
+<end of output>
+Test time =   0.45 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxInstancingTest" end time: Oct 27 22:59 -03
+"CoinBgfxInstancingTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+319/1846 Testing: CoinRenderCompositionTest
+319/1846 Test: CoinRenderCompositionTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderCompositionTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderCompositionTest" start time: Oct 27 22:59 -03
+Output:
+----------------------------------------------------------
+CoinRenderCompositionTest passed
+<end of output>
+Test time =   5.60 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderCompositionTest" end time: Oct 27 22:59 -03
+"CoinRenderCompositionTest" time elapsed: 00:00:05
+----------------------------------------------------------
+
+End testing: Oct 27 22:59 -03

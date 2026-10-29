@@ -1,0 +1,846 @@
+{
+  "status": "PASS",
+  "stages": [
+    {
+      "status": "ok",
+      "id": 2,
+      "width": 1014,
+      "height": 796,
+      "serial": 2,
+      "captures": 1,
+      "plans": 1,
+      "incremental_updates": 0,
+      "transport_builds": 1,
+      "copied_vertices": 132063,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "base"
+    },
+    {
+      "status": "ok",
+      "id": 3,
+      "width": 1014,
+      "height": 796,
+      "serial": 3,
+      "captures": 1,
+      "plans": 1,
+      "incremental_updates": 0,
+      "transport_builds": 1,
+      "copied_vertices": 132063,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "static"
+    },
+    {
+      "status": "ok",
+      "id": 4,
+      "width": 1014,
+      "height": 796,
+      "serial": 4,
+      "captures": 2,
+      "plans": 2,
+      "incremental_updates": 0,
+      "transport_builds": 2,
+      "copied_vertices": 264126,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "hover"
+    },
+    {
+      "status": "ok",
+      "id": 5,
+      "width": 1014,
+      "height": 796,
+      "serial": 5,
+      "captures": 3,
+      "plans": 3,
+      "incremental_updates": 0,
+      "transport_builds": 3,
+      "copied_vertices": 396189,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "selection"
+    },
+    {
+      "status": "ok",
+      "id": 6,
+      "width": 1014,
+      "height": 796,
+      "serial": 6,
+      "captures": 3,
+      "plans": 3,
+      "incremental_updates": 1,
+      "transport_builds": 3,
+      "copied_vertices": 396189,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "move"
+    },
+    {
+      "status": "ok",
+      "id": 7,
+      "width": 1014,
+      "height": 796,
+      "serial": 7,
+      "captures": 4,
+      "plans": 4,
+      "incremental_updates": 1,
+      "transport_builds": 4,
+      "copied_vertices": 528252,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "restore"
+    },
+    {
+      "status": "ok",
+      "id": 8,
+      "width": 1014,
+      "height": 796,
+      "serial": 8,
+      "captures": 5,
+      "plans": 5,
+      "incremental_updates": 1,
+      "transport_builds": 5,
+      "copied_vertices": 660315,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "rotate-piece"
+    },
+    {
+      "status": "ok",
+      "id": 9,
+      "width": 1014,
+      "height": 796,
+      "serial": 9,
+      "captures": 6,
+      "plans": 6,
+      "incremental_updates": 1,
+      "transport_builds": 6,
+      "copied_vertices": 792378,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "rotate-piece-restore"
+    },
+    {
+      "status": "ok",
+      "id": 10,
+      "width": 1014,
+      "height": 796,
+      "serial": 10,
+      "captures": 6,
+      "plans": 6,
+      "incremental_updates": 1,
+      "transport_builds": 6,
+      "copied_vertices": 792378,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "ibl-rotation"
+    },
+    {
+      "status": "ok",
+      "id": 11,
+      "width": 1014,
+      "height": 796,
+      "serial": 11,
+      "captures": 6,
+      "plans": 6,
+      "incremental_updates": 1,
+      "transport_builds": 6,
+      "copied_vertices": 792378,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "ibl-exposure"
+    },
+    {
+      "status": "ok",
+      "id": 12,
+      "width": 1014,
+      "height": 796,
+      "serial": 12,
+      "captures": 6,
+      "plans": 6,
+      "incremental_updates": 1,
+      "transport_builds": 6,
+      "copied_vertices": 792378,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "ibl-restore"
+    },
+    {
+      "status": "ok",
+      "id": 13,
+      "width": 1014,
+      "height": 796,
+      "serial": 13,
+      "captures": 6,
+      "plans": 7,
+      "incremental_updates": 2,
+      "transport_builds": 7,
+      "copied_vertices": 911205,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "hide"
+    },
+    {
+      "status": "ok",
+      "id": 14,
+      "width": 1014,
+      "height": 796,
+      "serial": 14,
+      "captures": 6,
+      "plans": 8,
+      "incremental_updates": 3,
+      "transport_builds": 8,
+      "copied_vertices": 1043268,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "show"
+    },
+    {
+      "status": "ok",
+      "id": 15,
+      "width": 1014,
+      "height": 796,
+      "serial": 15,
+      "captures": 7,
+      "plans": 9,
+      "incremental_updates": 3,
+      "transport_builds": 9,
+      "copied_vertices": 1175331,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "assembly-recompute"
+    },
+    {
+      "status": "ok",
+      "id": 16,
+      "width": 1014,
+      "height": 796,
+      "serial": 16,
+      "captures": 8,
+      "plans": 10,
+      "incremental_updates": 3,
+      "transport_builds": 10,
+      "copied_vertices": 1307394,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "assembly-restore"
+    },
+    {
+      "status": "ok",
+      "id": 17,
+      "width": 1014,
+      "height": 796,
+      "serial": 17,
+      "captures": 9,
+      "plans": 11,
+      "incremental_updates": 3,
+      "transport_builds": 11,
+      "copied_vertices": 1439457,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "camera"
+    },
+    {
+      "status": "ok",
+      "id": 18,
+      "width": 1014,
+      "height": 796,
+      "serial": 18,
+      "captures": 10,
+      "plans": 12,
+      "incremental_updates": 3,
+      "transport_builds": 12,
+      "copied_vertices": 1571520,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "camera-restore"
+    },
+    {
+      "status": "ok",
+      "id": 19,
+      "width": 854,
+      "height": 656,
+      "serial": 1,
+      "captures": 11,
+      "plans": 13,
+      "incremental_updates": 3,
+      "transport_builds": 13,
+      "copied_vertices": 1703583,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "resize"
+    },
+    {
+      "status": "ok",
+      "id": 20,
+      "width": 854,
+      "height": 656,
+      "serial": 2,
+      "captures": 12,
+      "plans": 14,
+      "incremental_updates": 3,
+      "transport_builds": 14,
+      "copied_vertices": 1835646,
+      "environment_uploads": 1,
+      "native_window": 2097449,
+      "pixel_readbacks": 0,
+      "cpu_pixel_bytes": 0,
+      "mesh_builds": 13,
+      "legacy_render_calls": 0,
+      "legacy_updates_enabled": false,
+      "qt_image_bytes": 0,
+      "stage": "pick-after-resize"
+    }
+  ],
+  "freecad": [
+    "26",
+    "3",
+    "0",
+    "48386 (Git)",
+    "git://github.com/FreeCAD/FreeCAD.git main",
+    "2026/09/01 11:53:58",
+    "main",
+    "d8d85f05ffad8277db968d6872c4a7a9b733c1b3"
+  ],
+  "native_window_swapchain": true,
+  "presentation": "BGFX Vulkan native Xlib surface",
+  "native_depth_readback": false,
+  "topology_edits": false,
+  "object_highlight": true,
+  "face_highlight": false,
+  "lifecycle": {
+    "interactive_files_bounded": true,
+    "source_shape_edit_exits_profile": true,
+    "temporary_directory_removed": true,
+    "document_close_retires_worker": true,
+    "graceful_worker_retirement": true,
+    "native_surface_retired_before_destroy": true
+  },
+  "exact_callback_comparisons": [
+    {
+      "file": "frame-1.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "file": "frame-1.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-2.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "file": "frame-2.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-3.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "file": "frame-3.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-4.rgba",
+      "bytes": 3228576,
+      "sha256": "47a67f16797e8a3b46bf527d723c1fe7aa9e8b3806363a3ca803b127800d6c2e"
+    },
+    {
+      "file": "frame-4.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-5.rgba",
+      "bytes": 3228576,
+      "sha256": "7fd8afb8778896ec891ea979a54a535069950e4ebc1373664f21d8b9d30baa31"
+    },
+    {
+      "file": "frame-5.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-6.rgba",
+      "bytes": 3228576,
+      "sha256": "55208177e987687fabe2a20eefe82a88bed1eaca75d461a06727f4b70a2ed999"
+    },
+    {
+      "file": "frame-6.depth",
+      "bytes": 3228576,
+      "sha256": "634a2bd5d8e2ad9d4f0c9977458d1e9f0334a9a993f4cae6755164cdb7216a5a"
+    },
+    {
+      "file": "frame-7.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "file": "frame-7.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-8.rgba",
+      "bytes": 3228576,
+      "sha256": "1c4f016474df6e1460975bfba20ba3b60f76228c80f894cefc939f77d232237f"
+    },
+    {
+      "file": "frame-8.depth",
+      "bytes": 3228576,
+      "sha256": "56b86d6b196b1728adabe8bebfaf7e33634fdc6d8bedd3d12d01740b8bf59d97"
+    },
+    {
+      "file": "frame-9.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "file": "frame-9.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-10.rgba",
+      "bytes": 3228576,
+      "sha256": "76e6744123c5b6c50fe5ddc64ab32f757c9d2055f6056f5d389555183bbc3267"
+    },
+    {
+      "file": "frame-10.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-11.rgba",
+      "bytes": 3228576,
+      "sha256": "0074b47bd967c790e18e3af983b5c9bdf9d53eeaa72fa0f6b7fe1e9f0084bd00"
+    },
+    {
+      "file": "frame-11.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-12.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "file": "frame-12.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-13.rgba",
+      "bytes": 3228576,
+      "sha256": "5d53eae4df79d6d3f00dcbcdc2d49ee8f045d25f05e1e3ced731a5c60d12da0c"
+    },
+    {
+      "file": "frame-13.depth",
+      "bytes": 3228576,
+      "sha256": "1d4c0872d6a2767644bcc1271d28fb5fe9131242c7506f944fad8eb047e0ea60"
+    },
+    {
+      "file": "frame-14.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "file": "frame-14.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-15.rgba",
+      "bytes": 3228576,
+      "sha256": "9c3dc15c03495de0200958378d4f048c8b7c83df00bf9fe96814ea04748aa899"
+    },
+    {
+      "file": "frame-15.depth",
+      "bytes": 3228576,
+      "sha256": "093b127d7a4aebe246712b43634067b5540d58e47791383ef1f35a62578fa167"
+    },
+    {
+      "file": "frame-16.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "file": "frame-16.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-17.rgba",
+      "bytes": 3228576,
+      "sha256": "3e8841b314e8bfb1a2a906af7f806f9e0ec55ec02501d373db107efc254a7df1"
+    },
+    {
+      "file": "frame-17.depth",
+      "bytes": 3228576,
+      "sha256": "db7fc87c8f97961f6aecbf1f84e880a049b70e2f2dc6b3aa0a01b56204e6fe25"
+    },
+    {
+      "file": "frame-18.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "file": "frame-18.depth",
+      "bytes": 3228576,
+      "sha256": "6df39cead66c13bde3d4608ba734fa37dad1a0923a0698d533c31e6eed98434b"
+    },
+    {
+      "file": "frame-19.rgba",
+      "bytes": 2240896,
+      "sha256": "89e1e0e1b87b37cb768b2a8a6685d4173ec3b1eb879e7eb5baf06c035f9ddfcb"
+    },
+    {
+      "file": "frame-19.depth",
+      "bytes": 2240896,
+      "sha256": "fb724fe1d6d0c747124ff77587167e98b5fa4a6beb207e42046941ddb74ca62d"
+    },
+    {
+      "file": "frame-20.rgba",
+      "bytes": 2240896,
+      "sha256": "e250342bd44b8806350f6b70595c1947d0228cdbc453158b3d866b85596bccd3"
+    },
+    {
+      "file": "frame-20.depth",
+      "bytes": 2240896,
+      "sha256": "fb724fe1d6d0c747124ff77587167e98b5fa4a6beb207e42046941ddb74ca62d"
+    }
+  ],
+  "native_presented_color_comparisons": [
+    {
+      "stage": "base",
+      "file": "frame-2.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "stage": "static",
+      "file": "frame-3.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "stage": "hover",
+      "file": "frame-4.rgba",
+      "bytes": 3228576,
+      "sha256": "47a67f16797e8a3b46bf527d723c1fe7aa9e8b3806363a3ca803b127800d6c2e"
+    },
+    {
+      "stage": "selection",
+      "file": "frame-5.rgba",
+      "bytes": 3228576,
+      "sha256": "7fd8afb8778896ec891ea979a54a535069950e4ebc1373664f21d8b9d30baa31"
+    },
+    {
+      "stage": "move",
+      "file": "frame-6.rgba",
+      "bytes": 3228576,
+      "sha256": "55208177e987687fabe2a20eefe82a88bed1eaca75d461a06727f4b70a2ed999"
+    },
+    {
+      "stage": "restore",
+      "file": "frame-7.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "stage": "rotate-piece",
+      "file": "frame-8.rgba",
+      "bytes": 3228576,
+      "sha256": "1c4f016474df6e1460975bfba20ba3b60f76228c80f894cefc939f77d232237f"
+    },
+    {
+      "stage": "rotate-piece-restore",
+      "file": "frame-9.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "stage": "ibl-rotation",
+      "file": "frame-10.rgba",
+      "bytes": 3228576,
+      "sha256": "76e6744123c5b6c50fe5ddc64ab32f757c9d2055f6056f5d389555183bbc3267"
+    },
+    {
+      "stage": "ibl-exposure",
+      "file": "frame-11.rgba",
+      "bytes": 3228576,
+      "sha256": "0074b47bd967c790e18e3af983b5c9bdf9d53eeaa72fa0f6b7fe1e9f0084bd00"
+    },
+    {
+      "stage": "ibl-restore",
+      "file": "frame-12.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "stage": "hide",
+      "file": "frame-13.rgba",
+      "bytes": 3228576,
+      "sha256": "5d53eae4df79d6d3f00dcbcdc2d49ee8f045d25f05e1e3ced731a5c60d12da0c"
+    },
+    {
+      "stage": "show",
+      "file": "frame-14.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "stage": "assembly-recompute",
+      "file": "frame-15.rgba",
+      "bytes": 3228576,
+      "sha256": "9c3dc15c03495de0200958378d4f048c8b7c83df00bf9fe96814ea04748aa899"
+    },
+    {
+      "stage": "assembly-restore",
+      "file": "frame-16.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "stage": "camera",
+      "file": "frame-17.rgba",
+      "bytes": 3228576,
+      "sha256": "3e8841b314e8bfb1a2a906af7f806f9e0ec55ec02501d373db107efc254a7df1"
+    },
+    {
+      "stage": "camera-restore",
+      "file": "frame-18.rgba",
+      "bytes": 3228576,
+      "sha256": "5b303f8ca0a7a4b7cc793370b1fd6b7422c6d7fb792f0c56e6a9d00b2126cecb"
+    },
+    {
+      "stage": "resize",
+      "file": "frame-19.rgba",
+      "bytes": 2240896,
+      "sha256": "89e1e0e1b87b37cb768b2a8a6685d4173ec3b1eb879e7eb5baf06c035f9ddfcb"
+    },
+    {
+      "stage": "pick-after-resize",
+      "file": "frame-20.rgba",
+      "bytes": 2240896,
+      "sha256": "e250342bd44b8806350f6b70595c1947d0228cdbc453158b3d866b85596bccd3"
+    }
+  ],
+  "worker_sha256": "72951269f5f27082747a1387c6c29bd0175a0394959ee2413976235224f85687",
+  "scene_sha256": "c1281284d84d43daa03d5fb22d418364454feef51dc57aebce99ad4bb3756c8c",
+  "assembly_sha256": "fef362c529aae88cb32905ac7dda5d056832a22aa13cf4089ec9f0da773efcb2",
+  "environment_sha256": "ed0d8f67fce21ebdafbe58dac8385a446b7ad32578828d0083ebff05eb7217d7",
+  "branch": "codex/coinrender-retained-integration",
+  "base_commit": "e8c7003345a481a4d6d16bdec411ecf86f873d09",
+  "native_runtime": {
+    "frames": 20,
+    "pixel_readbacks": 0,
+    "cpu_pixel_bytes": 0,
+    "qt_image_bytes": 0,
+    "legacy_scene_gl_renders": 0,
+    "window_ids": [
+      2097449
+    ],
+    "mesh_imports_per_attachment": 13
+  },
+  "source_sha256": {
+    "examples/coinrender/coin_render_freecad_viewport.cpp": "7a3aedc9eb2b616ca514cff7edba09cb8610962ac9d12f53b11dccc7aab976c3",
+    "examples/coinrender/freecad_retained_viewport.py": "b77b016a252f75c9372d15b4284bcc93c212bb701d86796a1ef5bf6a4fe8d56f",
+    "examples/coinrender/freecad_retained_viewport.FCMacro": "f8f58718e49c6691534c789692e5ec293279a1ca2af67e35df90fc90132ab019",
+    "testsuite/coinrender/freecad_retained_viewport.FCMacro": "8f3aa6230c7d5c4031b379478e1b557e0184d9ab3e66f5ae6f80486c6f1ef997",
+    "scripts/coinrender/run_freecad_retained_viewport.py": "9e872149482549b075d1edbe2aca54a4562eb3dc94162987078bfffe0631060c",
+    "include/Inventor/rendering/CoinRenderNativeSurface.h": "35a01ee022bc37ee12d5e085f615212312c1cbba4c7fae4413368b8534941f7a",
+    "src/rendering/coinbgfx/CoinBgfxPbr.cpp": "e936d487bc10497282e29b09eb3fe0cea5b0dc9cb3eb7ffbe05e65827cab0038",
+    "src/rendering/coinbgfx/CoinBgfxSubmit.cpp": "41983397b307ebaaaf3884b7ca32a635847e51dfe8acd9ea92f1132d5871f4fc"
+  },
+  "libraries_sha256": {
+    "/tmp/coin-retained-bgfx/lib/libCoinRender.so": "149d7ceb4eb4175a73ba02d62c384395aedb1d39e4e24b5e7cda80b7974c88a6",
+    "/tmp/coin-retained-bgfx/lib/libCoin.so.80": "cf724d2cac5c1385aa2002f8af2f73440c6dc3c92a3d4c2e604bdc3f7449cf26",
+    "/tmp/coin-retained-bgfx/lib/libCoinEnvironment.so": "dcb8df25c54dbec86f9f02d3ede10ca90e795755abb983f3a1392cbb3c44cd29"
+  },
+  "regressions": [
+    {
+      "name": "CoinEnvironmentTest",
+      "status": "PASS"
+    },
+    {
+      "name": "SoRetainedPBRTest",
+      "status": "PASS"
+    },
+    {
+      "name": "CoinRenderIBLBake-studio",
+      "status": "PASS"
+    },
+    {
+      "name": "CoinRenderRetainedIBL-studio",
+      "status": "PASS"
+    },
+    {
+      "name": "CoinRenderIBLBake-asymmetric",
+      "status": "PASS"
+    },
+    {
+      "name": "CoinRenderRetainedIBL-asymmetric",
+      "status": "PASS"
+    },
+    {
+      "name": "CoinRenderRetainedIBLAdmissionTest",
+      "status": "PASS"
+    },
+    {
+      "name": "CoinRenderRetainedPBRGalleryTest",
+      "status": "PASS"
+    },
+    {
+      "name": "CoinRenderRetainedConnectorTest",
+      "status": "PASS"
+    },
+    {
+      "name": "CoinBgfxCoreTest",
+      "status": "PASS"
+    },
+    {
+      "name": "CoinBgfxInstancingTest",
+      "status": "PASS"
+    }
+  ],
+  "readback_control": {
+    "status": "PASS",
+    "gui_stages": 19,
+    "exact_color_depth_buffers": 40,
+    "presentation": "Explicit readback control; not a native fallback"
+  },
+  "scope": "Native Vulkan/BGFX Xlib child-surface presentation in FreeCAD; acknowledgements/statistics only to Qt. OS screenshots are test-only after presentation; callback and retained offscreen replay happen after the GUI exits.",
+  "limitations": [
+    "Linux X11/xcb qualified; Wayland/Win32 native host adapter not qualified",
+    "No native-window depth readback; native presented color/occlusion matches offscreen controls; depth is compared only between the two offscreen controls",
+    "Object highlight; face/edge styles and joint gizmos outside profile",
+    "Floating Qt dock overlays intersecting the view are temporarily masked because they cache old GL pixels; docked panels remain usable and exact masks are restored",
+    "Rigid opaque assembly links, explicit demo PBR factors; topology edits exit profile and require reattachment",
+    "No FPS or whole-process memory benchmark in this campaign"
+  ],
+  "fork_origin": {
+    "repository": "https://github.com/FreeCAD/coin",
+    "revision": "17a9e4b21b643cb44d42e103183d8384eef6a6a5",
+    "author": "Joao Matos <joao@tritao.eu>",
+    "reused": "SoIRRenderAction, retained updater and SoRenderPlanner; native presentation belongs to local C12 integration"
+  },
+  "diagnostics": "AddonManager missing-defusedxml startup warning is unrelated to the passing Assembly campaign. Source-shape/profile rejection during lifecycle testing is intentional."
+}

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="6"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="14"
+	timestamp="2026-10-28T21:38:10"
+	>
+	<testcase name="CoinEnvironmentTest" classname="CoinEnvironmentTest" time="0.249459" status="run">
+		<properties/>
+		<system-out>PBR environment: deterministic package, SH, six faces/all levels, independent DFG, malformed input and rollback PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIBLBake-studio" classname="CoinRenderIBLBake-studio" time="0.933358" status="run">
+		<properties/>
+		<system-out>IBL baked: face=128 lut=128 levels=8 bytes=1966172 identity=11261952938219930909
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedIBL-studio" classname="CoinRenderRetainedIBL-studio" time="5.73712" status="run">
+		<properties/>
+		<system-out>IBL PASS: 2 scenes, 5 states, 20 exact buffers, 2 paths
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIBLBake-asymmetric" classname="CoinRenderIBLBake-asymmetric" time="0.948659" status="run">
+		<properties/>
+		<system-out>IBL baked: face=128 lut=128 levels=8 bytes=1966172 identity=5126869629112700977
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedIBL-asymmetric" classname="CoinRenderRetainedIBL-asymmetric" time="5.43977" status="run">
+		<properties/>
+		<system-out>IBL PASS: 2 scenes, 5 states, 20 exact buffers, 2 paths
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedIBLAdmissionTest" classname="CoinRenderRetainedIBLAdmissionTest" time="0.94728" status="run">
+		<properties/>
+		<system-out>IBL admission, retry, frozen source and GPU budget: PASS
+</system-out>
+	</testcase>
+</testsuite>

@@ -70,6 +70,7 @@ public:
   void GLRender(SoGLRenderAction * action) override;
   void rayPick(SoRayPickAction * action) override;
   void callback(SoCallbackAction * action) override;
+  void IRRender(SoIRRenderAction * action) override;
   virtual void computeBBox(SoAction * action, SbBox3f & box,
                            SbVec3f & center) =  0;
   void getPrimitiveCount(SoGetPrimitiveCountAction * action) override;
@@ -85,6 +86,7 @@ protected:
 
   float getComplexityValue(SoAction * action);
   virtual void generatePrimitives(SoAction * action) =  0;
+  virtual SbBool generateRetainedPrimitives(SoIRRenderAction * action);
   virtual SbBool shouldGLRender(SoGLRenderAction * action);
   void beginSolidShape(SoGLRenderAction * action);
   void endSolidShape(SoGLRenderAction * action);

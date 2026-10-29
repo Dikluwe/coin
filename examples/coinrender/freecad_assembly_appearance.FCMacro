@@ -1,0 +1,357 @@
+"""Native AssemblyExample material preview; no FCStd material data is changed.
+
+Use the same COIN_VIEWPORT_SOURCE/WORKER/ENVIRONMENT/ASSEMBLY variables as the
+native viewport macro. Optional COIN_ASSEMBLY_PREVIEW_OUTPUT records native OS
+surface snapshots, a controlled uniform-material comparison and light/detail
+variants, then exits. Shadows, SSAO and studio background are enabled by default;
+COIN_ASSEMBLY_EFFECTS_PREVIEW=0 restores the material-only preview. Without an
+output directory the preview stays interactive.
+"""
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide6 import QtCore, QtGui, QtWidgets
+from pathlib import Path
+import os
+import sys
+import json
+import traceback
+
+sys.path.insert(0, str(Path(os.environ["COIN_VIEWPORT_SOURCE"]) / "examples/coinrender"))
+import freecad_retained_viewport as bridge
+from freecad_assembly_appearance import assembly_example_materials, frame_assembly
+
+
+class Preview:
+    def __init__(self):
+        self.renderer = None
+        self.output = Path(os.environ["COIN_ASSEMBLY_PREVIEW_OUTPUT"]) if os.environ.get("COIN_ASSEMBLY_PREVIEW_OUTPUT") else None
+        if self.output:
+            self.output.mkdir(parents=True, exist_ok=True)
+        self.records = []
+        self.rough_preview = os.environ.get("COIN_ASSEMBLY_ROUGH_REFLECTION_PREVIEW", "0")=="1"
+        self.reflection_preview = self.rough_preview or os.environ.get("COIN_ASSEMBLY_REFLECTION_PREVIEW", "0")=="1"
+        self.anisotropy_preview = self.reflection_preview or os.environ.get("COIN_ASSEMBLY_ANISOTROPY_PREVIEW", "0") == "1"
+        self.effects_preview = os.environ.get("COIN_ASSEMBLY_EFFECTS_PREVIEW", "1") == "1"
+        self.start_stage="reflection-on" if self.reflection_preview else "anisotropic"
+        self.stage = self.start_stage if self.anisotropy_preview else "effects-off" if self.effects_preview else "uniform"
+        self.scheduled = False
+        self.static_check = None
+        self.factor_phase = None
+        self.factor_checks = []
+
+    def start(self):
+        try:
+            self.main = Gui.getMainWindow()
+            self.main.resize(1500, 1050)
+            self.main.show()
+            Gui.activateWorkbench("AssemblyWorkbench")
+            if os.environ.get("COIN_VIEWPORT_ASSEMBLY"):
+                App.openDocument(os.environ["COIN_VIEWPORT_ASSEMBLY"])
+            Gui.activateView("Gui::View3DInventor", True)
+            area = self.main.findChild(QtWidgets.QMdiArea)
+            for window in area.subWindowList():
+                if App.ActiveDocument.Label in window.windowTitle():
+                    area.setActiveSubWindow(window)
+            self.view = Gui.activeDocument().activeView()
+            self.view.setCameraType("Perspective")
+            assemblies = [o for o in App.ActiveDocument.Objects if o.TypeId == "Assembly::AssemblyObject"]
+            if len(assemblies) != 1:
+                raise ValueError("Open one AssemblyExample assembly")
+            self.assembly = assemblies[0]
+            self.attach(uniform=bool(self.output) and not self.effects_preview)
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def attach(self, uniform):
+        Gui.Selection.clearSelection()
+        Gui.Selection.clearPreselection()
+        materials = None if uniform else assembly_example_materials(self.assembly)
+        if self.anisotropy_preview:
+            self.brushed=[name for name in materials if name=="Bucket" or "CylinderInner" in name or name.startswith("BucketLink")]
+            for name in self.brushed:
+                materials[name].update(metallic=1.,roughness=.32,clearcoat=0.,anisotropy=.85,anisotropyRotation=.3)
+            tangent_maps={name:dict(directionS=(.02,.006,.013),directionT=(-.004,.018,.009)) for name in self.brushed}
+        else:tangent_maps=None
+        directory = self.output / ("uniform-session" if uniform else "industrial-session") if self.output else None
+        self.renderer = bridge.attach(os.environ["COIN_VIEWPORT_WORKER"], os.environ["COIN_VIEWPORT_ENVIRONMENT"],
+                                      self.assembly, directory=directory, record=bool(self.output),
+                                      material_overrides=materials, studio_setup=self.effects_preview,
+                                      surface_maps=json.loads(Path(os.environ["COIN_ASSEMBLY_SURFACE_MAPS"]).read_text()) if os.environ.get("COIN_ASSEMBLY_SURFACE_MAPS") else tangent_maps,
+                                      effects=dict(planarReflection=self.reflection_preview,roughPlanarReflection=self.rough_preview,background=True, shadowMapSize=2048, shadowBias=.00015,
+                                                   occlusionRadius=18., occlusionStrength=.9) if self.effects_preview else None)
+        self.renderer.environment_rotation = .6
+        self.renderer.environment_intensity = .85
+        self.renderer.exposure = -.25
+        frame_assembly(self.view, self.assembly)
+        if self.reflection_preview:
+            camera=self.view.getCameraNode()
+            position=App.Vector(*camera.position.getValue())
+            direction=App.Vector(*camera.orientation.getValue().multVec(bridge.coin.SbVec3f(0,0,-1)))
+            focus=position+direction*camera.focalDistance.getValue()
+            offset=position-focus
+            focus.z=self.renderer.effects["reflectionPlane"][3]
+            camera.position.setValue(*(focus+offset))
+            camera.pointAt(bridge.coin.SbVec3f(*focus),bridge.coin.SbVec3f(0,0,1))
+            camera.focalDistance.setValue(offset.Length);camera.heightAngle.setValue(.75)
+        if self.anisotropy_preview and os.environ.get("COIN_ASSEMBLY_ANISOTROPY_DETAIL", "0")=="1":
+            bucket=next(part for part in self.renderer.parts if part.Name=="Bucket")
+            placement=self.assembly.getGlobalPlacementOf(self.assembly,self.assembly,"")
+            center=placement.multVec(bucket.Shape.BoundBox.Center)
+            offset=App.Vector(400,280,180);camera=self.view.getCameraNode()
+            camera.position.setValue(*(center+offset))
+            camera.pointAt(bridge.coin.SbVec3f(*center),bridge.coin.SbVec3f(0,0,1))
+            camera.focalDistance.setValue(offset.Length);camera.heightAngle.setValue(.4)
+
+        if self.anisotropy_preview or (self.effects_preview and not self.output):
+            self.renderer.effects.update(shadows=True, ambientOcclusion=True)
+        self.renderer.failed.connect(self.fail)
+        self.scheduled = False
+        if self.output:
+            self.renderer.frameReady.connect(self.ready)
+
+    def ready(self, frame):
+        if not self.scheduled:
+            self.scheduled = True
+            QtCore.QTimer.singleShot(200, self.capture)
+
+    def capture(self):
+        try:
+            if self.renderer.busy:
+                QtCore.QTimer.singleShot(50, self.capture)
+                return
+            frame = self.renderer.frames[-1]
+            if frame["pixel_readbacks"] or frame["cpu_pixel_bytes"] or frame["qt_image_bytes"]:
+                raise RuntimeError("Appearance preview used pixel transport")
+            image = self.renderer.canvas.screen().grabWindow(int(self.renderer.canvas.winId())).toImage()
+            image = image.convertToFormat(QtGui.QImage.Format_RGBA8888)
+            if image.size() != self.renderer.presented_size:
+                raise RuntimeError("Appearance preview size mismatch")
+            if self.anisotropy_preview:
+                self.capture_anisotropy(image,frame)
+                return
+            if self.effects_preview and self.stage == "shadows-and-ao":
+                raw = bytes(image.constBits())
+                if self.static_check is None:
+                    self.static_check = (raw, dict(frame))
+                    self.scheduled = False
+                    QtCore.QTimer.singleShot(0, lambda: self.renderer.poll(force=True))
+                    return
+                old_pixels, old_stats = self.static_check
+                if self.factor_phase is None:
+                    if raw != old_pixels or frame["static_reuses"] <= old_stats["static_reuses"]:
+                        raise RuntimeError("Cached native PBR presentation changed pixels or missed reuse")
+                    if frame["shaded_frames"] != old_stats["shaded_frames"]:
+                        raise RuntimeError("Static native presentation repeated PBR/SSAO shading")
+                    if self.renderer.surface_maps:
+                        self.factor_part=next(iter(self.renderer.surface_maps))
+                        self.factor_original=dict(self.renderer.material_overrides.get(self.factor_part,{}))
+                        self.factor_phase="changed"
+                        self.renderer.material_overrides.setdefault(self.factor_part,{}).update(roughness=.9,normalScale=0)
+                        self.scheduled=False
+                        return
+                elif self.factor_phase=="changed":
+                    if raw==old_pixels or any(frame[k]!=old_stats[k] for k in ("captures","plans","transport_builds","copied_vertices")):
+                        raise RuntimeError("Native material edit did not update incrementally")
+                    image.save(str(self.output/'material-edited.png'))
+                    self.factor_checks.append(dict(frame,phase="edited"))
+                    self.renderer.material_overrides[self.factor_part]=self.factor_original
+                    self.factor_phase="restoring"
+                    self.scheduled=False
+                    return
+                elif self.factor_phase=="restoring":
+                    if raw!=old_pixels or any(frame[k]!=old_stats[k] for k in ("captures","plans","transport_builds","copied_vertices")):
+                        raise RuntimeError("Native material restoration changed geometry or pixels")
+                    self.factor_checks.append(dict(frame,phase="restored"))
+                    self.factor_phase="done"
+            image.save(str(self.output / (self.stage + ".png")))
+            (self.output / (self.stage + ".rgba")).write_bytes(bytes(image.constBits()))
+            self.main.screen().grabWindow(int(self.main.winId())).save(str(self.output / (self.stage + "-freecad.png")))
+            record = dict(frame, stage=self.stage, session=self.renderer.directory.name,
+                          camera=bridge._camera(self.view), rotation=self.renderer.environment_rotation,
+                          intensity=self.renderer.environment_intensity, exposure=self.renderer.exposure,
+                          effects=dict(self.renderer.effects), surface_maps=self.renderer.surface_maps, materials={part.Name: self.renderer.material_for(part) for part in self.renderer.parts})
+            self.records.append(record)
+            if self.effects_preview:
+                transitions = {"effects-off": ("shadows-only", True, False),
+                               "shadows-only": ("ao-only", False, True),
+                               "ao-only": ("shadows-and-ao", True, True),
+                               "shadows-and-ao": ("restored-off", False, False)}
+                if self.stage in transitions:
+                    self.stage, shadows, ao = transitions[self.stage]
+                    self.scheduled = False
+                    self.renderer.effects.update(shadows=shadows, ambientOcclusion=ao)
+                elif self.stage == "restored-off":
+                    self.stage = "detail"
+                    self.scheduled = False
+                    self.renderer.effects.update(shadows=True, ambientOcclusion=True)
+                    frame_assembly(self.view, self.assembly, detail=True)
+                elif self.stage == "detail":
+                    self.stage = "selected"
+                    self.scheduled = False
+                    self.test_part = self.renderer.parts[0]
+                    Gui.Selection.addSelection(App.ActiveDocument.Name, self.assembly.Name, self.test_part.Name + ".")
+                elif self.stage == "selected":
+                    self.stage = "moved"
+                    self.scheduled = False
+                    self.original_placement = App.Placement(self.test_part.Placement)
+                    moved = App.Placement(self.original_placement)
+                    moved.Base += App.Vector(35,20,10)
+                    self.test_part.Placement = moved
+                elif self.stage == "moved":
+                    self.stage = "restored"
+                    self.scheduled = False
+                    self.test_part.Placement = self.original_placement
+                    Gui.Selection.clearSelection()
+                else:
+                    self.renderer.close()
+                    QtCore.QTimer.singleShot(2300, self.finish)
+            elif self.stage == "uniform":
+                self.renderer.close()
+                self.stage = "industrial"
+                QtCore.QTimer.singleShot(300, lambda: self.attach(uniform=False))
+            elif self.stage == "industrial":
+                self.stage = "industrial-light-2"
+                self.scheduled = False
+                self.renderer.environment_rotation = 1.4
+            elif self.stage == "industrial-light-2":
+                self.stage = "industrial-light-3"
+                self.scheduled = False
+                self.renderer.environment_rotation = 2.4
+            elif self.stage == "industrial-light-3":
+                self.stage = "detail"
+                self.scheduled = False
+                self.renderer.environment_rotation = .6
+                frame_assembly(self.view, self.assembly, detail=True)
+            else:
+                self.renderer.close()
+                QtCore.QTimer.singleShot(2300, self.finish)
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def finish(self):
+        try:
+            if self.renderer.process.exitCode() != 0 or self.renderer.process.state() != QtCore.QProcess.NotRunning:
+                raise RuntimeError("Appearance renderer did not retire cleanly")
+            if self.anisotropy_preview:
+                self.finish_anisotropy()
+                return
+            if self.effects_preview:
+                for record in self.records[:5]:
+                    if any(record[k] != 1 for k in ("captures","plans","transport_builds")):
+                        raise RuntimeError("Effect toggles duplicated capture/planning/transport")
+                if (self.output / "effects-off.rgba").read_bytes() != (self.output / "restored-off.rgba").read_bytes():
+                    raise RuntimeError("Disabling effects did not restore the original image")
+                if (self.output / "detail.rgba").read_bytes() != (self.output / "restored.rgba").read_bytes():
+                    raise RuntimeError("Interaction restoration changed the native image")
+                selected, moved = self.records[6:8]
+                if moved["captures"] != selected["captures"] or moved["plans"] != selected["plans"]:
+                    raise RuntimeError("Translation duplicated capture/planning")
+                if moved["shadow_passes"] <= selected["shadow_passes"] or moved["ao_depth_passes"] <= selected["ao_depth_passes"]:
+                    raise RuntimeError("Moving geometry left stale effect depths")
+            (self.output / "factor-checks.json").write_text(json.dumps(self.factor_checks,indent=2))
+            (self.output / "results.json").write_text(json.dumps(dict(status="PASS", records=self.records,
+                scope="Native PBR preview; optional directional PCF shadows, SSAO and studio gradient; no CAD data changes"), indent=2))
+            print("FREECAD_ASSEMBLY_APPEARANCE_PASS", len(self.records), "native previews")
+            QtCore.QCoreApplication.exit(0)
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def capture_anisotropy(self,image,frame):
+        raw=bytes(image.constBits())
+        # An actual forced native repaint must reuse completed HDR shading.
+        if self.stage==self.start_stage and self.static_check is None:
+            self.static_check=(raw,dict(frame))
+            self.scheduled=False
+            QtCore.QTimer.singleShot(0,lambda:self.renderer.poll(force=True))
+            return
+        if self.stage==self.start_stage:
+            old,stats=self.static_check
+            if raw!=old or frame["static_reuses"]<=stats["static_reuses"] or frame["shaded_frames"]!=stats["shaded_frames"]:
+                raise RuntimeError("Anisotropic native static reuse changed pixels or repeated shading")
+        image.save(str(self.output/(self.stage+".png")))
+        (self.output/(self.stage+".rgba")).write_bytes(raw)
+        self.main.screen().grabWindow(int(self.main.winId())).save(str(self.output/(self.stage+"-freecad.png")))
+        self.records.append(dict(frame,stage=self.stage,session=self.renderer.directory.name,
+            camera=bridge._camera(self.view),rotation=self.renderer.environment_rotation,
+            intensity=self.renderer.environment_intensity,exposure=self.renderer.exposure,
+            effects=dict(self.renderer.effects),surface_maps=self.renderer.surface_maps,
+            materials={part.Name:self.renderer.material_for(part) for part in self.renderer.parts}))
+        self.scheduled=False
+        if self.reflection_preview:
+            transitions={"reflection-on":("reflection-off",False,2),
+                         "reflection-off":("quarter-resolution",True,4),
+                         "quarter-resolution":("full-resolution",True,1),
+                         "full-resolution":("restored",True,2)}
+            if self.stage in transitions:
+                self.stage,enabled,scale=transitions[self.stage]
+                self.renderer.effects.update(planarReflection=enabled,reflectionScale=scale,
+                                             roughPlanarReflection=self.rough_preview)
+                return
+        if self.stage==self.start_stage:
+            self.stage="rotated90"
+            for name in self.brushed:self.renderer.material_overrides[name]["anisotropyRotation"]=.3+1.5707963267948966
+        elif self.stage=="rotated90":
+            self.stage="weak"
+            for name in self.brushed:self.renderer.material_overrides[name]["anisotropy"]=.3
+        elif self.stage=="weak":
+            self.stage="isotropic"
+            for name in self.brushed:self.renderer.material_overrides[name]["anisotropy"]=0
+        elif self.stage=="isotropic":
+            self.stage="restored"
+            for name in self.brushed:self.renderer.material_overrides[name].update(anisotropy=.85,anisotropyRotation=.3)
+        elif self.stage=="restored":
+            self.stage="selected"
+            self.test_part=next(part for part in self.renderer.parts if part.Name==os.environ.get("COIN_ASSEMBLY_PREVIEW_INTERACTION_PART","Bucket"))
+            Gui.Selection.addSelection(App.ActiveDocument.Name,self.assembly.Name,self.test_part.Name+".")
+        elif self.stage=="selected":
+            self.stage="moved"
+            self.original_placement=App.Placement(self.test_part.Placement)
+            placement=App.Placement(self.original_placement);placement.Base+=App.Vector(35,0,15)
+            self.test_part.Placement=placement
+        elif self.stage=="moved":
+            self.stage="interaction-restored"
+            Gui.Selection.clearSelection();self.test_part.Placement=self.original_placement
+        elif self.stage=="interaction-restored":
+            self.stage="static-restored"
+            QtCore.QTimer.singleShot(0,lambda:self.renderer.poll(force=True))
+        else:
+            self.renderer.close()
+            QtCore.QTimer.singleShot(2500,self.finish)
+
+    def finish_anisotropy(self):
+        records=self.records
+        link=self.renderer.mesh_reports["BucketLink2"]
+        mesh=link["attempts"][-1]
+        if not mesh["closed_solid"] or abs(mesh["signed_volume"]-link["source_volume"])/link["source_volume"]>.01:
+            raise RuntimeError("BucketLink2 lost an opaque face or has an invalid exported volume")
+        if len(records)!=9:raise RuntimeError("Incomplete anisotropy stages")
+        for record in records[:5]:
+            if any(record[k]!=1 for k in ("captures","plans","transport_builds")):
+                raise RuntimeError("Anisotropy scalar changes duplicated capture/planning/transport")
+            if record["copied_vertices"]!=records[0]["copied_vertices"]:
+                raise RuntimeError("Anisotropy scalar changes recopied geometry")
+        for name in ("restored","interaction-restored","static-restored"):
+            if (self.output/(name+".rgba")).read_bytes()!=(self.output/(self.start_stage+".rgba")).read_bytes():
+                raise RuntimeError("Anisotropy/interaction restoration changed pixels")
+        for name in (("reflection-off","quarter-resolution","full-resolution","selected","moved") if self.reflection_preview else ("rotated90","weak","isotropic","selected","moved")):
+            if (self.output/(name+".rgba")).read_bytes()==(self.output/(self.start_stage+".rgba")).read_bytes():
+                raise RuntimeError("Anisotropy/interaction control had no visible effect: "+name)
+        if records[-1]["shaded_frames"]!=records[-2]["shaded_frames"] or records[-1]["static_reuses"]<=records[-2]["static_reuses"]:
+            raise RuntimeError("Restored anisotropy repeated static shading")
+        (self.output/"results.json").write_text(json.dumps(dict(status="PASS",records=records,
+            scope="Native BGFX planar reflection (optional rough proxy) and VNDF IBL; same Assembly/camera; no CAD data saved" if self.reflection_preview else "Native BGFX anisotropy and VNDF global IBL; same Assembly/camera; no CAD data saved"),indent=2))
+        print("FREECAD_ASSEMBLY_REFLECTION_PASS" if self.reflection_preview else "FREECAD_ASSEMBLY_ANISOTROPY_PASS",len(records),"native previews")
+        QtCore.QCoreApplication.exit(0)
+
+    def fail(self, message):
+        App.Console.PrintError(str(message) + "\n")
+        if self.output:
+            (self.output / "failure.txt").write_text(str(message))
+        if self.renderer and not self.renderer.closed:
+            self.renderer.close()
+        if self.output:
+            QtCore.QTimer.singleShot(2500, lambda: QtCore.QCoreApplication.exit(1))
+
+
+preview = Preview()
+QtCore.QTimer.singleShot(2500, preview.start)

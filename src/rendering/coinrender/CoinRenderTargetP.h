@@ -13,6 +13,8 @@
 #include <string>
 #include <memory>
 
+class CoinEnvironment;
+class CoinEnvironmentAnisotropy;
 class CoinRenderFramePreflight;
 struct CoinRenderCompositionTransferTrace;
 
@@ -43,6 +45,9 @@ public:
   CoinRenderBackendRuntime * runtime;
   bool capabilityProbeOnly = false;
   CoinRenderOptions options;
+  // CPU snapshot survives executor retirement/resize and source file deletion.
+  std::shared_ptr<const CoinEnvironment> pbrEnvironmentSnapshot;
+  std::shared_ptr<const CoinEnvironmentAnisotropy> pbrAnisotropyProducts;
   std::string optionsDiagnostic;
   TargetKind kind{KIND_OFFSCREEN};
   CoinRenderTarget::Status status{CoinRenderTarget::TARGET_READY};

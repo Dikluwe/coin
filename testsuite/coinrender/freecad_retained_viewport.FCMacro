@@ -1,0 +1,419 @@
+"""Actual FreeCAD Assembly viewport qualification, driven by Qt mouse events.
+
+Environment: COIN_VIEWPORT_SOURCE, COIN_VIEWPORT_WORKER,
+COIN_VIEWPORT_ENVIRONMENT, COIN_VIEWPORT_OUTPUT, COIN_VIEWPORT_ASSEMBLY.
+Run with a temporary FreeCAD profile and a 140-second external timeout.
+"""
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide6 import QtCore, QtGui, QtWidgets, QtTest
+import os
+import sys
+import json
+import time
+import traceback
+from pathlib import Path
+
+output = Path(os.environ["COIN_VIEWPORT_OUTPUT"])
+output.mkdir(parents=True, exist_ok=True)
+sys.path.insert(0, str(Path(os.environ["COIN_VIEWPORT_SOURCE"]) / "examples/coinrender"))
+import freecad_retained_viewport
+
+
+def require(value, message):
+    if not value:
+        raise RuntimeError(message)
+
+
+class Test:
+    def __init__(self):
+        self.connector = None
+        self.presentation = os.environ.get("COIN_VIEWPORT_PRESENTATION", "native")
+        self.native_mode = self.presentation == "native"
+        self.last_ack = 0
+        self.capture_image = None
+        self.results = []
+        self.steps = []
+        self.started = time.monotonic()
+        self.stage_started = self.started
+        self.index = -1
+        self.previous = 0
+        self.waiting = False
+        self.timer = QtCore.QTimer()
+        self.timer.setInterval(50)
+        self.timer.timeout.connect(self.tick)
+
+    def start(self):
+        try:
+            self.main = Gui.getMainWindow()
+            self.main.resize(1280, 960)
+            self.main.show()
+            Gui.activateWorkbench("AssemblyWorkbench")
+            self.doc = App.openDocument(os.environ["COIN_VIEWPORT_ASSEMBLY"])
+            Gui.activateView("Gui::View3DInventor", True)
+            area = self.main.findChild(QtWidgets.QMdiArea)
+            for window in area.subWindowList():
+                if "AssemblyExample" in window.windowTitle():
+                    area.setActiveSubWindow(window)
+            self.view = Gui.activeDocument().activeView()
+            self.view.viewAxonometric()
+            self.view.fitAll()
+            self.camera = self.view.getCamera()
+            self.connector = freecad_retained_viewport.attach(
+                os.environ["COIN_VIEWPORT_WORKER"], os.environ["COIN_VIEWPORT_ENVIRONMENT"],
+                directory=output / "session", record=True, presentation=self.presentation)
+            self.connector.failed.connect(self.fail)
+            self.connector.frameReady.connect(lambda frame: setattr(self, "last_ack", time.monotonic()))
+            self.steps = [
+                ("base", lambda: self.connector.poll(force=True), self.base),
+                ("static", lambda: self.connector.poll(force=True), self.static),
+                ("hover", self.hover, self.hovered),
+                ("selection", self.select, self.selected),
+                ("move", self.move, self.moved),
+                ("restore", self.restore, self.restored),
+                ("rotate-piece", self.rotate_piece, self.rotated_piece),
+                ("rotate-piece-restore", self.restore, self.restored),
+                ("ibl-rotation", lambda: setattr(self.connector, "environment_rotation", 1.57079632679), self.ibl),
+                ("ibl-exposure", lambda: setattr(self.connector, "exposure", 2), self.ibl),
+                ("ibl-restore", self.restore_ibl, self.restored),
+                ("hide", lambda: setattr(self.part.ViewObject, "Visibility", False), self.hidden),
+                ("show", lambda: setattr(self.part.ViewObject, "Visibility", True), self.restored),
+                ("assembly-recompute", self.solve_assembly, self.solved),
+                ("assembly-restore", self.restore_assembly, self.restored),
+                ("camera", self.rotate_camera, self.changed_camera),
+                ("camera-restore", self.restore_camera, self.restored),
+                ("resize", lambda: self.main.resize(1120, 820), self.resized),
+                ("pick-after-resize", self.pick_after_resize, self.picked_after_resize),
+            ]
+            self.timer.start()
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def pixels(self):
+        if self.native_mode:
+            return bytes(self.capture_image.constBits())
+        return (self.connector.directory / f"frame-{self.connector.frames[-1]['id']}.rgba").read_bytes()
+
+    def depth(self):
+        if self.native_mode:
+            raise RuntimeError("Native window depth is not read back in this campaign")
+        return (self.connector.directory / f"frame-{self.connector.frames[-1]['id']}.depth").read_bytes()
+
+    def same_depth(self):
+        # Native qualification compares actual presented color/occlusion with
+        # independent offscreen controls; no native depth readback is requested.
+        return self.native_mode or self.depth() == self.base_depth
+
+    def geometry_changed(self):
+        return (self.pixels() != self.base_pixels if self.native_mode
+                else self.depth() != self.base_depth)
+
+    def capture_native(self):
+        image = self.connector.canvas.screen().grabWindow(int(self.connector.canvas.winId())).toImage()
+        image = image.convertToFormat(QtGui.QImage.Format_RGBA8888)
+        require(image.size() == self.connector.presented_size, "Native surface capture extent mismatch")
+        self.capture_image = image
+        path = output / "presented"
+        path.mkdir(exist_ok=True)
+        (path / f"frame-{self.connector.frames[-1]['id']}.rgba").write_bytes(bytes(image.constBits()))
+
+    def tick(self):
+        try:
+            require(time.monotonic() - self.started < 110, "GUI qualification timed out")
+            if self.waiting:
+                if len(self.connector.frames) <= self.previous:
+                    require(time.monotonic() - self.stage_started < 20, "No frame for " + self.steps[self.index][0])
+                    return
+                if self.native_mode:
+                    if self.connector.busy or time.monotonic() - self.last_ack < .15:
+                        return
+                    self.capture_native()
+                self.steps[self.index][2]()
+                frame = dict(self.connector.frames[-1])
+                require(frame["legacy_render_calls"] == 0 and not frame["legacy_updates_enabled"], "Duplicate legacy renderer active")
+                require(frame["environment_uploads"] == 1, "Interaction reuploaded IBL")
+                require(frame["mesh_builds"] == 13, "Interaction retessellated document")
+                if self.native_mode:
+                    require(frame["native_window"] != 0 and frame["pixel_readbacks"] == frame["cpu_pixel_bytes"] == frame["qt_image_bytes"] == 0, "Native mode transported pixels through Qt")
+                    require(not list(self.connector.directory.glob("*.rgba")) and not list(self.connector.directory.glob("*.depth")), "Native worker wrote pixel files")
+                for a, b in zip(self.connector.frames, self.connector.frames[1:]):
+                    require(0 <= b["captures"]-a["captures"] <= 1, "Duplicate native capture in a frame")
+                    require(0 <= b["plans"]-a["plans"] <= 1, "Duplicate native planning in a frame")
+                name = self.steps[self.index][0]
+                (self.capture_image if self.native_mode else self.connector.canvas.image).save(str(output / (name + ".png")))
+                frame["stage"] = name
+                self.results.append(frame)
+                self.waiting = False
+            if self.connector.busy:
+                return
+            self.index += 1
+            if self.index == len(self.steps):
+                self.finish()
+                return
+            self.previous = len(self.connector.frames)
+            self.stage_started = time.monotonic()
+            self.steps[self.index][1]()
+            self.waiting = True
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def base(self):
+        self.base_pixels = self.pixels()
+        self.base_depth = None if self.native_mode else self.depth()
+        self.base_stats = dict(self.connector.frames[-1])
+        self.camera_fields = freecad_retained_viewport._camera(self.view)
+        self.placements = {part.Name: App.Placement(part.Placement) for part in self.connector.parts}
+        require(self.base_stats["captures"] == self.base_stats["plans"] == 1, "Initial capture/planning count")
+        # Probe the FreeCAD graph, not the exported mesh, to obtain an actual
+        # visible linked face and drive the canvas with native Qt input events.
+        self.hits = []
+        names = {part.Name for part in self.connector.parts}
+        canvas = self.connector.canvas
+        for y in range(canvas.height() // 5, 4*canvas.height() // 5, 12):
+            for x in range(canvas.width() // 6, 5*canvas.width() // 6, 12):
+                info = self.connector.pick_info(QtCore.QPointF(x, y))
+                if not info or not info.get("Component", "").startswith("Face"):
+                    continue
+                components = [info["Object"], *info.get("Component", "").split(".")]
+                matched = next((name for name in components if name in names), None)
+                if matched:
+                    self.hits.append((QtCore.QPoint(x, y), matched, info))
+                    break
+            if self.hits:
+                break
+        require(self.hits, "No FreeCAD linked face can be picked under the PBR viewport")
+        self.point, name, self.hit = self.hits[0]
+        offset = 4*(self.point.y()*canvas.width()+self.point.x())
+        require(any(self.base_pixels[offset:offset+3]), "FreeCAD pick and retained geometry disagree at the click pixel")
+        self.part = self.doc.getObject(name)
+        self.placement = App.Placement(self.part.Placement)
+        (output / "pick.json").write_text(json.dumps(self.hit, indent=2, default=str))
+        self.main.screen().grabWindow(int(self.main.winId())).save(str(output / "freecad-pbr-viewport.png"))
+
+    def static(self):
+        require(self.pixels() == self.base_pixels and self.same_depth(), "Static frame changed")
+        for key in ("captures", "plans", "transport_builds", "copied_vertices"):
+            require(self.connector.frames[-1][key] == self.base_stats[key], "Static frame rebuilt " + key)
+
+        if self.native_mode:
+            require(self.connector.frames[-1]["static_reuses"] > self.base_stats["static_reuses"], "Static presentation cache was not used")
+            require(self.connector.frames[-1]["shaded_frames"] == self.base_stats["shaded_frames"], "Static repaint repeated PBR shading")
+
+    def hover(self):
+        pos = QtCore.QPointF(self.point)
+        event = QtGui.QMouseEvent(QtCore.QEvent.MouseMove, pos,
+                                 QtCore.QPointF(self.connector.canvas.mapToGlobal(self.point)),
+                                 QtCore.Qt.NoButton, QtCore.Qt.NoButton, QtCore.Qt.NoModifier)
+        QtWidgets.QApplication.sendEvent(self.connector.canvas, event)
+
+    def hovered(self):
+        require(self.connector._matches(Gui.Selection.getPreselection(), self.part), "Hover did not reach FreeCAD preselection")
+        require(self.pixels() != self.base_pixels, "Hover highlight missing from retained PBR pixels")
+        require(self.same_depth(), "Hover changed geometry depth")
+
+    def select(self):
+        QtTest.QTest.mouseClick(self.connector.canvas, QtCore.Qt.LeftButton, QtCore.Qt.NoModifier, self.point)
+
+    def selected(self):
+        require(any(self.connector._matches(s, self.part) for s in Gui.Selection.getSelectionEx()), "Qt click did not select FreeCAD link")
+        require(self.pixels() != self.base_pixels and self.same_depth(), "Selection highlight invalid")
+        require(self.pixels() != (output / ("presented" if self.native_mode else "session") / f"frame-{self.results[-1]['id']}.rgba").read_bytes(), "Selection and hover look identical")
+        self.selected_pixels = self.pixels()
+        self.selected_stats = dict(self.connector.frames[-1])
+        self.main.screen().grabWindow(int(self.main.winId())).save(str(output / "freecad-selection.png"))
+
+    def move(self):
+        moved = App.Placement(self.placement)
+        moved.Base += App.Vector(35, 20, 10)
+        self.part.Placement = moved
+
+    def moved(self):
+        require(self.geometry_changed() and self.pixels() != self.selected_pixels, "Live placement did not move retained geometry")
+        stats = self.connector.frames[-1]
+        require(stats["incremental_updates"] > self.selected_stats["incremental_updates"], "Placement did not use native incremental update")
+        require(stats["captures"] == self.selected_stats["captures"], "Placement recaptured scene")
+        require(stats["copied_vertices"] == self.selected_stats["copied_vertices"], "Placement recopied mesh geometry")
+
+    def rotate_piece(self):
+        placement = App.Placement(self.placement)
+        placement.Rotation = App.Rotation(App.Vector(0, 0, 1), 12) * placement.Rotation
+        self.part.Placement = placement
+
+    def rotated_piece(self):
+        require(self.geometry_changed(), "Piece rotation did not reach retained geometry")
+
+    def solved(self):
+        require(self.geometry_changed(), "Assembly recomputation did not update retained poses")
+
+    def solve_assembly(self):
+        self.move()
+        require(self.connector.assembly.solve() == 0, "FreeCAD Assembly solver failed")
+        self.doc.recompute()
+
+    def restore_assembly(self):
+        for name, placement in self.placements.items():
+            self.doc.getObject(name).Placement = placement
+
+    def restore(self):
+        self.part.Placement = self.placement
+        Gui.Selection.clearSelection()
+        Gui.Selection.clearPreselection()
+
+    def restored(self):
+        require(self.pixels() == self.base_pixels and self.same_depth(), "Scene/camera/IBL restoration changed buffers")
+
+    def ibl(self):
+        previous = self.results[-1]
+        require(self.pixels() != self.base_pixels and self.same_depth(), "IBL output update invalid")
+        for key in ("captures", "plans", "transport_builds", "copied_vertices"):
+            require(self.connector.frames[-1][key] == previous[key], "IBL update rebuilt " + key)
+
+    def restore_ibl(self):
+        self.connector.environment_rotation = 0
+        self.connector.exposure = 0
+
+    def hidden(self):
+        require(self.geometry_changed(), "Hidden part still visible")
+
+    def changed_camera(self):
+        require(self.geometry_changed(), "Camera update did not reach retained renderer")
+
+    def rotate_camera(self):
+        rotation = self.view.getCameraOrientation() * App.Rotation(App.Vector(0, 0, 1), 15)
+        self.view.getCameraNode().orientation.setValue(*rotation.Q)
+
+    def restore_camera(self):
+        camera = self.view.getCameraNode()
+        fields = self.camera_fields
+        camera.position.setValue(*fields[1:4])
+        camera.orientation.setValue(*fields[4:8])
+        camera.nearDistance.setValue(fields[8])
+        camera.farDistance.setValue(fields[9])
+        camera.focalDistance.setValue(fields[10])
+        (camera.heightAngle if fields[0] else camera.height).setValue(fields[11])
+
+    def resized(self):
+        require(self.connector.presented_size == self.connector._frame_size(), "Resize publication has wrong size")
+        require(self.connector.frames[-1]["width"] != self.base_stats["width"], "Viewport did not resize")
+        self.resize_pixels = self.pixels()
+
+    def pick_after_resize(self):
+        canvas = self.connector.canvas
+        names = {part.Name: part for part in self.connector.parts}
+        for y in range(canvas.height() // 5, 4*canvas.height() // 5, 10):
+            for x in range(canvas.width() // 6, 5*canvas.width() // 6, 10):
+                info = self.connector.pick_info(QtCore.QPointF(x, y))
+                if not info or not info.get("Component", "").startswith("Face"):
+                    continue
+                matched = next((name for name in [info["Object"], *info.get("Component", "").split(".")] if name in names), None)
+                if matched:
+                    self.resize_part = names[matched]
+                    QtTest.QTest.mouseClick(canvas, QtCore.Qt.LeftButton, QtCore.Qt.NoModifier, QtCore.QPoint(x, y))
+                    return
+        raise RuntimeError("No FreeCAD face can be picked after resize")
+
+    def picked_after_resize(self):
+        require(any(self.connector._matches(s, self.resize_part) for s in Gui.Selection.getSelectionEx()), "Resized Qt click did not reach FreeCAD selection")
+        require(self.pixels() != self.resize_pixels, "Resized selection highlight missing")
+
+    def graceful(self, connector):
+        require(connector.process.state() == QtCore.QProcess.NotRunning, "Worker did not retire")
+        require(connector.process.exitCode() == 0 and connector.process.exitStatus() == QtCore.QProcess.NormalExit,
+                "Worker failed or was killed during surface retirement")
+
+    def finish(self):
+        self.timer.stop()
+        self.restored_gl_renders = 0
+        self.audit_restored = freecad_retained_viewport.coin.SoCallback()
+        self.audit_restored.setCallback(self.audit_gl)
+        self.connector._source_root.insertChild(self.audit_restored, 0)
+        self.connector.close()
+        QtCore.QTimer.singleShot(2300, self.retired)
+
+    def audit_gl(self, userdata, action):
+        if action.isOfType(freecad_retained_viewport.coin.SoGLRenderAction.getClassTypeId()):
+            self.restored_gl_renders += 1
+
+    def retired(self):
+        try:
+            require(self.connector.native.updatesEnabled(), "Legacy viewport updates not restored")
+            require(self.restored_gl_renders > 0, "Legacy rendering did not resume")
+            self.connector._source_root.removeChild(self.audit_restored)
+            self.graceful(self.connector)
+            self.main.screen().grabWindow(int(self.main.winId())).save(str(output / "freecad-gl-restored.png"))
+            self.ephemeral = freecad_retained_viewport.attach(
+                os.environ["COIN_VIEWPORT_WORKER"], os.environ["COIN_VIEWPORT_ENVIRONMENT"], presentation=self.presentation)
+            self.ephemeral.frameReady.connect(self.ephemeral_ready)
+            self.ephemeral.failed.connect(lambda message: setattr(self, "expected_geometry_error", message))
+            self.expected_geometry_error = ""
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def ephemeral_ready(self, frame):
+        try:
+            self.ephemeral.frameReady.disconnect(self.ephemeral_ready)
+            require(not list(self.ephemeral.directory.glob("*.rgba")) and
+                    not list(self.ephemeral.directory.glob("*.depth")), "Interactive mode accumulated frame files")
+            source = self.part.LinkedObject
+            shape = source.Shape.copy()
+            changed = shape.copy()
+            changed.translate(App.Vector(1, 0, 0))
+            source.Shape = changed
+            require(self.ephemeral.closed, "Source topology edit did not exit the bounded profile")
+            source.Shape = shape
+            QtCore.QTimer.singleShot(2300, self.ephemeral_retired)
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def ephemeral_retired(self):
+        try:
+            require(self.expected_geometry_error, "Source edit diagnostic missing")
+            self.graceful(self.ephemeral)
+            require(not self.ephemeral.directory.exists(), "Interactive session directory leaked")
+            self.document_close_viewport = freecad_retained_viewport.attach(
+                os.environ["COIN_VIEWPORT_WORKER"], os.environ["COIN_VIEWPORT_ENVIRONMENT"], presentation=self.presentation)
+            self.document_close_viewport.failed.connect(self.fail)
+            self.document_close_viewport.frameReady.connect(self.close_document)
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def close_document(self, frame):
+        try:
+            self.document_close_viewport.frameReady.disconnect(self.close_document)
+            App.closeDocument(self.doc.Name)
+            require(self.document_close_viewport.closed, "Document deletion left the renderer active")
+            QtCore.QTimer.singleShot(2300, self.document_retired)
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def document_retired(self):
+        try:
+            self.graceful(self.document_close_viewport)
+            if self.native_mode:
+                require(self.document_close_viewport.surface_retirement_fences > 0 and
+                        self.document_close_viewport.surface_retired_before_destroy, "Native surface lifetime was not fenced")
+            require(not self.document_close_viewport.directory.exists(), "Deleted-document session directory leaked")
+            (output / "results.json").write_text(json.dumps(dict(status="PASS", stages=self.results,
+                freecad=App.Version(), native_window_swapchain=self.native_mode, presentation=("BGFX Vulkan native Xlib surface" if self.native_mode else "BGFX Vulkan readback to Qt viewport"),
+                native_depth_readback=False,
+                topology_edits=False, object_highlight=True, face_highlight=False,
+                lifecycle=dict(interactive_files_bounded=True, source_shape_edit_exits_profile=True,
+                               temporary_directory_removed=True, document_close_retires_worker=True,
+                               graceful_worker_retirement=True,
+                               native_surface_retired_before_destroy=(self.document_close_viewport.surface_retired_before_destroy if self.native_mode else None))), indent=2))
+            print("FREECAD_RETAINED_VIEWPORT_PASS", len(self.results), "stages")
+            QtCore.QCoreApplication.exit(0)
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def fail(self, message):
+        self.timer.stop()
+        (output / "failure.txt").write_text(str(message))
+        print("FREECAD_RETAINED_VIEWPORT_FAIL", message)
+        if self.connector and not self.connector.closed:
+            self.connector.close()
+        QtCore.QTimer.singleShot(2500, lambda: QtCore.QCoreApplication.exit(1))
+
+
+test = Test()
+QtCore.QTimer.singleShot(2500, test.start)

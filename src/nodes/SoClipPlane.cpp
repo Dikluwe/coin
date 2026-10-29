@@ -111,6 +111,7 @@
 // *************************************************************************
 
 #include <Inventor/nodes/SoClipPlane.h>
+#include <Inventor/actions/SoIRRenderAction.h>
 
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
@@ -208,4 +209,11 @@ void
 SoClipPlane::pick(SoPickAction * action)
 {
   SoClipPlane::doAction(action);
+}
+
+void
+SoClipPlane::IRRender(SoIRRenderAction * action)
+{
+  if (this->on.getValue()) action->recordWorldStateDependency();
+  this->doAction(action);
 }

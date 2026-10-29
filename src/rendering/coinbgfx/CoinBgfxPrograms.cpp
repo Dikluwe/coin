@@ -193,6 +193,8 @@ bool CoinBgfxBackend::prepareBaseProgram(const std::vector<CoinBgfxDraw> &inputD
                                          bool instanced, bool windowTarget,
                                          bgfx::TextureFormat::Enum colorFormat)
 {
+  if (std::any_of(inputDraws.begin(),inputDraws.end(),[](const CoinBgfxDraw & d){return d.pbr;}))
+    if (!bgfx::isValid(this->pbrProgram)) return false;
   const bool legacyBump =
       std::any_of(inputDraws.begin(), inputDraws.end(),
                   [](const CoinBgfxDraw &draw) { return draw.bumpSlot && !draw.bumpExtended; });
@@ -216,7 +218,7 @@ bool CoinBgfxBackend::prepareBaseProgram(const std::vector<CoinBgfxDraw> &inputD
   // Only ordinary occurrences require the fixed surface programs.
   std::vector<CoinBgfxDraw> draws;
   for (const auto &draw : inputDraws)
-    if (!draw.bumpSlot && !draw.portableShaderSlot)
+    if (!draw.pbr && !draw.bumpSlot && !draw.portableShaderSlot)
       draws.push_back(draw);
   this->activeProgram = BGFX_INVALID_HANDLE;
   this->activeTexture2dDepth = false;

@@ -1,0 +1,357 @@
+Start testing: Oct 29 12:49 -03
+----------------------------------------------------------
+1/1862 Testing: CoinEnvironmentAnisotropyTest
+1/1862 Test: CoinEnvironmentAnisotropyTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinEnvironmentAnisotropyTest"
+Directory: /tmp/coin-retained-bgfx/testsuite
+"CoinEnvironmentAnisotropyTest" start time: Oct 29 12:49 -03
+Output:
+----------------------------------------------------------
+Prepared anisotropic product: bytes=1050624 build_ms=3857.378721 max_ab_error=0.00328850746 roundtrip budgets rollback PASS
+Anisotropic CPU albedo: cases=81 max_ab_error=0.000149786472 previous_max_energy_error=0.43926093 invalid rollback PASS
+<end of output>
+Test time =   5.73 sec
+----------------------------------------------------------
+Test Passed.
+"CoinEnvironmentAnisotropyTest" end time: Oct 29 12:49 -03
+"CoinEnvironmentAnisotropyTest" time elapsed: 00:00:05
+----------------------------------------------------------
+
+2/1862 Testing: CoinEnvironmentTest
+2/1862 Test: CoinEnvironmentTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinEnvironmentTest"
+Directory: /tmp/coin-retained-bgfx/testsuite
+"CoinEnvironmentTest" start time: Oct 29 12:49 -03
+Output:
+----------------------------------------------------------
+PBR environment: deterministic package, SH, six faces/all levels, independent DFG, malformed input and rollback PASS
+<end of output>
+Test time =   0.16 sec
+----------------------------------------------------------
+Test Passed.
+"CoinEnvironmentTest" end time: Oct 29 12:49 -03
+"CoinEnvironmentTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/1862 Testing: SoRetainedPBRTest
+3/1862 Test: SoRetainedPBRTest
+Command: "/tmp/coin-retained-bgfx/bin/SoRetainedPBRTest"
+Directory: /tmp/coin-retained-bgfx/testsuite
+"SoRetainedPBRTest" start time: Oct 29 12:49 -03
+Output:
+----------------------------------------------------------
+Native retained PBR: PASS
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"SoRetainedPBRTest" end time: Oct 29 12:49 -03
+"SoRetainedPBRTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+90/1862 Testing: CoinRenderRetainedReflectionTest
+90/1862 Test: CoinRenderRetainedReflectionTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedReflectionTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedReflectionTest" start time: Oct 29 12:49 -03
+Output:
+----------------------------------------------------------
+additional_composition_classifications=0
+oracle_pixels=1723 maximum_channel_error=0
+PASS: reflection image, clipping, depth, reuse and failure/retry
+<end of output>
+Test time =   0.35 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedReflectionTest" end time: Oct 29 12:49 -03
+"CoinRenderRetainedReflectionTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+91/1862 Testing: CoinRenderFreeCADMeshExportTest
+91/1862 Test: CoinRenderFreeCADMeshExportTest
+Command: "/home/dikluwe/.local/bin/python3.11" "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/testsuite/coinrender/test_freecad_mesh_export.py"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderFreeCADMeshExportTest" start time: Oct 29 12:49 -03
+Output:
+----------------------------------------------------------
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+OK
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderFreeCADMeshExportTest" end time: Oct 29 12:49 -03
+"CoinRenderFreeCADMeshExportTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+92/1862 Testing: CoinRenderIBLBake-studio
+92/1862 Test: CoinRenderIBLBake-studio
+Command: "/tmp/coin-retained-bgfx/bin/coin_render_ibl_baker" "studio" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-environments/studio.cibl"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderIBLBake-studio" start time: Oct 29 12:49 -03
+Output:
+----------------------------------------------------------
+IBL baked: face=128 lut=128 levels=8 bytes=1966172 identity=11261952938219930909
+<end of output>
+Test time =   0.94 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderIBLBake-studio" end time: Oct 29 12:49 -03
+"CoinRenderIBLBake-studio" time elapsed: 00:00:00
+----------------------------------------------------------
+
+93/1862 Testing: CoinRenderRetainedIBL-studio
+93/1862 Test: CoinRenderRetainedIBL-studio
+Command: "/home/dikluwe/.local/bin/python3.11" "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/scripts/coinrender/run_retained_ibl_comparison.py" "--current" "/tmp/coin-retained-bgfx/bin/CoinRenderCurrentIBLGallery" "--retained" "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedIBLGallery" "--environment" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-environments/studio.cibl" "--output" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-studio"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedIBL-studio" start time: Oct 29 12:49 -03
+Output:
+----------------------------------------------------------
+IBL PASS: 2 scenes, 5 states, 20 exact buffers, 2 paths
+<end of output>
+Test time =   3.21 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedIBL-studio" end time: Oct 29 12:49 -03
+"CoinRenderRetainedIBL-studio" time elapsed: 00:00:03
+----------------------------------------------------------
+
+94/1862 Testing: CoinRenderIBLBake-asymmetric
+94/1862 Test: CoinRenderIBLBake-asymmetric
+Command: "/tmp/coin-retained-bgfx/bin/coin_render_ibl_baker" "asymmetric" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-environments/asymmetric.cibl"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderIBLBake-asymmetric" start time: Oct 29 12:49 -03
+Output:
+----------------------------------------------------------
+IBL baked: face=128 lut=128 levels=8 bytes=1966172 identity=5126869629112700977
+<end of output>
+Test time =   0.94 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderIBLBake-asymmetric" end time: Oct 29 12:49 -03
+"CoinRenderIBLBake-asymmetric" time elapsed: 00:00:00
+----------------------------------------------------------
+
+95/1862 Testing: CoinRenderRetainedIBL-asymmetric
+95/1862 Test: CoinRenderRetainedIBL-asymmetric
+Command: "/home/dikluwe/.local/bin/python3.11" "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/scripts/coinrender/run_retained_ibl_comparison.py" "--current" "/tmp/coin-retained-bgfx/bin/CoinRenderCurrentIBLGallery" "--retained" "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedIBLGallery" "--environment" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-environments/asymmetric.cibl" "--output" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-asymmetric"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedIBL-asymmetric" start time: Oct 29 12:49 -03
+Output:
+----------------------------------------------------------
+IBL PASS: 2 scenes, 5 states, 20 exact buffers, 2 paths
+<end of output>
+Test time =   3.15 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedIBL-asymmetric" end time: Oct 29 12:49 -03
+"CoinRenderRetainedIBL-asymmetric" time elapsed: 00:00:03
+----------------------------------------------------------
+
+96/1862 Testing: CoinRenderRetainedSurfacesTest
+96/1862 Test: CoinRenderRetainedSurfacesTest
+Command: "/home/dikluwe/.local/bin/python3.11" "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/scripts/coinrender/run_retained_pbr_surfaces.py" "--retained" "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedSurfaceImage" "--current" "/tmp/coin-retained-bgfx/bin/CoinRenderCurrentSurfaceImage" "--updates" "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedSurfaceTest" "--environment" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-environments/studio.cibl" "--output" "/tmp/coin-retained-bgfx/testsuite/coinrender/retained-pbr-surfaces"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedSurfacesTest" start time: Oct 29 12:49 -03
+Output:
+----------------------------------------------------------
+PASS: 14 surface fixtures; 28 exact buffers; 20 update buffers
+<end of output>
+Test time =  12.05 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedSurfacesTest" end time: Oct 29 12:50 -03
+"CoinRenderRetainedSurfacesTest" time elapsed: 00:00:12
+----------------------------------------------------------
+
+97/1862 Testing: CoinRenderAnisotropyBake
+97/1862 Test: CoinRenderAnisotropyBake
+Command: "/tmp/coin-retained-bgfx/bin/coin_render_ibl_baker" "anisotropy" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-environments/albedo.cani"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderAnisotropyBake" start time: Oct 29 12:50 -03
+Output:
+----------------------------------------------------------
+Anisotropic albedo prepared: bytes=1050624 identity=10045356057731500564
+<end of output>
+Test time =   4.31 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderAnisotropyBake" end time: Oct 29 12:50 -03
+"CoinRenderAnisotropyBake" time elapsed: 00:00:04
+----------------------------------------------------------
+
+98/1862 Testing: CoinRenderRetainedAnisotropyTest
+98/1862 Test: CoinRenderRetainedAnisotropyTest
+Command: "/home/dikluwe/.local/bin/python3.11" "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/scripts/coinrender/run_retained_pbr_anisotropy.py" "--retained" "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedSurfaceImage" "--current" "/tmp/coin-retained-bgfx/bin/CoinRenderCurrentSurfaceImage" "--updates" "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedAnisotropyTest" "--environment" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-environments/studio.cibl" "--products" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-environments/albedo.cani" "--output" "/tmp/coin-retained-bgfx/testsuite/coinrender/retained-pbr-anisotropy"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedAnisotropyTest" start time: Oct 29 12:50 -03
+Output:
+----------------------------------------------------------
+PASS: 14 anisotropy fixtures; 28 buffers; 18 update buffers
+<end of output>
+Test time =  18.83 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedAnisotropyTest" end time: Oct 29 12:50 -03
+"CoinRenderRetainedAnisotropyTest" time elapsed: 00:00:18
+----------------------------------------------------------
+
+99/1862 Testing: CoinRenderPbrEffectsTest
+99/1862 Test: CoinRenderPbrEffectsTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderPbrEffectsTest" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-environments/studio.cibl"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderPbrEffectsTest" start time: Oct 29 12:50 -03
+Output:
+----------------------------------------------------------
+pixels: shadow=1126 AO=1355 background=9064
+perspective: shadows=1126 AO=1355 PASS
+pixels: shadow=598 AO=888 background=13285
+orthographic: shadows=598 AO=888 PASS
+<end of output>
+Test time =   0.65 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderPbrEffectsTest" end time: Oct 29 12:50 -03
+"CoinRenderPbrEffectsTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+100/1862 Testing: CoinRenderRetainedIBLAdmissionTest
+100/1862 Test: CoinRenderRetainedIBLAdmissionTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedIBLAdmissionTest" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-environments/studio.cibl" "/tmp/coin-retained-bgfx/testsuite/coinrender/ibl-environments"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedIBLAdmissionTest" start time: Oct 29 12:50 -03
+Output:
+----------------------------------------------------------
+IBL admission, retry, frozen source and GPU budget: PASS
+<end of output>
+Test time =   0.35 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedIBLAdmissionTest" end time: Oct 29 12:50 -03
+"CoinRenderRetainedIBLAdmissionTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+101/1862 Testing: CoinRenderRetainedPBRGalleryTest
+101/1862 Test: CoinRenderRetainedPBRGalleryTest
+Command: "/home/dikluwe/.local/bin/python3.11" "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/scripts/coinrender/run_retained_pbr_gallery.py" "--current" "/tmp/coin-retained-bgfx/bin/CoinRenderCurrentPBRGallery" "--retained" "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedPBRGallery" "--output" "/tmp/coin-retained-bgfx/testsuite/coinrender/retained-pbr-gallery"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedPBRGalleryTest" start time: Oct 29 12:50 -03
+Output:
+----------------------------------------------------------
+PBR gallery PASS: 2 scenes, 3 exposures, 12 exact buffers, 2 paths
+<end of output>
+Test time =   5.55 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedPBRGalleryTest" end time: Oct 29 12:50 -03
+"CoinRenderRetainedPBRGalleryTest" time elapsed: 00:00:05
+----------------------------------------------------------
+
+102/1862 Testing: CoinRenderRetainedPBRGpuTest
+102/1862 Test: CoinRenderRetainedPBRGpuTest
+Command: "/home/dikluwe/.local/bin/python3.11" "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/scripts/coinrender/run_retained_pbr_comparison.py" "--current" "/tmp/coin-retained-bgfx/bin/CoinRenderCurrentPBRCompare" "--retained" "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedPBRCompare" "--output" "/tmp/coin-retained-bgfx/testsuite/coinrender/retained-pbr-comparison"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedPBRGpuTest" start time: Oct 29 12:50 -03
+Output:
+----------------------------------------------------------
+PBR comparison PASS: 54 scenes, 3 states, 324 exact buffers, 2 paths
+<end of output>
+Test time =  14.85 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedPBRGpuTest" end time: Oct 29 12:50 -03
+"CoinRenderRetainedPBRGpuTest" time elapsed: 00:00:14
+----------------------------------------------------------
+
+119/1862 Testing: CoinRenderRetainedConnectorTest
+119/1862 Test: CoinRenderRetainedConnectorTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedConnectorTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedConnectorTest" start time: Oct 29 12:50 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.30 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedConnectorTest" end time: Oct 29 12:50 -03
+"CoinRenderRetainedConnectorTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+120/1862 Testing: CoinRenderRetainedNoBorrowTest
+120/1862 Test: CoinRenderRetainedNoBorrowTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedConnectorTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedNoBorrowTest" start time: Oct 29 12:50 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.30 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedNoBorrowTest" end time: Oct 29 12:50 -03
+"CoinRenderRetainedNoBorrowTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+178/1862 Testing: CoinBgfxCoreTest
+178/1862 Test: CoinBgfxCoreTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinBgfxCoreTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinBgfxCoreTest" start time: Oct 29 12:50 -03
+Output:
+----------------------------------------------------------
+CoinBgfxCoreTest passed
+<end of output>
+Test time =   0.51 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxCoreTest" end time: Oct 29 12:50 -03
+"CoinBgfxCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+190/1862 Testing: CoinBgfxInstancingTest
+190/1862 Test: CoinBgfxInstancingTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinBgfxInstancingTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinBgfxInstancingTest" start time: Oct 29 12:50 -03
+Output:
+----------------------------------------------------------
+affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+resized target max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from fog max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from clip max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+BASE_COLOR with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR with depth max_depth_error=5.96046e-08
+BASE_COLOR single instance transform max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR single instance transform max_depth_error=5.96046e-08
+BASE_COLOR material subranges max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR material subranges max_depth_error=5.96046e-08
+BASE_COLOR camera patch max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR camera patch max_depth_error=5.96046e-08
+uniform LEQUAL BASE_COLOR max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+uniform LEQUAL BASE_COLOR max_depth_error=5.96046e-08
+LEQUAL coplanar materials max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+LEQUAL coplanar materials max_depth_error=5.96046e-08
+coplanar last occurrence must win max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+coplanar first-vs-last reference pixels_over_20=48
+outside viewport depth readback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+outside viewport depth readback max_depth_error=0
+return from outside viewport with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+return from outside viewport with depth max_depth_error=5.96046e-08
+CoinBgfxInstancingTest passed
+<end of output>
+Test time =   0.47 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxInstancingTest" end time: Oct 29 12:50 -03
+"CoinBgfxInstancingTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 29 12:50 -03

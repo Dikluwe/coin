@@ -1,0 +1,260 @@
+{
+  "status": "PASS",
+  "fixtures": 14,
+  "comparisons": [
+    {
+      "fixture": "textured-normal",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "1a1f4235268a50753f4f6fcf1b1f44dc6f2e13fdf43dc9f7c922e3e4bc66eaed",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "textured-normal",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "9085f33dbbbf68e46582c06b767089e565f57ef0307459ae502b22d1627edffc",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "height",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "635bd5168786e61e31d35dd153cd97d3ecd13f04cf1d49295d9c165c22a22dab",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "height",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "9085f33dbbbf68e46582c06b767089e565f57ef0307459ae502b22d1627edffc",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "neutral-normal",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "a29d148fb713423bb8a216a53afa50c747e50673a0364c62b3edc51e8cca5f96",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "neutral-normal",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "9085f33dbbbf68e46582c06b767089e565f57ef0307459ae502b22d1627edffc",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "no-normal",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "6ce365af612267ea1b6c6001880f8242e83da4b6482b51720e96ca1b1c43e206",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "no-normal",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "9085f33dbbbf68e46582c06b767089e565f57ef0307459ae502b22d1627edffc",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "mirrored-model",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "18952b30efab766e4076a0d3cd3bffa52604d1b3826dbbcc245b19a38baa4fc7",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "mirrored-model",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "99f3e903e75cafc98c6b6e41e58510b28fabfc563c35dbc8f3fe4415f4f94288",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "nonuniform",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "2365fc1d6c5a4e309f670772a2e0be509e84e213b46424843b16234f702cfd59",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "nonuniform",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "99f3e903e75cafc98c6b6e41e58510b28fabfc563c35dbc8f3fe4415f4f94288",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "mirrored-uv",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "78ee0f092210eb3c52a14f4cccb18e381f4ae53735945179865a82b297bfe8bc",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "mirrored-uv",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "9085f33dbbbf68e46582c06b767089e565f57ef0307459ae502b22d1627edffc",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "degenerate-uv",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "37a378b11e5827e668d26096d2a4218c92129f5216a246f8a7f85f8f85f9b307",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "degenerate-uv",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "9085f33dbbbf68e46582c06b767089e565f57ef0307459ae502b22d1627edffc",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "cube",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "4e0346d03d69ea4b40e4aee1ac2a0aba23093c9881b9c8f183bf9cef7a599a11",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "cube",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "317a6b397ccb9dfc4877cb97edabfc2fb89de37a700bdf590b65946aead00700",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "generated",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "37e645d0821439e951523f7ed50dfcdef70d22b13f5aab08650d4fd47ac23ab1",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "generated",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "9085f33dbbbf68e46582c06b767089e565f57ef0307459ae502b22d1627edffc",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "sphere",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "0f0f84726faf7a524408123f80a1186bce180c707216d512834a0a7567597632",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "sphere",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "53480c2f2bb3e72aaefb288e886671b350304f529f795f7dc43cdfa8912df6df",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "sphere-nonuniform",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "288873ab4b2243b4b4351434fa23c4a475288e3008483381a7dc83e5f2bec87c",
+      "callback_equal": true,
+      "reference_equal": false,
+      "reference_color_max": 1
+    },
+    {
+      "fixture": "sphere-nonuniform",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "cc81dbe2da3db9d04ec24d7898fbbb41b352a71dfe33edbe6e3089b9e4e21930",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "normal-only-projection",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "f6d6966c9bdd743cc76a9e3ab5578148d54a0982271c9013f54ebcfdbd4e72df",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "normal-only-projection",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "9085f33dbbbf68e46582c06b767089e565f57ef0307459ae502b22d1627edffc",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    },
+    {
+      "fixture": "unit7",
+      "buffer": "rgba",
+      "bytes": 122880,
+      "sha256": "1a1f4235268a50753f4f6fcf1b1f44dc6f2e13fdf43dc9f7c922e3e4bc66eaed",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": 0
+    },
+    {
+      "fixture": "unit7",
+      "buffer": "depth",
+      "bytes": 122880,
+      "sha256": "9085f33dbbbf68e46582c06b767089e565f57ef0307459ae502b22d1627edffc",
+      "callback_equal": true,
+      "reference_equal": true,
+      "reference_color_max": null
+    }
+  ],
+  "exact_update_buffers": 20,
+  "reference": "/tmp/coin-c16-fixtures/reference-consumer"
+}

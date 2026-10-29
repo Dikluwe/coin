@@ -1,0 +1,12 @@
+{
+  "integration_passed": 58,
+  "additional_existing_controls_passed": 14,
+  "additional_existing_failed": [
+    "CoinRenderTextureSamplingGpuTest: projective mip footprint q=0.5 offset=0 against CoinGL; CPU and wgpu agree"
+  ],
+  "initial_optional_camera_skip": "explicitly enabled and passed on rerun",
+  "glx_retry_environment": {
+    "COIN_GLXGLUE_NO_PBUFFERS": 1,
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": 1
+  }
+}

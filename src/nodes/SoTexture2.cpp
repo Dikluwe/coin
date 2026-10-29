@@ -192,6 +192,9 @@
 // *************************************************************************
 
 #include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/actions/SoIRRenderAction.h>
+#include <cmath>
+#include <cstdlib>
 
 #include <cassert>
 
@@ -823,3 +826,34 @@ SoTexture2::filenameSensorCB(void * data, SoSensor *)
 #undef LOCK_GLIMAGE
 #undef UNLOCK_GLIMAGE
 #undef PRIVATE
+
+// Preserve the image's retained upload quality without changing the scene's
+// global texture-quality element (which still controls quality-zero disable).
+void SoTexture2::IRRender(SoIRRenderAction * action)
+{
+  this->doAction(action);
+  SoState * state = action->getState();
+  const int retainedUnit=SoTextureUnitElement::get(state);
+  if (!SoMultiTextureEnabledElement::get(state, retainedUnit) ||
+      SoMultiTextureImageElement::getNodeId(state, retainedUnit) != this->getNodeId()) return;
+  float quality = SoTextureQualityElement::get(state);
+  if (quality == 0) return;
+  if (!std::isfinite(quality) || quality < 0 || quality > 1) {
+    action->markUnsupported(this, "Texture quality must be finite in [0,1]"); return;
+  }
+  SbVec2s size; int components = 0;
+  this->image.getValue(size, components);
+  if (size == SbVec2s(0, 0) && this->filename.getValue().getLength()) {
+    action->markUnsupported(this, "Pending or failed retained texture filename"); return;
+  }
+  const char * legacyPot = std::getenv("COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES");
+  if (this->enableCompressedTexture.getValue() || (legacyPot && std::atoi(legacyPot))) {
+    action->markUnsupported(this, "Retained compressed/legacy-resized textures need additional source metadata"); return;
+  }
+  SbBool uploadValid, scaleDown, compressed;
+  this->getGLImageUploadHints(uploadValid, scaleDown, compressed, quality);
+  if (!std::isfinite(quality) || quality < 0 || quality > 1) {
+    action->markUnsupported(this, "Invalid retained image upload quality"); return;
+  }
+  action->recordTextureUploadQuality(this->getNodeId(), quality);
+}

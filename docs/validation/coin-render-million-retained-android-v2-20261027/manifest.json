@@ -1,0 +1,21 @@
+{
+  "branch": "codex/coinrender-retained-integration",
+  "base_commit": "e8c7003345a481a4d6d16bdec411ecf86f873d09",
+  "uncommitted_source_sha256": {
+    "examples/coinrender/coin_render_android_smoke.cpp": "9da9634659019b9f06cc6fc10e07a92bdfe0942dc0d307ed601f4f5f41d9fd14",
+    "include/Inventor/rendering/SoRenderIR.h": "81c0287bc223cda883143d6a09121693180b9c5665f24d94a220764e3314b667",
+    "include/Inventor/actions/SoIRRenderAction.h": "a3ec1c43c260226808f7560fcb856a312006db94be886a144cb766a2f9c98ace",
+    "src/rendering/SoRenderIR.cpp": "8f0c5cf2233052781601a3e83f3fff0fe026a470fc0f6ee099c00a813f95c134",
+    "src/rendering/SoRenderPlan.cpp": "4123541b414a9c524a716439b77c4e83d27f218676e20438d9f8142d0e38d7b2",
+    "src/actions/SoIRRenderAction.cpp": "a6bb85a91a363d975fd96e62a444f9977e22c2da5559dcbf518af5113b87d9f9",
+    "src/rendering/coinrender/CoinRenderRetainedBackend.cpp": "277ea992d2947733f512bdffd521c035b7b8016c85b08dca050dc9d06c5d1d9c",
+    "src/rendering/coinrender/CoinRenderRetainedRenderer.cpp": "e5107e46124a6fa91c97d4cf0481674c5a1fdb6a8e3ff3efe8d22480be3572e5",
+    "src/shapenodes/SoCube.cpp": "6b95daa0c119ff46e0ddc37a38b5198dbe8eb398d56f4dac50a6241627fc3b6d",
+    "testsuite/coinrender/CoinRenderRetainedCityTest.cpp": "61785756491d59fa812af9c43adfea194f8949e46e10f4ad3e60b2d86615ee14"
+  },
+  "apk_sha256": {
+    "previous.apk": "c95c4db6fc05d27c8efd8be2d2cddfe8a2647d9ea70bbd506d676770c85c247f",
+    "coin-render-million-ab.apk": "c9aa9a135ee6e6976534094f4ba33709672467272ed065d6e43b910198937ae9"
+  },
+  "scene_sha256": "b52a2ce714bf94129d3ddf7a02f910ffacadf915a72b61c8c86acb40ed72ab19"
+}

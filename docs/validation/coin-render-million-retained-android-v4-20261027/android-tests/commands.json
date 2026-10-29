@@ -1,0 +1,111 @@
+[
+  {
+    "label": "mkdir",
+    "args": [
+      "shell",
+      "mkdir",
+      "-p",
+      "/data/local/tmp/coin-retained-million-final"
+    ],
+    "exit": 0
+  },
+  {
+    "label": "push-libCoin.so",
+    "args": [
+      "push",
+      "/tmp/coin-retained-android-wgpu/lib/libCoin.so",
+      "/data/local/tmp/coin-retained-million-final/"
+    ],
+    "exit": 0
+  },
+  {
+    "label": "push-libCoinRender.so",
+    "args": [
+      "push",
+      "/tmp/coin-retained-android-wgpu/lib/libCoinRender.so",
+      "/data/local/tmp/coin-retained-million-final/"
+    ],
+    "exit": 0
+  },
+  {
+    "label": "push-libc++_shared.so",
+    "args": [
+      "push",
+      "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/libc++_shared.so",
+      "/data/local/tmp/coin-retained-million-final/"
+    ],
+    "exit": 0
+  },
+  {
+    "label": "push-CoinRenderRetainedCityTest",
+    "args": [
+      "push",
+      "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedCityTest",
+      "/data/local/tmp/coin-retained-million-final/"
+    ],
+    "exit": 0
+  },
+  {
+    "label": "push-CoinRenderRetainedIncrementalTest",
+    "args": [
+      "push",
+      "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedIncrementalTest",
+      "/data/local/tmp/coin-retained-million-final/"
+    ],
+    "exit": 0
+  },
+  {
+    "label": "push-CoinRenderRetainedConnectorTest",
+    "args": [
+      "push",
+      "/tmp/coin-retained-android-wgpu/bin/CoinRenderRetainedConnectorTest",
+      "/data/local/tmp/coin-retained-million-final/"
+    ],
+    "exit": 0
+  },
+  {
+    "label": "CoinRenderRetainedCityTest",
+    "args": [
+      "shell",
+      "env",
+      "LD_LIBRARY_PATH=/data/local/tmp/coin-retained-million-final",
+      "COIN_RETAINED_TEST_RENDERER=opengl",
+      "/data/local/tmp/coin-retained-million-final/CoinRenderRetainedCityTest"
+    ],
+    "exit": 0
+  },
+  {
+    "label": "CoinRenderRetainedIncrementalTest",
+    "args": [
+      "shell",
+      "env",
+      "LD_LIBRARY_PATH=/data/local/tmp/coin-retained-million-final",
+      "COIN_RETAINED_TEST_RENDERER=opengl",
+      "/data/local/tmp/coin-retained-million-final/CoinRenderRetainedIncrementalTest"
+    ],
+    "exit": 0
+  },
+  {
+    "label": "CoinRenderRetainedConnectorTest",
+    "args": [
+      "shell",
+      "env",
+      "LD_LIBRARY_PATH=/data/local/tmp/coin-retained-million-final",
+      "COIN_RETAINED_TEST_RENDERER=opengl",
+      "/data/local/tmp/coin-retained-million-final/CoinRenderRetainedConnectorTest"
+    ],
+    "exit": 0
+  },
+  {
+    "label": "CoinRenderRetainedConnectorTest-no-borrow",
+    "args": [
+      "shell",
+      "env",
+      "LD_LIBRARY_PATH=/data/local/tmp/coin-retained-million-final",
+      "COIN_RETAINED_TEST_RENDERER=opengl",
+      "COIN_RENDER_DISABLE_COMPOSITION_BORROW=1",
+      "/data/local/tmp/coin-retained-million-final/CoinRenderRetainedConnectorTest"
+    ],
+    "exit": 0
+  }
+]

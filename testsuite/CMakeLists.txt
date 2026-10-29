@@ -1,3 +1,24 @@
+if(TARGET CoinEnvironment)
+  add_executable(CoinEnvironmentAnisotropyTest coinenvironment/CoinEnvironmentAnisotropyTest.cpp)
+  target_link_libraries(CoinEnvironmentAnisotropyTest CoinEnvironment Coin)
+  add_test(NAME CoinEnvironmentAnisotropyTest COMMAND CoinEnvironmentAnisotropyTest)
+  set_tests_properties(CoinEnvironmentAnisotropyTest PROPERTIES TIMEOUT 180)
+  add_executable(CoinEnvironmentTest coinenvironment/CoinEnvironmentTest.cpp)
+  target_link_libraries(CoinEnvironmentTest CoinEnvironment Coin)
+  add_test(NAME CoinEnvironmentTest COMMAND CoinEnvironmentTest)
+  set_tests_properties(CoinEnvironmentTest PROPERTIES TIMEOUT 120)
+endif()
+
+# Native PBR capture contract: links Coin only, with no executor dependency.
+add_executable(SoRetainedPBRTest rendering/SoRetainedPBRTest.cpp)
+target_compile_definitions(SoRetainedPBRTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+target_include_directories(SoRetainedPBRTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+  ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+target_link_libraries(SoRetainedPBRTest Coin)
+add_test(NAME SoRetainedPBRTest COMMAND SoRetainedPBRTest)
+set_tests_properties(SoRetainedPBRTest PROPERTIES TIMEOUT 30)
+
 # BGFX renderer parity runs include native Direct3D12 on Windows.
 set(_coin_bgfx_test_renderers vulkan opengl)
 if(WIN32)

@@ -1,0 +1,42 @@
+Internal ctest changing into directory: /tmp/coin-retained-bgfx
+Test project /tmp/coin-retained-bgfx
+      Start   1: CoinEnvironmentAnisotropyTest
+ 1/18 Test   #1: CoinEnvironmentAnisotropyTest ........   Passed    5.71 sec
+      Start   2: CoinEnvironmentTest
+ 2/18 Test   #2: CoinEnvironmentTest ..................   Passed    0.15 sec
+      Start   3: SoRetainedPBRTest
+ 3/18 Test   #3: SoRetainedPBRTest ....................   Passed    0.01 sec
+      Start  90: CoinRenderIBLBake-studio
+ 4/18 Test  #90: CoinRenderIBLBake-studio .............   Passed    0.94 sec
+      Start  91: CoinRenderRetainedIBL-studio
+ 5/18 Test  #91: CoinRenderRetainedIBL-studio .........   Passed    3.12 sec
+      Start  92: CoinRenderIBLBake-asymmetric
+ 6/18 Test  #92: CoinRenderIBLBake-asymmetric .........   Passed    0.94 sec
+      Start  93: CoinRenderRetainedIBL-asymmetric
+ 7/18 Test  #93: CoinRenderRetainedIBL-asymmetric .....   Passed    3.15 sec
+      Start  94: CoinRenderRetainedSurfacesTest
+ 8/18 Test  #94: CoinRenderRetainedSurfacesTest .......   Passed    9.69 sec
+      Start  95: CoinRenderAnisotropyBake
+ 9/18 Test  #95: CoinRenderAnisotropyBake .............   Passed    3.87 sec
+      Start  96: CoinRenderRetainedAnisotropyTest
+10/18 Test  #96: CoinRenderRetainedAnisotropyTest .....   Passed   17.77 sec
+      Start  97: CoinRenderPbrEffectsTest
+11/18 Test  #97: CoinRenderPbrEffectsTest .............   Passed    0.64 sec
+      Start  98: CoinRenderRetainedIBLAdmissionTest
+12/18 Test  #98: CoinRenderRetainedIBLAdmissionTest ...   Passed    0.45 sec
+      Start  99: CoinRenderRetainedPBRGalleryTest
+13/18 Test  #99: CoinRenderRetainedPBRGalleryTest .....   Passed    1.54 sec
+      Start 100: CoinRenderRetainedPBRGpuTest
+14/18 Test #100: CoinRenderRetainedPBRGpuTest .........   Passed   14.46 sec
+      Start 117: CoinRenderRetainedConnectorTest
+15/18 Test #117: CoinRenderRetainedConnectorTest ......   Passed    0.30 sec
+      Start 118: CoinRenderRetainedNoBorrowTest
+16/18 Test #118: CoinRenderRetainedNoBorrowTest .......   Passed    0.30 sec
+      Start 176: CoinBgfxCoreTest
+17/18 Test #176: CoinBgfxCoreTest .....................   Passed    0.48 sec
+      Start 188: CoinBgfxInstancingTest
+18/18 Test #188: CoinBgfxInstancingTest ...............   Passed    0.45 sec
+
+100% tests passed, 0 tests failed out of 18
+
+Total Test time (real) =  64.03 sec

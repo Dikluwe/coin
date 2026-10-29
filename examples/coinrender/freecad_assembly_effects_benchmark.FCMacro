@@ -1,0 +1,131 @@
+"""Fixed-camera native AssemblyExample benchmark; fresh FreeCAD/worker per mode.
+
+Uses the appearance preview scene, materials, camera, IBL and 1234x886 viewport.
+Forced repaints measure submitted static frames; normal idle UI sends no frames.
+No OS screenshots or pixel readbacks occur in the measured interval.
+"""
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide6 import QtCore, QtWidgets
+from pathlib import Path
+import os
+import sys
+import json
+import traceback
+sys.path.insert(0, str(Path(os.environ['COIN_VIEWPORT_SOURCE'])/'examples/coinrender'))
+import freecad_retained_viewport as bridge
+from freecad_assembly_appearance import frame_assembly, assembly_example_materials
+
+
+def memory(pid):
+    result = {}
+    for line in Path(f'/proc/{pid}/smaps_rollup').read_text().splitlines():
+        name, _, value = line.partition(':')
+        if name in ('Rss','Pss','Private_Clean','Private_Dirty','Swap'):
+            result[name+'_bytes'] = int(value.split()[0])*1024
+    return result
+
+
+class Benchmark:
+    def __init__(self):
+        self.renderer = None
+        self.output = Path(os.environ['COIN_BENCH_OUTPUT'])
+        self.output.mkdir(parents=True, exist_ok=True)
+        self.mode = os.environ['COIN_BENCH_MODE']
+        self.warmup = int(os.environ.get('COIN_BENCH_WARMUP','8'))
+        self.samples = int(os.environ.get('COIN_BENCH_SAMPLES','40'))
+        self.records = []
+        self.measuring = False
+        self.started = False
+        self.ending = False
+
+    def start(self):
+        try:
+            main = Gui.getMainWindow()
+            main.resize(1500,1050)
+            main.show()
+            Gui.activateWorkbench('AssemblyWorkbench')
+            App.openDocument(os.environ['COIN_VIEWPORT_ASSEMBLY'])
+            Gui.activateView('Gui::View3DInventor',True)
+            area = main.findChild(QtWidgets.QMdiArea)
+            for window in area.subWindowList():
+                if App.ActiveDocument.Label in window.windowTitle():
+                    area.setActiveSubWindow(window)
+            self.view = Gui.activeDocument().activeView()
+            self.view.setCameraType('Perspective')
+            assembly = next(o for o in App.ActiveDocument.Objects if o.TypeId=='Assembly::AssemblyObject')
+            frame_assembly(self.view, assembly)
+            self.host_before = memory(os.getpid())
+            os.environ['COIN_VIEWPORT_METRICS']='1'
+            self.renderer = bridge.attach(os.environ['COIN_VIEWPORT_WORKER'],os.environ['COIN_VIEWPORT_ENVIRONMENT'],
+                assembly,directory=self.output/'session',studio_setup=True,material_overrides=assembly_example_materials(assembly),
+                effects=dict(shadows=self.mode in ('shadows','both'),ambientOcclusion=self.mode in ('ao','both'),
+                    background=True,shadowMapSize=2048,shadowBias=.00015,occlusionRadius=18.,occlusionStrength=.9))
+            self.renderer.environment_rotation=.6
+            self.renderer.environment_intensity=.85
+            self.renderer.exposure=-.25
+            self.renderer.timer.stop()
+            self.renderer.failed.connect(self.fail)
+            self.renderer.frameReady.connect(self.ready)
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def ready(self, frame):
+        try:
+            if self.ending:
+                return
+            if not self.started:
+                self.started=True
+                self.cold=dict(frame)
+                QtCore.QTimer.singleShot(400,self.begin)
+            elif self.measuring:
+                self.records.append(dict(frame))
+                if len(self.records)==self.warmup:
+                    self.memory_warm=dict(worker=memory(self.renderer.process.processId()),host=memory(os.getpid()))
+                if len(self.records)>=self.warmup+self.samples:
+                    self.ending=True
+                    self.memory_end=dict(worker=memory(self.renderer.process.processId()),host=memory(os.getpid()))
+                    self.camera=bridge._camera(self.view)
+                    self.last_request=self.renderer._request
+                    self.renderer.close()
+                    QtCore.QTimer.singleShot(2300,self.finish)
+                else:
+                    QtCore.QTimer.singleShot(0,lambda:self.renderer.poll(force=True))
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def begin(self):
+        self.measuring=True
+        self.renderer.poll(force=True)
+
+    def finish(self):
+        try:
+            if self.renderer.process.state()!=QtCore.QProcess.NotRunning or self.renderer.process.exitCode()!=0:
+                raise RuntimeError('Worker did not retire normally')
+            for record in self.records:
+                assert all(record[k]==1 for k in ('captures','plans','transport_builds','environment_uploads'))
+                assert all(record[k]==0 for k in ('pixel_readbacks','cpu_pixel_bytes','qt_image_bytes','legacy_render_calls'))
+            if os.environ.get('COIN_BENCH_EXPECT_REUSE')=='1':
+                assert self.records[-1]['static_reuses']>=len(self.records), 'Static cache not exercised'
+                assert self.records[-1]['shaded_frames']==1, 'Static repaint repeated shading'
+            result=dict(status='PASS' ,mode=self.mode,camera=self.camera,cold=self.cold,warmup=self.warmup,
+                samples=self.records[self.warmup:],memory_warm=self.memory_warm,memory_end=self.memory_end,
+                host_before=self.host_before,frame_count=len(self.records)+1,
+                note='render_ms: worker render/submit wall time with renderer-thread backpressure; unchanged repaints may pipeline presentation, changed frames retain their completion fence; ack_ms includes Qt/IPC. No GPU-query drain or idle sleeps in static samples.')
+            (self.output/'result.json').write_text(json.dumps(result,indent=2)+'\n')
+            (self.output/'request.txt').write_text(self.last_request)
+            print('FREECAD_EFFECTS_BENCHMARK_PASS',self.mode,len(result['samples']))
+            QtCore.QCoreApplication.exit(0)
+        except Exception:
+            self.fail(traceback.format_exc())
+
+    def fail(self, message):
+        (self.output/'failure.txt').write_text(str(message))
+        App.Console.PrintError(str(message)+'\n')
+        if self.renderer and not self.renderer.closed:
+            self.renderer.close()
+        QtCore.QTimer.singleShot(2500,lambda:QtCore.QCoreApplication.exit(1))
+
+
+benchmark=Benchmark()
+QtCore.QTimer.singleShot(2500,benchmark.start)

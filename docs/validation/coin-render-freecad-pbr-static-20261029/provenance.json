@@ -1,0 +1,39 @@
+{
+  "branch": "codex/coinrender-retained-integration",
+  "head": "e8c7003345a481a4d6d16bdec411ecf86f873d09",
+  "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU",
+  "pci_vendor_id": 4318,
+  "pci_device_id": 9568,
+  "driver": "615.71.09",
+  "cpu": "AMD Ryzen 7 5800H with Radeon Graphics",
+  "os": "Linux 6.17.0-42-generic x86_64 GNU/Linux",
+  "source_sha256": {
+    "src/rendering/coinbgfx/CoinBgfxBackend.h": "c0763f0d9273628de0b6dc05e2251f641d43ec27447afe2f393e2fb9e3894434",
+    "src/rendering/coinbgfx/CoinBgfxBackend.cpp": "56a7ed4c71b4a1adb5a435bcf3278462b7f1b142a6484afa202814381b12a624",
+    "src/rendering/coinbgfx/CoinBgfxPbrReuse.cpp": "2940e0569e7919001053aead16b462ccfca6c891f7ce9652704d40e3523be197",
+    "src/rendering/coinbgfx/CoinBgfxPbr.cpp": "54875fa4f6ff01bd70757c14f1e0c99f17679c255bf5637e78e487bc4abd7234",
+    "src/rendering/coinbgfx/CoinBgfxPbrEffects.cpp": "4e2a87ed053636fc89d7c3bc081dcd680aaa7672cc51fd989215e6af5832c544",
+    "src/rendering/coinbgfx/CoinBgfxAttachments.cpp": "003ba9ceb65504e814643d5147ea75eb10c9cb97792d5922c4aba99ddf0ecc44",
+    "src/rendering/coinbgfx/CoinBgfxSubmit.cpp": "ab38cfb23fc1491ed101b936d056dcbcd9398dc8e6f9921195526e0f74aef4dd",
+    "examples/coinrender/coin_render_freecad_viewport.cpp": "f55741b678ee6071719f413136fde2df802e4c675d61c107f7700db50830eb74",
+    "examples/coinrender/freecad_retained_viewport.py": "be4f1b157a4c75617cf5cf88755a68021512d69e7991a4d240522628c04b0790",
+    "examples/coinrender/freecad_assembly_effects_benchmark.FCMacro": "782c633271271f5bbb7b66408a44b358229c0b2e3670bdb2cf29d5436d3dead7",
+    "examples/coinrender/freecad_assembly_appearance.FCMacro": "4bbf0bbdbfec2b142d8b782c5ef0ac5952ea3e50d9697b64dda6ed0ce6199443",
+    "scripts/coinrender/benchmark_freecad_pbr_effects.py": "43e76a99395c20800e4cab715309f694aa2e21a868ad20f8f4b5971e3af62ca1",
+    "scripts/coinrender/test_native_pbr_reuse.py": "9f0a032ea16abe1bdd848df69352b4263b87cbce5d0cab9b86dbe9346519cc8f",
+    "testsuite/coinrender/freecad_retained_viewport.FCMacro": "9c4352ca121eb9ed484615f19ec5e9100e78978b0b5f1d0ffed95b33f770b283",
+    "src/rendering/coinrender/CMakeLists.txt": "987cc332b20e6951e8dc29c026b3be7be6db3bfffcafbdeef71842beddc1e9cf"
+  },
+  "baseline_binary_directory": "/tmp/coin-effects-baseline",
+  "raw_directories": [
+    "/tmp/coin-effects-perf-before",
+    "/tmp/coin-effects-perf-static",
+    "/tmp/coin-effects-gpu-profile",
+    "/tmp/coin-effects-native-reuse-test",
+    "/tmp/coin-effects-static-gui-test",
+    "/tmp/coin-effects-static-appearance"
+  ],
+  "fork_revision": "17a9e4b21b643cb44d42e103183d8384eef6a6a5",
+  "pbr_source_revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+  "native_boundary_files": 48
+}

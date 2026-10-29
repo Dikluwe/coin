@@ -428,3 +428,6 @@ SoBumpMap::filenameSensorCB(void * data, SoSensor *)
 }
 
 #undef PRIVATE
+
+#include <Inventor/actions/SoIRRenderAction.h>
+void SoBumpMap::IRRender(SoIRRenderAction * action) { SoBumpMapElement::set(action->getState(),this,nullptr);doAction(action); }

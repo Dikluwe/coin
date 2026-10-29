@@ -44,6 +44,19 @@
 // *************************************************************************
 
 #include <Inventor/nodes/SoShape.h>
+#include <Inventor/actions/SoIRRenderAction.h>
+#include <Inventor/nodes/SoVertexShape.h>
+#include <Inventor/nodes/SoVertexProperty.h>
+#include <Inventor/details/SoFaceDetail.h>
+#include <Inventor/details/SoLineDetail.h>
+#include "rendering/SoRenderIRP.h"
+#include "elements/SoPBRMaterialElement.h"
+#include <Inventor/elements/SoBumpMapElement.h>
+#include "rendering/SoInlineVector.h"
+#include <chrono>
+#include <utility>
+#include <vector>
+
 
 #include <cstring>
 #include <cstdlib>
@@ -132,6 +145,521 @@
 // files. pederb, 2001-07-18
 #include "soshape_primdata.h"
 #include "soshape_trianglesort.h"
+namespace {
+
+struct SoIRVertex {
+  SbVec3f position;
+  SbVec3f normal;
+  SbVec4f texcoord;
+  int materialIndex = 0;
+};
+
+struct SoIRBatch {
+  size_t first = 0;
+  size_t count = 0;
+  int materialIndex = -1;
+
+  SoIRBatch(size_t first, size_t count, int materialIndex)
+    : first(first), count(count), materialIndex(materialIndex) {}
+};
+
+struct SoIRMaterialBatchPlan {
+  void addBatch(const SoIRBatch & batch)
+  {
+    if (!this->hasInlineBatch) {
+      this->inlineBatch = batch;
+      this->hasInlineBatch = true;
+    }
+    else this->additionalBatches.push_back(batch);
+  }
+  size_t size() const
+  {
+    return this->hasInlineBatch ? 1 + this->additionalBatches.size() : 0;
+  }
+  bool empty() const { return !this->hasInlineBatch; }
+  SoIRBatch & back()
+  {
+    return this->additionalBatches.empty()
+      ? this->inlineBatch : this->additionalBatches.back();
+  }
+  const SoIRBatch & operator[](size_t index) const
+  {
+    return index == 0 ? this->inlineBatch : this->additionalBatches[index - 1];
+  }
+  SoIRBatch inlineBatch = SoIRBatch(0, 0, -1);
+  std::vector<SoIRBatch> additionalBatches;
+  bool hasInlineBatch = false;
+  bool needsVertexColors = false;
+};
+
+struct SoIRPrimitiveRange {
+  size_t first = 0;
+  size_t count = 0;
+  SoPickElementType type = SO_PICK_OBJECT;
+  int elementIndex = -1;
+  bool valid = false;
+};
+
+class SoIRPrimitiveAssembler : public SoIRRenderAction::PrimitiveCollector {
+public:
+  SoIRPrimitiveAssembler(SoIRRenderAction * action, SoShape * shape)
+    : action(action), shape(shape), topology(SO_TOPOLOGY_COUNT) {}
+
+  void onTriangle(const SoPrimitiveVertex * v1,
+                  const SoPrimitiveVertex * v2,
+                  const SoPrimitiveVertex * v3) override
+  {
+    this->setTopology(SO_TOPOLOGY_TRIANGLES);
+    const size_t first = this->vertices.size();
+    this->append(v1, v1->getMaterialIndex());
+    this->append(v2, v2->getMaterialIndex());
+    this->append(v3, v3->getMaterialIndex());
+    this->appendRange(first, 3, SO_PICK_FACE, this->faceIndex(v1, v2, v3));
+  }
+
+  void onTriangleCorners(const SoPrimitiveVertex * a,const SoPrimitiveVertex * b,
+      const SoPrimitiveVertex * c,const int indices[3]) override {
+    setTopology(SO_TOPOLOGY_TRIANGLES);const auto first=vertices.size();
+    append(a,a->getMaterialIndex(),indices[0]);append(b,b->getMaterialIndex(),indices[1]);append(c,c->getMaterialIndex(),indices[2]);
+    appendRange(first,3,SO_PICK_FACE,faceIndex(a,b,c));
+  }
+  void onLine(const SoPrimitiveVertex * v1,
+              const SoPrimitiveVertex * v2) override
+  {
+    this->setTopology(SO_TOPOLOGY_LINES);
+    const size_t first = this->vertices.size();
+    this->append(v1, v1->getMaterialIndex());
+    this->append(v2, v2->getMaterialIndex());
+    this->appendRange(first, 2, SO_PICK_EDGE, this->lineIndex(v1, v2));
+  }
+
+  void onPoint(const SoPrimitiveVertex * v) override
+  {
+    this->setTopology(SO_TOPOLOGY_POINTS);
+    const size_t first = this->vertices.size();
+    this->append(v, v->getMaterialIndex());
+    this->appendRange(first, 1, SO_PICK_VERTEX, this->pointIndex(v));
+  }
+
+  void onTriangleData(const VertexData & v1, const VertexData & v2,
+                      const VertexData & v3, int faceIndex) override
+  {
+    this->setTopology(SO_TOPOLOGY_TRIANGLES);
+    const size_t first = this->vertices.size();
+    this->append(v1);
+    this->append(v2);
+    this->append(v3);
+    this->appendRange(first, 3, SO_PICK_FACE, faceIndex);
+  }
+
+  void onLineData(const VertexData & v1, const VertexData & v2,
+                  int lineIndex) override
+  {
+    this->setTopology(SO_TOPOLOGY_LINES);
+    const size_t first = this->vertices.size();
+    this->append(v1);
+    this->append(v2);
+    this->appendRange(first, 2, SO_PICK_EDGE, lineIndex);
+  }
+
+  SbBool beginRetainedTriangles(uint64_t sourceKey, uint64_t revision,
+                                int faceCount) override
+  {
+    this->geometryCacheKey = sourceKey;
+    this->geometryRevision = revision;
+    return this->reuseGeometry(sourceKey, revision, faceCount,
+                               SO_TOPOLOGY_TRIANGLES, 3);
+  }
+
+  SbBool reuseRetainedTriangles(uint64_t sourceKey,
+                                uint64_t revision) override
+  {
+    return this->reuseGeometry(sourceKey, revision, 0,
+                               SO_TOPOLOGY_TRIANGLES, 3);
+  }
+
+  SbBool beginRetainedLines(uint64_t sourceKey, uint64_t revision,
+                            int segmentCount) override
+  {
+    this->geometryCacheKey = sourceKey;
+    this->geometryRevision = revision;
+    return this->reuseGeometry(sourceKey, revision, segmentCount,
+                               SO_TOPOLOGY_LINES, 2);
+  }
+
+  SbBool reuseRetainedLines(uint64_t sourceKey, uint64_t revision) override
+  {
+    return this->reuseGeometry(sourceKey, revision, 0,
+                               SO_TOPOLOGY_LINES, 2);
+  }
+
+  void finalize()
+  {
+    if (this->reusedVertexCount != 0) {
+      SoIRMaterialBatchPlan batches;
+      batches.addBatch(SoIRBatch(0, this->reusedVertexCount, 0));
+      const std::chrono::steady_clock::time_point start =
+        this->action->isConstructionTimingEnabled()
+          ? std::chrono::steady_clock::now()
+          : std::chrono::steady_clock::time_point();
+      this->emitCommands(this->reusedGeometry, batches);
+      if (this->action->isConstructionTimingEnabled()) {
+        this->action->recordCommandEmissionNanoseconds(
+          static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now() - start).count()));
+      }
+      return;
+    }
+    this->flushRun();
+  }
+
+private:
+  SbBool reuseGeometry(uint64_t sourceKey, uint64_t revision,
+                       int expectedPrimitiveCount,
+                       SoPrimitiveTopology topology,
+                       int verticesPerPrimitive)
+  {
+    const SoGeometryHandle handle =
+      this->action->findGeometrySource(sourceKey, revision);
+    if (handle == SO_INVALID_GEOMETRY_HANDLE) return FALSE;
+    const SoGeometryResource * resource =
+      this->action->getDrawList().getGeometryResource(handle);
+    if (!resource || resource->geometry.topology != topology ||
+        resource->geometry.vertexCount == 0 ||
+        resource->geometry.vertexCount % verticesPerPrimitive != 0 ||
+        (expectedPrimitiveCount > 0 && resource->geometry.vertexCount !=
+          static_cast<uint32_t>(expectedPrimitiveCount * verticesPerPrimitive))) {
+      return FALSE;
+    }
+    this->geometryCacheKey = sourceKey;
+    this->geometryRevision = revision;
+    this->topology = topology;
+    // Reused commands resolve the canonical ranges owned by the resource.
+    this->reusedPrimitiveWidth = verticesPerPrimitive;
+    this->reusedGeometry = resource->geometry;
+    this->reusedVertexCount = resource->geometry.vertexCount;
+    return TRUE;
+  }
+
+  void flushRun()
+  {
+    if (this->vertices.empty()) return;
+
+    SoState * state = this->action->getState();
+    SoGeometryDesc geometry = {};
+    SoIRMaterialBatchPlan batches;
+    const bool measure = this->action->isConstructionTimingEnabled() != FALSE;
+    std::chrono::steady_clock::time_point start = measure
+      ? std::chrono::steady_clock::now()
+      : std::chrono::steady_clock::time_point();
+    this->fillGeometry(state, geometry, batches);
+    if (measure) {
+      this->action->recordGeometryPackingNanoseconds(
+        static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+          std::chrono::steady_clock::now() - start).count()));
+      start = std::chrono::steady_clock::now();
+    }
+    this->emitCommands(geometry, batches);
+    if (measure) {
+      this->action->recordCommandEmissionNanoseconds(
+        static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+          std::chrono::steady_clock::now() - start).count()));
+    }
+    this->vertices.clear();
+  }
+
+  SoIRMaterialBatchPlan buildMaterialBatches(SoState * state)
+  {
+    SoIRMaterialBatchPlan plan;
+    const size_t count = this->vertices.size();
+    const size_t primitiveWidth = this->topology == SO_TOPOLOGY_TRIANGLES ? 3
+      : this->topology == SO_TOPOLOGY_LINES ? 2 : 1;
+
+    const SoMaterialBindingElement::Binding materialBinding =
+      SoMaterialBindingElement::get(state);
+    const bool hasExplicitMaterialIndices =
+      materialBinding == SoMaterialBindingElement::PER_PART ||
+      materialBinding == SoMaterialBindingElement::PER_PART_INDEXED ||
+      materialBinding == SoMaterialBindingElement::PER_FACE ||
+      materialBinding == SoMaterialBindingElement::PER_FACE_INDEXED ||
+      materialBinding == SoMaterialBindingElement::PER_VERTEX_INDEXED;
+    const bool hasPerVertexMaterials =
+      materialBinding == SoMaterialBindingElement::PER_VERTEX ||
+      materialBinding == SoMaterialBindingElement::PER_VERTEX_INDEXED;
+
+    if (!hasExplicitMaterialIndices) {
+      plan.addBatch(SoIRBatch(0, count, 0));
+    }
+    for (size_t first = 0; hasExplicitMaterialIndices && first < count;) {
+      const size_t primitiveCount = std::min(primitiveWidth, count - first);
+      int materialIndex = this->vertices[first].materialIndex;
+      for (size_t i = 1; i < primitiveCount; ++i) {
+        if (this->vertices[first + i].materialIndex != materialIndex) {
+          materialIndex = -1;
+          break;
+        }
+      }
+      if (plan.empty() || plan.back().materialIndex != materialIndex) {
+        plan.addBatch(SoIRBatch(first, primitiveCount, materialIndex));
+      }
+      else {
+        plan.back().count += primitiveCount;
+      }
+      first += primitiveCount;
+    }
+    plan.needsVertexColors = hasPerVertexMaterials;
+    for (size_t i = 0; i < plan.size(); ++i) {
+      const SoIRBatch & batch = plan[i];
+      if (batch.materialIndex < 0) {
+        plan.needsVertexColors = true;
+        break;
+      }
+    }
+    return plan;
+  }
+
+  void fillGeometry(SoState * state,
+                    SoGeometryDesc & geometry,
+                    SoIRMaterialBatchPlan & batches)
+  {
+    const size_t count = this->vertices.size();
+    geometry.topology = this->topology;
+    geometry.vertexCount = static_cast<uint32_t>(count);
+    geometry.normalCount = geometry.vertexCount;
+    geometry.vertexStride = sizeof(float) * 3;
+    geometry.texcoordStride = sizeof(float) * 4;
+    geometry.cacheKey = this->geometryCacheKey;
+    geometry.revision = this->geometryRevision;
+
+    float * positions = static_cast<float *>(
+      this->action->allocateGeometryStorage(sizeof(float) * 3 * count));
+    float * normals = static_cast<float *>(
+      this->action->allocateGeometryStorage(sizeof(float) * 3 * count));
+    float * texcoords = static_cast<float *>(
+      this->action->allocateGeometryStorage(sizeof(float) * 4 * count));
+    batches = this->buildMaterialBatches(state);
+
+    float * colors = nullptr;
+    if (batches.needsVertexColors) {
+      colors = static_cast<float *>(
+        this->action->allocateGeometryStorage(sizeof(float) * 4 * count));
+    }
+
+    SbBox3f bounds;
+    for (size_t i = 0; i < count; ++i) {
+      const SoIRVertex & vertex = this->vertices[i];
+      bounds.extendBy(vertex.position);
+      positions[i * 3 + 0] = vertex.position[0];
+      positions[i * 3 + 1] = vertex.position[1];
+      positions[i * 3 + 2] = vertex.position[2];
+      normals[i * 3 + 0] = vertex.normal[0];
+      normals[i * 3 + 1] = vertex.normal[1];
+      normals[i * 3 + 2] = vertex.normal[2];
+      texcoords[i * 4 + 0] = vertex.texcoord[0];
+      texcoords[i * 4 + 1] = vertex.texcoord[1];
+      texcoords[i * 4 + 2] = vertex.texcoord[2];
+      texcoords[i * 4 + 3] = vertex.texcoord[3];
+      if (colors) {
+        const int materialIndex = std::max(vertex.materialIndex, 0);
+        const SbColor & color = SoLazyElement::getDiffuse(state, materialIndex);
+        const float alpha = 1.0f - SoLazyElement::getTransparency(state, materialIndex);
+        colors[i * 4 + 0] = color[0];
+        colors[i * 4 + 1] = color[1];
+        colors[i * 4 + 2] = color[2];
+        colors[i * 4 + 3] = alpha;
+      }
+    }
+
+    // Material batches of one shape share its object sorting center. Using
+    // a separate face center would reorder faces within transparent objects.
+    geometry.hasBounds = count != 0;
+    if (count) geometry.boundsCenter = bounds.getCenter();
+    geometry.positions = positions;
+    geometry.normals = normals;
+    geometry.texcoords = texcoords;
+    geometry.colors = colors;
+    geometry.pbrCoordinates=std::move(extraCoordinates);
+  }
+
+  void emitCommands(const SoGeometryDesc & sourceGeometry,
+                    const SoIRMaterialBatchPlan & batches)
+  {
+    for (size_t batchIndex = 0; batchIndex < batches.size(); ++batchIndex) {
+      const SoIRBatch & batch = batches[batchIndex];
+      SoRenderCommand command = {};
+      command.geometry = sourceGeometry;
+      command.geometry.vertexCount = static_cast<uint32_t>(batch.count);
+      command.geometry.normalCount = command.geometry.vertexCount;
+      command.geometry.positions = sourceGeometry.positions + batch.first * 3;
+      command.geometry.normals = sourceGeometry.normals + batch.first * 3;
+      command.geometry.texcoords = sourceGeometry.texcoords + batch.first * 4;
+      command.geometry.colors = sourceGeometry.colors
+        ? sourceGeometry.colors + batch.first * 4 : nullptr;
+
+      SoRenderIR::fillCommandStateFromAction(
+        this->action, command, std::max(batch.materialIndex, 0));
+      command.materialIndex = std::max(batch.materialIndex, 0);
+      SoRenderIR::finalizeCommand(command);
+      const size_t batchEnd = batch.first + batch.count;
+      const size_t primitiveWidth = this->topology == SO_TOPOLOGY_TRIANGLES
+        ? 3 : (this->topology == SO_TOPOLOGY_LINES ? 2 : 1);
+      const size_t expectedRanges = primitiveWidth == 0 ? 0
+        : batch.count / primitiveWidth;
+      if (this->reusedPrimitiveWidth != 0) {
+        command.pick.useResourceElementRanges = true;
+      }
+      else {
+        command.pick.elementRanges.reserve(expectedRanges);
+        bool completePickRanges = true;
+        for (const SoIRPrimitiveRange & range : this->primitiveRanges) {
+          if (range.first < batch.first || range.first >= batchEnd) continue;
+          if (!range.valid || range.first + range.count > batchEnd) {
+            completePickRanges = false;
+            break;
+          }
+          SoRenderElementRange pickRange;
+          pickRange.type = range.type;
+          pickRange.elementIndex = range.elementIndex;
+          pickRange.drawStart = static_cast<uint32_t>(range.first - batch.first);
+          pickRange.drawCount = static_cast<uint32_t>(range.count);
+          command.pick.elementRanges.push_back(pickRange);
+        }
+        if (!completePickRanges ||
+            command.pick.elementRanges.size() != expectedRanges) {
+          command.pick.elementRanges.clear();
+        }
+      }
+      this->action->applyRenderStage(command);
+      command.userData = this->shape;
+      this->action->addCommand(std::move(command));
+    }
+    this->primitiveRanges.clear();
+  }
+
+  void setTopology(SoPrimitiveTopology candidate)
+  {
+    if (this->topology == candidate) return;
+
+    if (this->topology != SO_TOPOLOGY_COUNT) this->flushRun();
+    this->topology = candidate;
+  }
+
+  void append(const SoPrimitiveVertex * vertex, int materialIndex, int textureIndex=-1)
+  {
+    SoIRVertex copy;
+    copy.position = vertex->getPoint();
+    copy.normal = vertex->getNormal();
+    copy.texcoord = vertex->getTextureCoords();
+    copy.materialIndex = materialIndex;
+    captureExtraCoordinates(copy,textureIndex);
+    this->vertices.push_back(copy);
+  }
+
+  void append(const VertexData & vertex)
+  {
+    SoIRVertex copy;
+    copy.position = vertex.point;
+    copy.normal = vertex.normal;
+    copy.texcoord = vertex.texcoord;
+    copy.materialIndex = vertex.materialIndex;
+    captureExtraCoordinates(copy,-1);
+    this->vertices.push_back(copy);
+  }
+
+  void appendRange(size_t first, size_t count, SoPickElementType type,
+                   int elementIndex)
+  {
+    SoIRPrimitiveRange range;
+    range.first = first;
+    range.count = count;
+    range.type = type;
+    range.elementIndex = elementIndex;
+    range.valid = elementIndex >= 0;
+    this->primitiveRanges.push_back(range);
+  }
+
+  static int faceIndex(const SoPrimitiveVertex * v1,
+                       const SoPrimitiveVertex * v2,
+                       const SoPrimitiveVertex * v3)
+  {
+    const SoDetail * d1 = v1->getDetail();
+    const SoDetail * d2 = v2->getDetail();
+    const SoDetail * d3 = v3->getDetail();
+    if (!d1 || !d2 || !d3 ||
+        !d1->isOfType(SoFaceDetail::getClassTypeId()) ||
+        !d2->isOfType(SoFaceDetail::getClassTypeId()) ||
+        !d3->isOfType(SoFaceDetail::getClassTypeId())) return -1;
+    const int index = static_cast<const SoFaceDetail *>(d1)->getFaceIndex();
+    return index >= 0 &&
+           static_cast<const SoFaceDetail *>(d2)->getFaceIndex() == index &&
+           static_cast<const SoFaceDetail *>(d3)->getFaceIndex() == index
+      ? index : -1;
+  }
+
+  static int lineIndex(const SoPrimitiveVertex * v1,
+                       const SoPrimitiveVertex * v2)
+  {
+    const SoDetail * d1 = v1->getDetail();
+    const SoDetail * d2 = v2->getDetail();
+    if (!d1 || !d2 ||
+        !d1->isOfType(SoLineDetail::getClassTypeId()) ||
+        !d2->isOfType(SoLineDetail::getClassTypeId())) return -1;
+    const int index = static_cast<const SoLineDetail *>(d1)->getLineIndex();
+    return index >= 0 &&
+           static_cast<const SoLineDetail *>(d2)->getLineIndex() == index
+      ? index : -1;
+  }
+
+  static int pointIndex(const SoPrimitiveVertex * vertex)
+  {
+    const SoDetail * detail = vertex->getDetail();
+    if (!detail ||
+        !detail->isOfType(SoPointDetail::getClassTypeId())) return -1;
+    return static_cast<const SoPointDetail *>(detail)->getCoordinateIndex();
+  }
+
+  std::unique_ptr<SoPBRCoordinates> extraCoordinates;
+  void captureExtraCoordinates(SoIRVertex & vertex,int index) {
+    auto * state=action->getState();const auto * physical=SoPBRMaterialElement::get(state);
+    if(!physical || physical->model!=SoRenderMaterialModel::PBR)return;
+    const auto & m=physical->material;
+    const auto * coords=SoMultiTextureCoordinateElement::getInstance(state);
+    if((m.anisotropy>0 || SoBumpMapElement::getSource(state)) && m.tangentCoordinateUnit==0) {
+      if(!SoMultiTextureEnabledElement::get(state,0) && coords->getType(0)==SoMultiTextureCoordinateElement::FUNCTION)
+        vertex.texcoord=coords->get(0,vertex.position,vertex.normal);
+      else if(coords->getType(0)==SoMultiTextureCoordinateElement::EXPLICIT) {
+        if(index<0 || index>=coords->getNum(0)) {action->markUnsupported(shape,"Missing primary PBR tangent coordinate");return;}
+        vertex.texcoord=coords->get4(0,index);
+      }
+    }
+
+    for(int unit=1;unit<8;++unit) {
+      if(unit!=m.baseColorTextureUnit && unit!=m.ormTextureUnit && unit!=m.emissiveTextureUnit &&
+         !((m.anisotropy>0 || SoBumpMapElement::getSource(state))&&unit==m.tangentCoordinateUnit))continue;
+      SbVec4f value=vertex.texcoord;const auto type=coords->getType(unit);
+      if(type==SoMultiTextureCoordinateElement::FUNCTION)value=coords->get(unit,vertex.position,vertex.normal);
+      else if(type==SoMultiTextureCoordinateElement::EXPLICIT) {
+        if(index<0 || index>=coords->getNum(unit)) {action->markUnsupported(shape,"Missing indexed PBR texture coordinate");return;}
+        value=coords->get4(unit,index);
+      }else if(type!=SoMultiTextureCoordinateElement::DEFAULT) {action->markUnsupported(shape,"PBR requires CPU texture coordinates");return;}
+      if(!extraCoordinates)extraCoordinates.reset(new SoPBRCoordinates);
+      extraCoordinates->units[unit].push_back(value);
+    }
+  }
+  SoIRRenderAction * action;
+  SoShape * shape;
+  SoPrimitiveTopology topology;
+  uint64_t geometryCacheKey = 0;
+  uint64_t geometryRevision = 0;
+  SoGeometryDesc reusedGeometry;
+  size_t reusedVertexCount = 0;
+  int reusedPrimitiveWidth = 0;
+  SoInlineVector<SoIRVertex, 4> vertices;
+  SoInlineVector<SoIRPrimitiveRange, 4> primitiveRanges;
+};
+
+}
+
 #include "soshape_bigtexture.h"
 #include "soshape_bumprender.h"
 
@@ -433,6 +961,47 @@ SoShape::GLRender(SoGLRenderAction * action)
 }
 
 // Doc in parent.
+SbBool
+SoShape::generateRetainedPrimitives(SoIRRenderAction *)
+{
+  return FALSE;
+}
+
+void
+SoShape::IRRender(SoIRRenderAction * action)
+{
+  if (!action) return;
+
+  SoState * state = action->getState();
+  SoVertexProperty * vertexProperty =
+    this->isOfType(SoVertexShape::getClassTypeId())
+      ? (SoVertexProperty *) static_cast<SoVertexShape *>(this)->vertexProperty.getValue()
+      : NULL;
+  if (vertexProperty) {
+    state->push();
+    vertexProperty->doAction(action);
+  }
+
+  SoIRPrimitiveAssembler assembler(action, this);
+  action->pushPrimitiveCollector(&assembler);
+  const bool measure = action->isConstructionTimingEnabled() != FALSE;
+  const std::chrono::steady_clock::time_point primitiveStart = measure
+    ? std::chrono::steady_clock::now()
+    : std::chrono::steady_clock::time_point();
+  if (!this->generateRetainedPrimitives(action)) {
+    this->generatePrimitives(action);
+  }
+  if (measure) {
+    action->recordPrimitiveGenerationNanoseconds(
+      static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now() - primitiveStart).count()));
+  }
+  action->popPrimitiveCollector(&assembler);
+  assembler.finalize();
+
+  if (vertexProperty) state->pop();
+}
+
 void
 SoShape::callback(SoCallbackAction * action)
 {
@@ -1087,6 +1656,24 @@ SoShape::invokeTriangleCallbacks(SoAction * const action,
     SoGetPrimitiveCountAction * ga = (SoGetPrimitiveCountAction *) action;
     ga->incNumTriangles();
   }
+  else if (action->getTypeId().isDerivedFrom(SoIRRenderAction::getClassTypeId())) {
+    SoIRRenderAction * ir = static_cast<SoIRRenderAction *>(action);
+    SoIRRenderAction::PrimitiveCollector * collector = ir->getActivePrimitiveCollector();
+    if (collector) {
+      const SoPrimitiveVertex * vertices[3]={v1,v2,v3};int indices[3]={-1,-1,-1};
+      auto * primitive=soshape_get_staticdata()->primdata;
+      for(int corner=0;corner<3;++corner) {
+        const auto * detail=vertices[corner]->getDetail();
+        if(detail && detail->getTypeId()==SoPointDetail::getClassTypeId())indices[corner]=static_cast<const SoPointDetail *>(detail)->getTextureCoordIndex();
+        else if(detail && detail->isOfType(SoFaceDetail::getClassTypeId())) {
+          const int point=primitive->findPointDetailIndex(vertices[corner]);
+          const auto * face=static_cast<const SoFaceDetail *>(detail);
+          if(point>=0&&point<face->getNumPoints())indices[corner]=face->getPoint(point)->getTextureCoordIndex();
+        }
+      }
+      collector->onTriangleCorners(v1,v2,v3,indices);
+    }
+  }
   else if (action->getTypeId().isDerivedFrom(SoGLRenderAction::getClassTypeId())) {
     soshape_staticdata * shapedata = soshape_get_staticdata();
 
@@ -1180,6 +1767,11 @@ SoShape::invokeLineSegmentCallbacks(SoAction * const action,
     SoGetPrimitiveCountAction * ga = (SoGetPrimitiveCountAction *) action;
     ga->incNumLines();
   }
+  else if (action->getTypeId().isDerivedFrom(SoIRRenderAction::getClassTypeId())) {
+    SoIRRenderAction * ir = static_cast<SoIRRenderAction *>(action);
+    SoIRRenderAction::PrimitiveCollector * collector = ir->getActivePrimitiveCollector();
+    if (collector) collector->onLine(v1, v2);
+  }
   else if (action->getTypeId().isDerivedFrom(SoGLRenderAction::getClassTypeId())) {
     soshape_staticdata * shapedata = soshape_get_staticdata();
     switch (shapedata->rendermode) {
@@ -1233,6 +1825,11 @@ SoShape::invokePointCallbacks(SoAction * const action,
   else if (action->getTypeId().isDerivedFrom(SoGetPrimitiveCountAction::getClassTypeId())) {
     SoGetPrimitiveCountAction * ga = (SoGetPrimitiveCountAction *) action;
     ga->incNumPoints();
+  }
+  else if (action->getTypeId().isDerivedFrom(SoIRRenderAction::getClassTypeId())) {
+    SoIRRenderAction * ir = static_cast<SoIRRenderAction *>(action);
+    SoIRRenderAction::PrimitiveCollector * collector = ir->getActivePrimitiveCollector();
+    if (collector) collector->onPoint(v);
   }
   else if (action->getTypeId().isDerivedFrom(SoGLRenderAction::getClassTypeId())) {
     soshape_staticdata * shapedata = soshape_get_staticdata();

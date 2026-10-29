@@ -55,6 +55,7 @@
 // *************************************************************************
 
 #include <Inventor/nodes/SoEnvironment.h>
+#include <Inventor/actions/SoIRRenderAction.h>
 
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
@@ -217,4 +218,15 @@ SoEnvironment::callback(SoCallbackAction *action)
                             (int32_t)fogType.getValue(),
                             this->fogColor.getValue(),
                             this->fogVisibility.getValue());
+}
+
+// Logical capture uses the same environment elements as the reference path.
+void
+SoEnvironment::IRRender(SoIRRenderAction * action)
+{
+  SoLightAttenuationElement::set(action->getState(), this, this->attenuation.getValue());
+  SoEnvironmentElement::set(action->getState(), this,
+    this->ambientIntensity.getValue(), this->ambientColor.getValue(),
+    this->attenuation.getValue(), static_cast<int32_t>(this->fogType.getValue()),
+    this->fogColor.getValue(), this->fogVisibility.getValue());
 }

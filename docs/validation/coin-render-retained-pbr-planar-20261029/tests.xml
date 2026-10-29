@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="20"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="72"
+	timestamp="2026-10-29T12:49:40"
+	>
+	<testcase name="CoinEnvironmentAnisotropyTest" classname="CoinEnvironmentAnisotropyTest" time="5.73398" status="run">
+		<properties/>
+		<system-out>Prepared anisotropic product: bytes=1050624 build_ms=3857.378721 max_ab_error=0.00328850746 roundtrip budgets rollback PASS
+Anisotropic CPU albedo: cases=81 max_ab_error=0.000149786472 previous_max_energy_error=0.43926093 invalid rollback PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinEnvironmentTest" classname="CoinEnvironmentTest" time="0.157789" status="run">
+		<properties/>
+		<system-out>PBR environment: deterministic package, SH, six faces/all levels, independent DFG, malformed input and rollback PASS
+</system-out>
+	</testcase>
+	<testcase name="SoRetainedPBRTest" classname="SoRetainedPBRTest" time="0.0129828" status="run">
+		<properties/>
+		<system-out>Native retained PBR: PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedReflectionTest" classname="CoinRenderRetainedReflectionTest" time="0.35193" status="run">
+		<properties/>
+		<system-out>additional_composition_classifications=0
+oracle_pixels=1723 maximum_channel_error=0
+PASS: reflection image, clipping, depth, reuse and failure/retry
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFreeCADMeshExportTest" classname="CoinRenderFreeCADMeshExportTest" time="0.0444767" status="run">
+		<properties/>
+		<system-out>......
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIBLBake-studio" classname="CoinRenderIBLBake-studio" time="0.940732" status="run">
+		<properties/>
+		<system-out>IBL baked: face=128 lut=128 levels=8 bytes=1966172 identity=11261952938219930909
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedIBL-studio" classname="CoinRenderRetainedIBL-studio" time="3.21258" status="run">
+		<properties/>
+		<system-out>IBL PASS: 2 scenes, 5 states, 20 exact buffers, 2 paths
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIBLBake-asymmetric" classname="CoinRenderIBLBake-asymmetric" time="0.942064" status="run">
+		<properties/>
+		<system-out>IBL baked: face=128 lut=128 levels=8 bytes=1966172 identity=5126869629112700977
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedIBL-asymmetric" classname="CoinRenderRetainedIBL-asymmetric" time="3.14716" status="run">
+		<properties/>
+		<system-out>IBL PASS: 2 scenes, 5 states, 20 exact buffers, 2 paths
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedSurfacesTest" classname="CoinRenderRetainedSurfacesTest" time="12.052" status="run">
+		<properties/>
+		<system-out>PASS: 14 surface fixtures; 28 exact buffers; 20 update buffers
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAnisotropyBake" classname="CoinRenderAnisotropyBake" time="4.3102" status="run">
+		<properties/>
+		<system-out>Anisotropic albedo prepared: bytes=1050624 identity=10045356057731500564
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedAnisotropyTest" classname="CoinRenderRetainedAnisotropyTest" time="18.8314" status="run">
+		<properties/>
+		<system-out>PASS: 14 anisotropy fixtures; 28 buffers; 18 update buffers
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPbrEffectsTest" classname="CoinRenderPbrEffectsTest" time="0.646321" status="run">
+		<properties/>
+		<system-out>pixels: shadow=1126 AO=1355 background=9064
+perspective: shadows=1126 AO=1355 PASS
+pixels: shadow=598 AO=888 background=13285
+orthographic: shadows=598 AO=888 PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedIBLAdmissionTest" classname="CoinRenderRetainedIBLAdmissionTest" time="0.35269" status="run">
+		<properties/>
+		<system-out>IBL admission, retry, frozen source and GPU budget: PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPBRGalleryTest" classname="CoinRenderRetainedPBRGalleryTest" time="5.55427" status="run">
+		<properties/>
+		<system-out>PBR gallery PASS: 2 scenes, 3 exposures, 12 exact buffers, 2 paths
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPBRGpuTest" classname="CoinRenderRetainedPBRGpuTest" time="14.8491" status="run">
+		<properties/>
+		<system-out>PBR comparison PASS: 54 scenes, 3 states, 324 exact buffers, 2 paths
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedConnectorTest" classname="CoinRenderRetainedConnectorTest" time="0.302214" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedNoBorrowTest" classname="CoinRenderRetainedNoBorrowTest" time="0.298899" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxCoreTest" classname="CoinBgfxCoreTest" time="0.512202" status="run">
+		<properties/>
+		<system-out>CoinBgfxCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxInstancingTest" classname="CoinBgfxInstancingTest" time="0.471281" status="run">
+		<properties/>
+		<system-out>affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+resized target max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from fog max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

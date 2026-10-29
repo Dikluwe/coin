@@ -38,6 +38,7 @@ set(COIN_NODES_FILES
 	SoListener.cpp
 	SoLocateHighlight.cpp
 	SoMaterial.cpp
+	SoPBRMaterial.cpp
 	SoMaterialBinding.cpp
 	SoMatrixTransform.cpp
 	SoMultipleCopy.cpp

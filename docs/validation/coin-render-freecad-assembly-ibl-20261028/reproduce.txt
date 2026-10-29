@@ -1,0 +1,10 @@
+Run from this Coin checkout. Uses existing local FreeCAD build and /tmp/coin-retained-bgfx.
+
+mkdir -p /tmp/freecad-assembly-ibl/current /tmp/freecad-assembly-ibl/retained
+cp docs/validation/coin-render-freecad-assembly-ibl-20261028/{assembly.FCMacro,compare.cpp} /tmp/freecad-assembly-ibl/
+xvfb-run -a -s "-screen 0 1440x1080x24" env LD_LIBRARY_PATH=/home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt/lib QT_PLUGIN_PATH=/home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt/plugins QT_QPA_PLATFORM=xcb /mnt/Laranja/Git/externos/freecad-build/bin/FreeCAD --user-cfg /tmp/freecad-assembly-ibl/user.cfg --system-cfg /tmp/freecad-assembly-ibl/system.cfg /tmp/freecad-assembly-ibl/assembly.FCMacro
+
+Compile compare.cpp using the flags in ../coin-render-freecad-ibl-20261028/reproduce.txt.
+Run current and retained executables serially with arguments /tmp/freecad-assembly-ibl/current (or retained) /tmp/coin-retained-ibl/environments/studio.cibl.
+Compare all ten .rgba and .depth files byte for byte.
+The GUI screenshots show bundled Coin/OpenGL. Only the separate assembly-base.png and assembly-rotated.png show retained BGFX PBR.

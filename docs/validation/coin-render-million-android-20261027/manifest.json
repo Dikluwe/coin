@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-27",
+  "branch": "codex/coinrender-retained-integration",
+  "uncommitted": true,
+  "device": "emulator-5580",
+  "abi": "x86_64",
+  "api": 37,
+  "ram_mb": 8192,
+  "renderer": "wgpu/GLES, emulator host AMD",
+  "package": "org.coin3d.coinrender.retainedmillion",
+  "pid": 5537,
+  "buildings": 1000000,
+  "ground": 1,
+  "triangles": 12000012,
+  "offscreen_control_fnv64": "067c1efbc25642eb",
+  "render_path": "CoinRenderAction window viewer; NOT CoinRenderRetainedRenderer",
+  "new_pid_anrs": [],
+  "live_window_left_open": true,
+  "checks": [
+    "million scene count",
+    "initial offscreen content control",
+    "physical emulator screencap",
+    "three vertical zoom gestures",
+    "serial/frame progress after gestures",
+    "no ANR event for corrected process"
+  ],
+  "limits": [
+    "not full Android lifecycle/loss qualification",
+    "initial loading is still slow",
+    "no retained million-window performance claim"
+  ],
+  "files": {
+    "/tmp/coin-retained-million-visible/coin-render-million-branch.apk": {
+      "sha256": "d421ac60c265caf77f892d23422d231e443c8d90cb65168590a7f43f73a6aedc",
+      "bytes": 38712077
+    },
+    "/home/dikluwe/.codex/worktrees/coinrender-retained-integration/coin/examples/coinrender/coin_render_android_smoke.cpp": {
+      "sha256": "07c2261e5ffb73dd7005d0c76d1c1e91af3318053b2b4adb2646a85de810c44a",
+      "bytes": 27709
+    },
+    "/tmp/coin-retained-android-wgpu/lib/libCoin.so": {
+      "sha256": "a9ac1d998bb63dc1db12266cefe83a481d38f3edaa8530f9aba9a63d4941eb20",
+      "bytes": 44601800
+    },
+    "/tmp/coin-retained-android-wgpu/lib/libCoinRender.so": {
+      "sha256": "49d85b6a7823f477454d01bd5049a0a05529d0dea146f3c8f2de14fe64bacefe",
+      "bytes": 41587040
+    },
+    "/tmp/coin-retained-android-wgpu/lib/libcoin_render_android_smoke.so": {
+      "sha256": "33aa0c0fc443e58d01a7945363e9580df222cfd7f293d697e972d356370bb663",
+      "bytes": 406520
+    }
+  }
+}

@@ -1,0 +1,45 @@
+"""Interactive native Vulkan/BGFX Assembly PBR/IBL viewport (X11/xcb).
+The worker presents to the viewport XID; no pixel readback is used for display.
+Run in FreeCAD after setting:
+
+COIN_VIEWPORT_SOURCE: this Coin checkout
+COIN_VIEWPORT_WORKER: coin_render_freecad_viewport or CoinRenderFreeCADViewportWorker
+COIN_VIEWPORT_ENVIRONMENT: a prepared .cibl environment
+Optionally COIN_VIEWPORT_ASSEMBLY: an FCStd to open before attaching.
+
+Left click selects; hover preselects; right drag orbits, middle drag pans,
+wheel zooms, F fits. Edit a link's Placement in FreeCAD to move it live.
+Escape restores the original viewport. No document is saved by this macro.
+"""
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide6 import QtCore, QtWidgets
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(os.environ["COIN_VIEWPORT_SOURCE"]) / "examples/coinrender"))
+import freecad_retained_viewport
+
+if os.environ.get("COIN_VIEWPORT_ASSEMBLY"):
+    App.openDocument(os.environ["COIN_VIEWPORT_ASSEMBLY"])
+Gui.activateView("Gui::View3DInventor", True)
+area = Gui.getMainWindow().findChild(QtWidgets.QMdiArea)
+for window in area.subWindowList():
+    if App.ActiveDocument.Label in window.windowTitle():
+        area.setActiveSubWindow(window)
+view = Gui.activeDocument().activeView()
+view.viewAxonometric()
+view.fitAll()
+
+
+def enable_retained_viewport():
+    global retained_viewport
+    retained_viewport = freecad_retained_viewport.attach(
+        os.environ["COIN_VIEWPORT_WORKER"], os.environ["COIN_VIEWPORT_ENVIRONMENT"],
+        studio_setup=True, effects=dict(shadows=True, ambientOcclusion=True, background=True,
+                                       shadowMapSize=2048, shadowBias=.00015, occlusionRadius=18.))
+    App.Console.PrintMessage("Retained PBR + IBL, shadows and SSAO viewport enabled; Escape restores Coin/GL.\n")
+
+
+QtCore.QTimer.singleShot(500, enable_retained_viewport)

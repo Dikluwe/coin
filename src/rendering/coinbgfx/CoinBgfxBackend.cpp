@@ -77,6 +77,8 @@ CoinBgfxBackend::CoinBgfxBackend()
   }
   for (uint8_t i = 0; i < COIN_RENDER_MAX_PEEL_LAYERS; ++i)
     this->peelFrameBuffers[i] = BGFX_INVALID_HANDLE;
+  const char * presentationDisabled = std::getenv("COIN_BGFX_DISABLE_PBR_PRESENT_REUSE");
+  this->pbrPresentationReuseEnabled = !presentationDisabled || std::strcmp(presentationDisabled,"1")!=0;
   const char * disabled = std::getenv("COIN_BGFX_DISABLE_CAMERA_PATCH");
   this->cameraPatchEnabled = disabled == nullptr || std::strcmp(disabled, "1") != 0;
   const char * groupingDisabled = std::getenv("COIN_BGFX_DISABLE_DRAW_GROUPING");
@@ -158,6 +160,7 @@ CoinBgfxBackend::destroyResources()
         sharedRuntime().portable.uniformCount.load(std::memory_order_relaxed));
   };
   trace("destroy_resources_begin");
+  this->pbrPresentationIdentity.reset();
   this->bumpReuseFrame.reset();
   this->samplingBoundTextureSizes.clear();
   if (!this->initialized) { trace("destroy_resources_end_uninitialized"); return; }
@@ -269,6 +272,7 @@ CoinBgfxBackend::destroyResources()
   trace("destroy_portable_resources_begin");
   this->portableProgramRoutes.clear();
   trace("destroy_portable_resources_end");
+  this->destroyPbr();
   if (bgfx::isValid(this->program)) bgfx::destroy(this->program);
   if (bgfx::isValid(this->solidProgram)) bgfx::destroy(this->solidProgram);
   if (bgfx::isValid(this->texture2dProgram)) bgfx::destroy(this->texture2dProgram);

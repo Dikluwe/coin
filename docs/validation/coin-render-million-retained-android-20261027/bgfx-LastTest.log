@@ -1,0 +1,160 @@
+Start testing: Oct 27 18:29 -03
+----------------------------------------------------------
+87/1832 Testing: CoinRenderRetainedCityTest
+87/1832 Test: CoinRenderRetainedCityTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedCityTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedCityTest" start time: Oct 27 18:29 -03
+Output:
+----------------------------------------------------------
+city channels_different=0 maximum=0 depth_different=0
+commands=400 geometry=1 vertices=36 cameras=1
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+city channels_different=0 maximum=0 depth_different=0
+<end of output>
+Test time =   0.15 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedCityTest" end time: Oct 27 18:29 -03
+"CoinRenderRetainedCityTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+88/1832 Testing: CoinRenderRetainedIncrementalTest
+88/1832 Test: CoinRenderRetainedIncrementalTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedIncrementalTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedIncrementalTest" start time: Oct 27 18:29 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.11 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedIncrementalTest" end time: Oct 27 18:29 -03
+"CoinRenderRetainedIncrementalTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+89/1832 Testing: CoinRenderRetainedConnectorTest
+89/1832 Test: CoinRenderRetainedConnectorTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedConnectorTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedConnectorTest" start time: Oct 27 18:29 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedConnectorTest" end time: Oct 27 18:29 -03
+"CoinRenderRetainedConnectorTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+90/1832 Testing: CoinRenderRetainedNoBorrowTest
+90/1832 Test: CoinRenderRetainedNoBorrowTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedConnectorTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedNoBorrowTest" start time: Oct 27 18:29 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedNoBorrowTest" end time: Oct 27 18:29 -03
+"CoinRenderRetainedNoBorrowTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+91/1832 Testing: CoinRenderRetainedGLReferenceTest
+91/1832 Test: CoinRenderRetainedGLReferenceTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderRetainedConnectorTest" "--gl-reference"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderRetainedGLReferenceTest" start time: Oct 27 18:29 -03
+Output:
+----------------------------------------------------------
+GL reference renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2
+GL reference: compared=3588 differing_channels=0
+<end of output>
+Test time =   0.32 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRetainedGLReferenceTest" end time: Oct 27 18:29 -03
+"CoinRenderRetainedGLReferenceTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+93/1832 Testing: CoinRenderBackendBoundaryTest
+93/1832 Test: CoinRenderBackendBoundaryTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinRenderBackendBoundaryTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinRenderBackendBoundaryTest" start time: Oct 27 18:29 -03
+Output:
+----------------------------------------------------------
+Common action, manager, shadow admission and reuse dispatch passed
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderBackendBoundaryTest" end time: Oct 27 18:29 -03
+"CoinRenderBackendBoundaryTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+148/1832 Testing: CoinBgfxCoreTest
+148/1832 Test: CoinBgfxCoreTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinBgfxCoreTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinBgfxCoreTest" start time: Oct 27 18:29 -03
+Output:
+----------------------------------------------------------
+CoinBgfxCoreTest passed
+<end of output>
+Test time =   0.50 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxCoreTest" end time: Oct 27 18:29 -03
+"CoinBgfxCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+160/1832 Testing: CoinBgfxInstancingTest
+160/1832 Test: CoinBgfxInstancingTest
+Command: "/tmp/coin-retained-bgfx/bin/CoinBgfxInstancingTest"
+Directory: /tmp/coin-retained-bgfx/testsuite/coinrender
+"CoinBgfxInstancingTest" start time: Oct 27 18:29 -03
+Output:
+----------------------------------------------------------
+affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+resized target max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from fog max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from clip max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR with depth max_depth_error=8.9407e-08
+BASE_COLOR single instance transform max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR single instance transform max_depth_error=8.9407e-08
+BASE_COLOR material subranges max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR material subranges max_depth_error=8.9407e-08
+BASE_COLOR camera patch max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+BASE_COLOR camera patch max_depth_error=8.9407e-08
+uniform LEQUAL BASE_COLOR max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+uniform LEQUAL BASE_COLOR max_depth_error=8.9407e-08
+LEQUAL coplanar materials max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+LEQUAL coplanar materials max_depth_error=8.9407e-08
+coplanar last occurrence must win max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+coplanar first-vs-last reference pixels_over_20=48
+outside viewport depth readback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+outside viewport depth readback max_depth_error=0
+return from outside viewport with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+return from outside viewport with depth max_depth_error=8.9407e-08
+CoinBgfxInstancingTest passed
+<end of output>
+Test time =   0.22 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxInstancingTest" end time: Oct 27 18:29 -03
+"CoinBgfxInstancingTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 27 18:29 -03

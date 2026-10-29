@@ -1,0 +1,7 @@
+Set COIN_VIEWPORT_SOURCE to this checkout, COIN_VIEWPORT_WORKER to /tmp/coin-retained-bgfx/bin/CoinRenderFreeCADViewportWorker, COIN_VIEWPORT_ENVIRONMENT to studio.cibl, and COIN_VIEWPORT_ASSEMBLY to AssemblyExample.FCStd.
+
+Launch FreeCAD with examples/coinrender/freecad_assembly_appearance.FCMacro. The default stays interactive with per-component materials and perspective framing. Escape restores the original viewport. No FCStd is saved and no ViewObject material is changed.
+
+For the automated five-preview capture, also set COIN_ASSEMBLY_PREVIEW_OUTPUT to a fresh directory. Use a temporary FreeCAD --user-cfg and --system-cfg, QT_QPA_PLATFORM=xcb and compatible Qt/PySide libraries as documented in ../coin-render-freecad-native-viewport-20261028/reproduce.txt. This run used a 1680x1200 Xvfb screen.
+
+The first two previews use identical camera/light. Subsequent previews rotate IBL and then change to a cylinder detail camera. Native snapshots are test-only OS captures; the renderer never reads pixels back for display. The recorded scene.iv and requests.txt can be replayed by the worker offscreen, with and without --current. Recorded callback and retained controls match exactly; new perspective native/offscreen differences are reported in results.json.

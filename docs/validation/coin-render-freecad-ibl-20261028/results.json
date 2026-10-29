@@ -1,0 +1,179 @@
+{
+  "freecad": [
+    "26",
+    "3",
+    "0",
+    "48386 (Git)",
+    "git://github.com/FreeCAD/FreeCAD.git main",
+    "2026/09/01 11:53:58",
+    "main",
+    "d8d85f05ffad8277db968d6872c4a7a9b733c1b3"
+  ],
+  "vertices": 1520,
+  "triangles": 3056,
+  "valid": true,
+  "volume": 41512.03444108017,
+  "scope": "FreeCAD BRep tessellation through offscreen BGFX PBR/IBL; not native FreeCAD viewport",
+  "buffers": [
+    {
+      "file": "bracket-base.rgba",
+      "bytes": 4032000,
+      "sha256": "e0881d36a757eb6f314e9f9c80d2a82e250903aad4b5cd00c010b90a0c274878",
+      "identical": true
+    },
+    {
+      "file": "bracket-base.depth",
+      "bytes": 4032000,
+      "sha256": "26acb77a08da5f738da2b1a2e46af98273d1645dc74819ab9e91b8858edf438b",
+      "identical": true
+    },
+    {
+      "file": "bracket-dim.rgba",
+      "bytes": 4032000,
+      "sha256": "f634c922d6cb669c6afff229e6d7c81206f7f921ae5209fa842dfd1e15c2be80",
+      "identical": true
+    },
+    {
+      "file": "bracket-dim.depth",
+      "bytes": 4032000,
+      "sha256": "26acb77a08da5f738da2b1a2e46af98273d1645dc74819ab9e91b8858edf438b",
+      "identical": true
+    },
+    {
+      "file": "bracket-exposure.rgba",
+      "bytes": 4032000,
+      "sha256": "eaf9391b773331da90d6bf16adcf2cc4b4a30636a810a9df99581d97275dc423",
+      "identical": true
+    },
+    {
+      "file": "bracket-exposure.depth",
+      "bytes": 4032000,
+      "sha256": "26acb77a08da5f738da2b1a2e46af98273d1645dc74819ab9e91b8858edf438b",
+      "identical": true
+    },
+    {
+      "file": "bracket-off.rgba",
+      "bytes": 4032000,
+      "sha256": "6bd62bf312a1033c5f82591b6e80b000492fd01939863789974d9cd96a4ca8eb",
+      "identical": true
+    },
+    {
+      "file": "bracket-off.depth",
+      "bytes": 4032000,
+      "sha256": "26acb77a08da5f738da2b1a2e46af98273d1645dc74819ab9e91b8858edf438b",
+      "identical": true
+    },
+    {
+      "file": "bracket-rotated.rgba",
+      "bytes": 4032000,
+      "sha256": "fed6480da87af53b2e13132b03a4b2efe4cbdf24f06dc2c6a30382cc33e11860",
+      "identical": true
+    },
+    {
+      "file": "bracket-rotated.depth",
+      "bytes": 4032000,
+      "sha256": "26acb77a08da5f738da2b1a2e46af98273d1645dc74819ab9e91b8858edf438b",
+      "identical": true
+    }
+  ],
+  "retained_statistics": [
+    {
+      "scene": "bracket",
+      "state": "base",
+      "width": "1200",
+      "height": "840",
+      "captures": "1",
+      "plans": "1",
+      "transport_builds": "1",
+      "environment_uploads": "1"
+    },
+    {
+      "scene": "bracket",
+      "state": "rotated",
+      "width": "1200",
+      "height": "840",
+      "captures": "1",
+      "plans": "1",
+      "transport_builds": "1",
+      "environment_uploads": "1"
+    },
+    {
+      "scene": "bracket",
+      "state": "dim",
+      "width": "1200",
+      "height": "840",
+      "captures": "1",
+      "plans": "1",
+      "transport_builds": "1",
+      "environment_uploads": "1"
+    },
+    {
+      "scene": "bracket",
+      "state": "off",
+      "width": "1200",
+      "height": "840",
+      "captures": "1",
+      "plans": "1",
+      "transport_builds": "1",
+      "environment_uploads": "1"
+    },
+    {
+      "scene": "bracket",
+      "state": "exposure",
+      "width": "1200",
+      "height": "840",
+      "captures": "1",
+      "plans": "1",
+      "transport_builds": "1",
+      "environment_uploads": "1"
+    },
+    {
+      "scene": "bracket",
+      "state": "restored",
+      "width": "1200",
+      "height": "840",
+      "captures": "1",
+      "plans": "1",
+      "transport_builds": "1",
+      "environment_uploads": "1"
+    }
+  ],
+  "camera": {
+    "position": [
+      90,
+      -115,
+      100
+    ],
+    "target": [
+      0,
+      0,
+      14
+    ],
+    "up": [
+      0,
+      0,
+      1
+    ],
+    "near": 1,
+    "far": 400,
+    "heightAngle": 0.65,
+    "viewport": [
+      1200,
+      840
+    ]
+  },
+  "materials": "Authored in exported test scene: metallic gold, roughness 0.28; FreeCAD appearance not imported.",
+  "limitations": [
+    "FreeCAD App/Part Python modules used without GUI",
+    "No native viewport, custom node, selection, picking or live document update qualification",
+    "No performance or memory benchmark",
+    "Existing callback control and native retained path use current BGFX; no old PBR branch comparison in this test"
+  ],
+  "fixture_sha256": {
+    "bracket.FCStd": "62675221179caca90103fb0bb18661632f97413d32fab307b924a7bafb15e5c0",
+    "bracket.iv": "6368a1e5d19eb9d21005e9cda579fe5d99b63696a924da2423bcbef86773963f",
+    "export.py": "60e77fae965004d6dbfc0252095436af0ed413651e1bc8e25c293930223f4e92",
+    "compare.cpp": "9a211229f8e7b85385772f7e8821a58d6f40aff0e43381778f9d9e940ffe1ed1"
+  },
+  "environment_sha256": "ed0d8f67fce21ebdafbe58dac8385a446b7ad32578828d0083ebff05eb7217d7"
+}

@@ -205,6 +205,8 @@ SbUniqueId is not really a class, just a \c typedef.
 #include <Inventor/SoInput.h>
 #include <Inventor/SoOutput.h>
 #include <Inventor/actions/SoActions.h>
+#include <Inventor/actions/SoIRRenderAction.h>
+#include <Inventor/rendering/SoPBRMaterial.h>
 #include <Inventor/elements/SoCacheElement.h>
 #include <Inventor/errors/SoDebugError.h>
 #include <Inventor/misc/SoChildList.h>
@@ -612,6 +614,7 @@ SoNode::initClasses(void)
   SoAsciiText::initClass();
   SoCone::initClass();
   SoCube::initClass();
+  SoPBRMaterial::initClass();
   SoCylinder::initClass();
   SoVertexShape::initClass();
   SoNonIndexedShape::initClass();
@@ -858,6 +861,15 @@ SoNode::getByName(const SbName & name, SoNodeList & l)
   This function performs the typical operation of a node for any
   action.
 */
+void
+SoNode::IRRender(SoIRRenderAction * action) { this->doAction(action); }
+
+void
+SoNode::IRRenderS(SoAction * action, SoNode * node)
+{
+  node->IRRender(static_cast<SoIRRenderAction *>(action));
+}
+
 void
 SoNode::doAction(SoAction * COIN_UNUSED_ARG(action))
 {

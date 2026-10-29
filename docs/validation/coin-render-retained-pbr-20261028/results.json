@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-28",
+  "branch": "codex/coinrender-retained-integration",
+  "source_branch": "codex/pbr-clean",
+  "source_revision": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+  "stage": "Native PBR capture and planning; executor transport/shading explicitly unsupported",
+  "source_sha256": {
+    "experimental/include/Inventor/rendering/SoPBRMaterial.h": "1334f1c9dd1100e2e11d20c3a29d9b9d379b3261ead6a0b14b04fdae21a47ccc",
+    "src/rendering/coinrender/SoPBRMaterial.cpp": "80c7f1f9d8214959011f7d578da5fb539ee441266857d8e79ff644bf6b5a24d4",
+    "src/rendering/coinrender/CoinRenderPbrMaterial.h": "39c0d0299d2c7bbbb51c1ee252897376a77d47809154e9f263cd05bb509b3b0a",
+    "src/rendering/coinrender/CoinRenderPbrMaterialElement.h": "f3bc3e72457e101184f7a4cce46298a767c5ecb5b0382c529f238c4b6145de55",
+    "src/rendering/coinrender/CoinRenderPbrMaterialElement.cpp": "63a888d25ee6feccd6704927835ee9a1b7fe02a678dbd94b86d6a908ed000af0"
+  },
+  "local_sha256": {
+    "include/Inventor/rendering/SoPBRMaterial.h": "acbc3d3107be9cce6b9ff5dffe384a0854609d89036a396a4a0820a6a938d614",
+    "include/Inventor/rendering/SoPBRMaterialData.h": "c9b063691c29c21f3957ae77c926789ba227f337711828dc76e7a3bbc840d4d2",
+    "include/Inventor/rendering/SoRenderIR.h": "b0d3aaf2abf13931ed6e846f81c57d818ba60d92ca1e615c7c8ca33db4608f9a",
+    "src/elements/SoPBRMaterialElement.h": "111678d049d3ba94ae4e9dffedd968cbfc577c563cc53357de2e9863826cd661",
+    "src/elements/SoPBRMaterialElement.cpp": "924829040e9627b2a2bc8f0671b8b39ccde7b3d801c7d908b81ee25f89406a1e",
+    "src/nodes/SoPBRMaterial.cpp": "b7b6d6b1a87825fcca000c2a38b5ac89b5d2ca344f0e7d14eb19c404b6fa78f7",
+    "src/nodes/SoMaterial.cpp": "0993bfb20d43bbf4da8394dc03c02e8a9cb9f020f405f9cf6ed85437a4cdd736",
+    "src/actions/SoIRRenderAction.cpp": "de36b3938bbd2f316590b4fd140982b97a53a6268a8b55e3da8f77f8165aa8d6",
+    "src/rendering/SoRenderIR.cpp": "79e6bd486dd543a4a20dd0075465ec2faf30f8853cd5a8d2be85d71f32261b5d",
+    "src/rendering/SoRenderPlan.cpp": "73577fdd7700cbe578e00ed9873f9be5548a536e9a818bbe3c29512c4a6f96f6",
+    "src/rendering/coinrender/CoinRenderRetainedRenderer.cpp": "5b70959f182fad87f078752c3ba1162e42f48ac693f3775faffe9c768bfcca9e",
+    "src/rendering/coinrender/CoinRenderRetainedTransport.cpp": "23cf836a56399357cfd6f942da8b730088162bac38ba4f732f210381a4024e86",
+    "testsuite/rendering/SoRetainedPBRTest.cpp": "9667d848c443ea597b4228d1a6f80e56cad41e23899f3e9838d8178c0301114c",
+    "testsuite/coinrender/CoinRenderRetainedPBRBoundaryTest.cpp": "148217108bba03a7ada8ed1345f0c5e9246d42245ee78f461cc140b7a175b73e"
+  },
+  "builds": {
+    "recording": "PASS",
+    "wgpu": "PASS",
+    "bgfx": "PASS"
+  },
+  "tests": {
+    "recording": {
+      "passed": 5,
+      "receipt": "recording.xml"
+    },
+    "wgpu": {
+      "passed": 2,
+      "receipt": "wgpu.xml"
+    },
+    "bgfx": {
+      "passed": 2,
+      "receipt": "bgfx.xml"
+    }
+  },
+  "native_link": "Coin only; see native-dependencies.txt",
+  "limits": [
+    "No retained PBR pixel qualification.",
+    "No PBR shader, environment, IBL or source historical GPU qualification imported.",
+    "No Android/million-building benchmark rerun.",
+    "Native candidate F9 not ported or qualified on FreeCAD/coin.",
+    "PBR edits use conservative recapture; dedicated incremental PBR publication is pending."
+  ]
+}
