@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="43"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="129"
+	timestamp="2026-10-29T15:29:15"
+	>
+	<testcase name="SoRetainedPBRTest" classname="SoRetainedPBRTest" time="0.011982" status="run">
+		<properties/>
+		<system-out>Native retained PBR: PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinEnvironmentAnisotropyTest" classname="CoinEnvironmentAnisotropyTest" time="5.88166" status="run">
+		<properties/>
+		<system-out>Prepared anisotropic product: bytes=1050624 build_ms=3970.107317 max_ab_error=0.00328850746 roundtrip budgets rollback PASS
+Anisotropic CPU albedo: cases=81 max_ab_error=0.000149786472 previous_max_energy_error=0.43926093 invalid rollback PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPbrSurfaceCoreTest" classname="CoinRenderPbrSurfaceCoreTest" time="0.00786428" status="run">
+		<properties/>
+		<system-out>PBR surface core: analytic height, wrapping, normal variance, Mikk mirrored UV, degenerate fallback, scales and cache PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPbrWindowLifecycleTest" classname="CoinRenderPbrWindowLifecycleTest" time="0.819883" status="run">
+		<properties/>
+		<system-out>PBR Xlib: first/replay, native resize, suspend/resume, controlled device loss, frozen environment and offscreen peer PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRectAreaLightTest" classname="CoinRenderRectAreaLightTest" time="0.0133878" status="run">
+		<properties/>
+		<system-out>Rectangle contract: native defaults, ignored fields, additive scope, iv, shared nodes, transforms/reflection, camera oracle, units, connections and refusal PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPbrRefinementCoreTest" classname="CoinRenderPbrRefinementCoreTest" time="0.00257945" status="run">
+		<properties/>
+		<system-out>Stationary core: transactional counters, payload receipts, partial batches, convergence, camera/scene/light/device invalidation and resource footprint PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderLocalProbeSdkTest" classname="CoinRenderLocalProbeSdkTest" time="0.00560174" status="run">
+		<properties/>
+		<system-out>LOCAL_PROBE_SDK PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinAreaActiveTasksCpuTest" classname="CoinAreaActiveTasksCpuTest" time="0.00326672" status="run">
+		<properties/>
+		<system-out>PASS ACTIVE_CPU cases=170 checks=2045 failures=0 required=105795 eliminated=162509 binding=CoinRenderAreaSamplePartition::consumerStages/makeActiveTasks/required; effective draw flags; finite effective-flag corpus, not a geometry heuristic
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderOcclusionSdkTest" classname="CoinRenderOcclusionSdkTest" time="0.00618909" status="run">
+		<properties/>
+		<system-out>PASS AO_SDK public install-compatible headers/defaults
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-direct" classname="CoinRenderRetainedPbr-direct" time="0.32773" status="run">
+		<properties/>
+		<system-out>direct initial changed_channels=0 max_error=0 depth_equal=1
+direct static changed_channels=0 max_error=0 depth_equal=1
+direct exposure changed_channels=0 max_error=0 depth_equal=1
+direct roughness changed_channels=0 max_error=0 depth_equal=1
+direct moved changed_channels=0 max_error=0 depth_equal=1
+direct projection changed_channels=0 max_error=0 depth_equal=1
+direct hidden changed_channels=0 max_error=0 depth_equal=1
+direct visible-again changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=direct exact_buffers=16 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-ibl" classname="CoinRenderRetainedPbr-ibl" time="0.330318" status="run">
+		<properties/>
+		<system-out>ibl initial changed_channels=0 max_error=0 depth_equal=1
+ibl static changed_channels=0 max_error=0 depth_equal=1
+ibl exposure changed_channels=0 max_error=0 depth_equal=1
+ibl roughness changed_channels=0 max_error=0 depth_equal=1
+ibl moved changed_channels=0 max_error=0 depth_equal=1
+ibl environment changed_channels=0 max_error=0 depth_equal=1
+ibl projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=ibl exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-skybox" classname="CoinRenderRetainedPbr-skybox" time="0.335128" status="run">
+		<properties/>
+		<system-out>skybox initial changed_channels=0 max_error=0 depth_equal=1
+skybox static changed_channels=0 max_error=0 depth_equal=1
+skybox exposure changed_channels=0 max_error=0 depth_equal=1
+skybox roughness changed_channels=0 max_error=0 depth_equal=1
+skybox moved changed_channels=0 max_error=0 depth_equal=1
+skybox environment changed_channels=0 max_error=0 depth_equal=1
+skybox projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=skybox exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-empty-skybox" classname="CoinRenderRetainedPbr-empty-skybox" time="0.320061" status="run">
+		<properties/>
+		<system-out>empty-skybox initial changed_channels=0 max_error=0 depth_equal=1
+empty-skybox static changed_channels=0 max_error=0 depth_equal=1
+empty-skybox exposure changed_channels=0 max_error=0 depth_equal=1
+empty-skybox roughness changed_channels=0 max_error=0 depth_equal=1
+empty-skybox moved changed_channels=0 max_error=0 depth_equal=1
+empty-skybox environment changed_channels=0 max_error=0 depth_equal=1
+empty-skybox projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=empty-skybox exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-local-probe" classname="CoinRenderRetainedPbr-local-probe" time="0.35552" status="run">
+		<properties/>
+		<system-out>local-probe initial changed_channels=0 max_error=0 depth_equal=1
+local-probe static changed_channels=0 max_error=0 depth_equal=1
+local-probe exposure changed_channels=0 max_error=0 depth_equal=1
+local-probe roughness changed_channels=0 max_error=0 depth_equal=1
+local-probe moved changed_channels=0 max_error=0 depth_equal=1
+local-probe environment changed_channels=0 max_error=0 depth_equal=1
+local-probe projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=local-probe exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-geometry-ao" classname="CoinRenderRetainedPbr-geometry-ao" time="0.375204" status="run">
+		<properties/>
+		<system-out>geometry-ao initial changed_channels=0 max_error=0 depth_equal=1
+geometry-ao static changed_channels=0 max_error=0 depth_equal=1
+geometry-ao exposure changed_channels=0 max_error=0 depth_equal=1
+geometry-ao roughness changed_channels=0 max_error=0 depth_equal=1
+geometry-ao moved changed_channels=0 max_error=0 depth_equal=1
+geometry-ao environment changed_channels=0 max_error=0 depth_equal=1
+geometry-ao projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=geometry-ao exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-refinement" classname="CoinRenderRetainedPbr-refinement" time="4.48031" status="run">
+		<properties/>
+		<system-out>refinement initial changed_channels=0 max_error=0 depth_equal=1
+refinement static changed_channels=0 max_error=0 depth_equal=1
+refinement refine0 changed_channels=0 max_error=0 depth_equal=1
+refinement refine1 changed_channels=0 max_error=0 depth_equal=1
+refinement refine2 changed_channels=0 max_error=0 depth_equal=1
+refinement refine3 changed_channels=0 max_error=0 depth_equal=1
+refinement exposure changed_channels=0 max_error=0 depth_equal=1
+refinement roughness changed_channels=0 max_error=0 depth_equal=1
+refinement moved changed_channels=0 max_error=0 depth_equal=1
+refinement environment changed_channels=0 max_error=0 depth_equal=1
+refinement projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=refinement exact_buffers=22 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-ground" classname="CoinRenderRetainedPbr-ground" time="0.379643" status="run">
+		<properties/>
+		<system-out>ground initial changed_channels=0 max_error=0 depth_equal=1
+ground static changed_channels=0 max_error=0 depth_equal=1
+ground exposure changed_channels=0 max_error=0 depth_equal=1
+ground roughness changed_channels=0 max_error=0 depth_equal=1
+ground moved changed_channels=0 max_error=0 depth_equal=1
+ground environment changed_channels=0 max_error=0 depth_equal=1
+ground projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=ground exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-smooth-reflection" classname="CoinRenderRetainedPbr-smooth-reflection" time="0.359946" status="run">
+		<properties/>
+		<system-out>smooth-reflection initial changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection static changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection exposure changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection roughness changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection moved changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection environment changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=smooth-reflection exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-rough-reflection" classname="CoinRenderRetainedPbr-rough-reflection" time="0.348866" status="run">
+		<properties/>
+		<system-out>rough-reflection initial changed_channels=0 max_error=0 depth_equal=1
+rough-reflection static changed_channels=0 max_error=0 depth_equal=1
+rough-reflection exposure changed_channels=0 max_error=0 depth_equal=1
+rough-reflection roughness changed_channels=0 max_error=0 depth_equal=1
+rough-reflection moved changed_channels=0 max_error=0 depth_equal=1
+rough-reflection environment changed_channels=0 max_error=0 depth_equal=1
+rough-reflection projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=rough-reflection exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-area-light" classname="CoinRenderRetainedPbr-area-light" time="0.922742" status="run">
+		<properties/>
+		<system-out>area-light initial changed_channels=0 max_error=0 depth_equal=1
+area-light static changed_channels=0 max_error=0 depth_equal=1
+area-light exposure changed_channels=0 max_error=0 depth_equal=1
+area-light roughness changed_channels=0 max_error=0 depth_equal=1
+area-light moved changed_channels=0 max_error=0 depth_equal=1
+area-light environment changed_channels=0 max_error=0 depth_equal=1
+area-light projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=area-light exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-shadow-vsm" classname="CoinRenderRetainedPbr-shadow-vsm" time="0.378731" status="run">
+		<properties/>
+		<system-out>shadow-vsm initial changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm static changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm exposure changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm roughness changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm moved changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm environment changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=shadow-vsm exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-shadow-pcf" classname="CoinRenderRetainedPbr-shadow-pcf" time="0.389443" status="run">
+		<properties/>
+		<system-out>shadow-pcf initial changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf static changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf exposure changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf roughness changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf moved changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf environment changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=shadow-pcf exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-shadow-pcss" classname="CoinRenderRetainedPbr-shadow-pcss" time="0.378719" status="run">
+		<properties/>
+		<system-out>shadow-pcss initial changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss static changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss exposure changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss roughness changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss moved changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss environment changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=shadow-pcss exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-shadow-style" classname="CoinRenderRetainedPbr-shadow-style" time="0.388055" status="run">
+		<properties/>
+		<system-out>shadow-style initial changed_channels=0 max_error=0 depth_equal=1
+shadow-style static changed_channels=0 max_error=0 depth_equal=1
+shadow-style exposure changed_channels=0 max_error=0 depth_equal=1
+shadow-style roughness changed_channels=0 max_error=0 depth_equal=1
+shadow-style moved changed_channels=0 max_error=0 depth_equal=1
+shadow-style environment changed_channels=0 max_error=0 depth_equal=1
+shadow-style projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=shadow-style exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-area-shadow" classname="CoinRenderRetainedPbr-area-shadow" time="50.8889" status="run">
+		<properties/>
+		<system-out>area-shadow initial changed_channels=0 max_error=0 depth_equal=1
+area-shadow static changed_channels=0 max_error=0 depth_equal=1
+area-shadow exposure changed_channels=0 max_error=0 depth_equal=1
+area-shadow roughness changed_channels=0 max_error=0 depth_equal=1
+area-shadow moved changed_channels=0 max_error=0 depth_equal=1
+area-shadow environment changed_channels=0 max_error=0 depth_equal=1
+area-shadow projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=area-shadow exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-direct" classname="CoinRenderRetainedPbr-action-direct" time="0.32866" status="run">
+		<properties/>
+		<system-out>direct initial changed_channels=0 max_error=0 depth_equal=1
+direct static changed_channels=0 max_error=0 depth_equal=1
+direct exposure changed_channels=0 max_error=0 depth_equal=1
+direct roughness changed_channels=0 max_error=0 depth_equal=1
+direct moved changed_channels=0 max_error=0 depth_equal=1
+direct projection changed_channels=0 max_error=0 depth_equal=1
+direct hidden changed_channels=0 max_error=0 depth_equal=1
+direct visible-again changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=direct exact_buffers=16 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-ibl" classname="CoinRenderRetainedPbr-action-ibl" time="0.34387" status="run">
+		<properties/>
+		<system-out>ibl initial changed_channels=0 max_error=0 depth_equal=1
+ibl static changed_channels=0 max_error=0 depth_equal=1
+ibl exposure changed_channels=0 max_error=0 depth_equal=1
+ibl roughness changed_channels=0 max_error=0 depth_equal=1
+ibl moved changed_channels=0 max_error=0 depth_equal=1
+ibl environment changed_channels=0 max_error=0 depth_equal=1
+ibl projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=ibl exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-skybox" classname="CoinRenderRetainedPbr-action-skybox" time="0.351346" status="run">
+		<properties/>
+		<system-out>skybox initial changed_channels=0 max_error=0 depth_equal=1
+skybox static changed_channels=0 max_error=0 depth_equal=1
+skybox exposure changed_channels=0 max_error=0 depth_equal=1
+skybox roughness changed_channels=0 max_error=0 depth_equal=1
+skybox moved changed_channels=0 max_error=0 depth_equal=1
+skybox environment changed_channels=0 max_error=0 depth_equal=1
+skybox projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=skybox exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-empty-skybox" classname="CoinRenderRetainedPbr-action-empty-skybox" time="0.323211" status="run">
+		<properties/>
+		<system-out>empty-skybox initial changed_channels=0 max_error=0 depth_equal=1
+empty-skybox static changed_channels=0 max_error=0 depth_equal=1
+empty-skybox exposure changed_channels=0 max_error=0 depth_equal=1
+empty-skybox roughness changed_channels=0 max_error=0 depth_equal=1
+empty-skybox moved changed_channels=0 max_error=0 depth_equal=1
+empty-skybox environment changed_channels=0 max_error=0 depth_equal=1
+empty-skybox projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=empty-skybox exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-local-probe" classname="CoinRenderRetainedPbr-action-local-probe" time="0.353637" status="run">
+		<properties/>
+		<system-out>local-probe initial changed_channels=0 max_error=0 depth_equal=1
+local-probe static changed_channels=0 max_error=0 depth_equal=1
+local-probe exposure changed_channels=0 max_error=0 depth_equal=1
+local-probe roughness changed_channels=0 max_error=0 depth_equal=1
+local-probe moved changed_channels=0 max_error=0 depth_equal=1
+local-probe environment changed_channels=0 max_error=0 depth_equal=1
+local-probe projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=local-probe exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-geometry-ao" classname="CoinRenderRetainedPbr-action-geometry-ao" time="0.384601" status="run">
+		<properties/>
+		<system-out>geometry-ao initial changed_channels=0 max_error=0 depth_equal=1
+geometry-ao static changed_channels=0 max_error=0 depth_equal=1
+geometry-ao exposure changed_channels=0 max_error=0 depth_equal=1
+geometry-ao roughness changed_channels=0 max_error=0 depth_equal=1
+geometry-ao moved changed_channels=0 max_error=0 depth_equal=1
+geometry-ao environment changed_channels=0 max_error=0 depth_equal=1
+geometry-ao projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=geometry-ao exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-refinement" classname="CoinRenderRetainedPbr-action-refinement" time="4.74076" status="run">
+		<properties/>
+		<system-out>refinement initial changed_channels=0 max_error=0 depth_equal=1
+refinement static changed_channels=0 max_error=0 depth_equal=1
+refinement refine0 changed_channels=0 max_error=0 depth_equal=1
+refinement refine1 changed_channels=0 max_error=0 depth_equal=1
+refinement refine2 changed_channels=0 max_error=0 depth_equal=1
+refinement refine3 changed_channels=0 max_error=0 depth_equal=1
+refinement exposure changed_channels=0 max_error=0 depth_equal=1
+refinement roughness changed_channels=0 max_error=0 depth_equal=1
+refinement moved changed_channels=0 max_error=0 depth_equal=1
+refinement environment changed_channels=0 max_error=0 depth_equal=1
+refinement projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=refinement exact_buffers=22 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-ground" classname="CoinRenderRetainedPbr-action-ground" time="0.40596" status="run">
+		<properties/>
+		<system-out>ground initial changed_channels=0 max_error=0 depth_equal=1
+ground static changed_channels=0 max_error=0 depth_equal=1
+ground exposure changed_channels=0 max_error=0 depth_equal=1
+ground roughness changed_channels=0 max_error=0 depth_equal=1
+ground moved changed_channels=0 max_error=0 depth_equal=1
+ground environment changed_channels=0 max_error=0 depth_equal=1
+ground projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=ground exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-smooth-reflection" classname="CoinRenderRetainedPbr-action-smooth-reflection" time="0.355611" status="run">
+		<properties/>
+		<system-out>smooth-reflection initial changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection static changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection exposure changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection roughness changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection moved changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection environment changed_channels=0 max_error=0 depth_equal=1
+smooth-reflection projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=smooth-reflection exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-rough-reflection" classname="CoinRenderRetainedPbr-action-rough-reflection" time="0.356237" status="run">
+		<properties/>
+		<system-out>rough-reflection initial changed_channels=0 max_error=0 depth_equal=1
+rough-reflection static changed_channels=0 max_error=0 depth_equal=1
+rough-reflection exposure changed_channels=0 max_error=0 depth_equal=1
+rough-reflection roughness changed_channels=0 max_error=0 depth_equal=1
+rough-reflection moved changed_channels=0 max_error=0 depth_equal=1
+rough-reflection environment changed_channels=0 max_error=0 depth_equal=1
+rough-reflection projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=rough-reflection exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-area-light" classname="CoinRenderRetainedPbr-action-area-light" time="0.830803" status="run">
+		<properties/>
+		<system-out>area-light initial changed_channels=0 max_error=0 depth_equal=1
+area-light static changed_channels=0 max_error=0 depth_equal=1
+area-light exposure changed_channels=0 max_error=0 depth_equal=1
+area-light roughness changed_channels=0 max_error=0 depth_equal=1
+area-light moved changed_channels=0 max_error=0 depth_equal=1
+area-light environment changed_channels=0 max_error=0 depth_equal=1
+area-light projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=area-light exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-shadow-vsm" classname="CoinRenderRetainedPbr-action-shadow-vsm" time="0.383486" status="run">
+		<properties/>
+		<system-out>shadow-vsm initial changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm static changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm exposure changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm roughness changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm moved changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm environment changed_channels=0 max_error=0 depth_equal=1
+shadow-vsm projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=shadow-vsm exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-shadow-pcf" classname="CoinRenderRetainedPbr-action-shadow-pcf" time="0.357423" status="run">
+		<properties/>
+		<system-out>shadow-pcf initial changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf static changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf exposure changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf roughness changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf moved changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf environment changed_channels=0 max_error=0 depth_equal=1
+shadow-pcf projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=shadow-pcf exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-shadow-pcss" classname="CoinRenderRetainedPbr-action-shadow-pcss" time="0.380306" status="run">
+		<properties/>
+		<system-out>shadow-pcss initial changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss static changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss exposure changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss roughness changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss moved changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss environment changed_channels=0 max_error=0 depth_equal=1
+shadow-pcss projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=shadow-pcss exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-shadow-style" classname="CoinRenderRetainedPbr-action-shadow-style" time="0.372661" status="run">
+		<properties/>
+		<system-out>shadow-style initial changed_channels=0 max_error=0 depth_equal=1
+shadow-style static changed_channels=0 max_error=0 depth_equal=1
+shadow-style exposure changed_channels=0 max_error=0 depth_equal=1
+shadow-style roughness changed_channels=0 max_error=0 depth_equal=1
+shadow-style moved changed_channels=0 max_error=0 depth_equal=1
+shadow-style environment changed_channels=0 max_error=0 depth_equal=1
+shadow-style projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=shadow-style exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbr-action-area-shadow" classname="CoinRenderRetainedPbr-action-area-shadow" time="50.9949" status="run">
+		<properties/>
+		<system-out>area-shadow initial changed_channels=0 max_error=0 depth_equal=1
+area-shadow static changed_channels=0 max_error=0 depth_equal=1
+area-shadow exposure changed_channels=0 max_error=0 depth_equal=1
+area-shadow roughness changed_channels=0 max_error=0 depth_equal=1
+area-shadow moved changed_channels=0 max_error=0 depth_equal=1
+area-shadow environment changed_channels=0 max_error=0 depth_equal=1
+area-shadow projection changed_channels=0 max_error=0 depth_equal=1
+PASS fixture=area-shadow exact_buffers=14 captures=1 plans=1 transport=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRetainedPbrWindowLifecycleTest" classname="CoinRenderRetainedPbrWindowLifecycleTest" time="0.82604" status="run">
+		<properties/>
+		<system-out>PBR Xlib: first/replay, native resize, suspend/resume, controlled device loss, frozen environment and offscreen peer PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinFreeCADPbrFaceContracts" classname="CoinFreeCADPbrFaceContracts" time="0.057649" status="run">
+		<properties/>
+		<system-out>.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+OK
+</system-out>
+	</testcase>
+</testsuite>

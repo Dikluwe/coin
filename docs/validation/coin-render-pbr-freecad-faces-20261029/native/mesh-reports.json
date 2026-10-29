@@ -1,0 +1,262 @@
+{
+  "BasePin": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 126,
+        "triangles": 248,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 31363.871378266413,
+        "closed_solid": true,
+        "face_segments": 3
+      }
+    ],
+    "repaired": false
+  },
+  "Base": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 1114,
+        "triangles": 2252,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 241255.05736526434,
+        "closed_solid": true,
+        "face_segments": 44
+      }
+    ],
+    "repaired": false
+  },
+  "Boom": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 1142,
+        "triangles": 2308,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 1204526.7825586868,
+        "closed_solid": true,
+        "face_segments": 31
+      }
+    ],
+    "repaired": false
+  },
+  "Stick": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 1110,
+        "triangles": 2244,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 333939.9133023806,
+        "closed_solid": true,
+        "face_segments": 24
+      }
+    ],
+    "repaired": false
+  },
+  "Bucket": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 1819,
+        "triangles": 3650,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 58307.21758478551,
+        "closed_solid": true,
+        "face_segments": 97
+      }
+    ],
+    "repaired": false
+  },
+  "BucketLink2": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 1268,
+        "triangles": 2528,
+        "boundary_edges": 20,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 17058.827033741898,
+        "closed_solid": false,
+        "face_segments": 23
+      },
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.3,
+        "vertices": 856,
+        "triangles": 1716,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 17038.1674128718,
+        "closed_solid": true,
+        "face_segments": 23
+      }
+    ],
+    "repaired": true
+  },
+  "BucketLink1": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 1088,
+        "triangles": 2184,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 12297.732872938352,
+        "closed_solid": true,
+        "face_segments": 22
+      }
+    ],
+    "repaired": false
+  },
+  "BoomCylinderOuter": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 560,
+        "triangles": 1120,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 48146.48472806407,
+        "closed_solid": true,
+        "face_segments": 8
+      }
+    ],
+    "repaired": false
+  },
+  "BoomCylinderInner": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 404,
+        "triangles": 808,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 22963.90871582282,
+        "closed_solid": true,
+        "face_segments": 6
+      }
+    ],
+    "repaired": false
+  },
+  "StickCylinderInner": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 404,
+        "triangles": 808,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 22963.917435836564,
+        "closed_solid": true,
+        "face_segments": 6
+      }
+    ],
+    "repaired": false
+  },
+  "StickCylinderOuter": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 560,
+        "triangles": 1120,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 48146.50067311288,
+        "closed_solid": true,
+        "face_segments": 8
+      }
+    ],
+    "repaired": false
+  },
+  "BucketCylinderInner": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 406,
+        "triangles": 812,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 9034.818631533297,
+        "closed_solid": true,
+        "face_segments": 6
+      }
+    ],
+    "repaired": false
+  },
+  "BucketCylinderOuter": {
+    "expects_solid": true,
+    "attempts": [
+      {
+        "method": "MeshPart.meshFromShape",
+        "angular_deflection": 0.2,
+        "vertices": 546,
+        "triangles": 1092,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "degenerate_triangles": 0,
+        "signed_volume": 15990.578862015727,
+        "closed_solid": true,
+        "face_segments": 10
+      }
+    ],
+    "repaired": false
+  }
+}
