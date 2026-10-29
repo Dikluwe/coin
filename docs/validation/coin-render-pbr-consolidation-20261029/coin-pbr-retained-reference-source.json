@@ -1,0 +1,575 @@
+{
+  "base": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+  "files": [
+    {
+      "path": "experimental/include/Inventor/environment/CoinEnvironment.h",
+      "matches_base": true,
+      "sha256": "07926b8c0bc9970d019bad786758a13f6a5cab656bad7cece959c2c1bff12b6e"
+    },
+    {
+      "path": "experimental/include/Inventor/environment/CoinEnvironmentAnisotropy.h",
+      "matches_base": true,
+      "sha256": "1d2d2102d5fcf33854f7def7a748e2ac322413828698aa86f726708ccd703d7e"
+    },
+    {
+      "path": "experimental/include/Inventor/environment/CoinEnvironmentHalf.h",
+      "matches_base": true,
+      "sha256": "9e997a9fd99fb56a967d725bc277eccf715d19fb220fd240e2707deefed5fa7a"
+    },
+    {
+      "path": "experimental/include/Inventor/environment/CoinEnvironmentLtc.h",
+      "matches_base": true,
+      "sha256": "860a8896603247aae75ff5d149d392b32237bc180e351370666575bb73f48526"
+    },
+    {
+      "path": "experimental/include/Inventor/environment/CoinEnvironmentLtcAtlas.h",
+      "matches_base": true,
+      "sha256": "1ab5f4ebd2c3c4d9ea554d3966ab57e01431875f25fb61e519ead5dfee5fb5d7"
+    },
+    {
+      "path": "experimental/include/Inventor/environment/CoinEnvironmentRadiance.h",
+      "matches_base": true,
+      "sha256": "7f1183752d501c2085cc7b8ea6f17c6bc7ae5ae6036abd0de893eec3f1041830"
+    },
+    {
+      "path": "src/environment/CMakeLists.txt",
+      "matches_base": true,
+      "sha256": "b0089f86d63ce05493eebfedf0cd95b24fd32b6212ba45c2d938dfb1e4c7a40b"
+    },
+    {
+      "path": "src/environment/CoinEnvironment.cpp",
+      "matches_base": true,
+      "sha256": "d265bab8d89e6b5a57fdfea034b9e32258d5317fd14dec8f61d6553fe6b0d67e"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentAnisotropy.cpp",
+      "matches_base": true,
+      "sha256": "2aecbd9d05c19828e9922d202c069bae881d7f52b235864b9de8ccf77d378ea9"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentExr.cpp",
+      "matches_base": true,
+      "sha256": "eca8382d2a8bbd1c8028ebeb38d14b162e4a50cc2fb28c37781ce886a5e9e208"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentExrP.h",
+      "matches_base": true,
+      "sha256": "7ea467c708d5e46409c06cfc3fc71f40e4aa108c6343a334b67ca10a990211b7"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentLtc.cpp",
+      "matches_base": true,
+      "sha256": "0adb70d9e8812c88c68c2e2a008c248705c41a3ed3cd62096027e41798a564a9"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentLtcAtlas.cpp",
+      "matches_base": true,
+      "sha256": "418c0b49a19e43937fbf8a8d429e0252d861dfa88cb92b76f635c2e4d41e5fcb"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentLtcDensityCore.cpp",
+      "matches_base": true,
+      "sha256": "93c62520c109dad0e19801d1630e5d79eafd82ea0e5a99eceac1f8c9a9ff8279"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentLtcDensityCore.h",
+      "matches_base": true,
+      "sha256": "76261678770c1e7469737f6aeabda6bc8ffe5ea48ee8abed9268f7f7e66e0f72"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentLtcFitCore.h",
+      "matches_base": true,
+      "sha256": "139917a2d21a1582024232b12c96671fd27aa99f2b794690226bf057557a9b5a"
+    },
+    {
+      "path": "src/environment/CoinEnvironmentRadiance.cpp",
+      "matches_base": true,
+      "sha256": "7edbcdb22229039f3e9122eabed9c8d7ba66f29cbb85525d2005d1788de5f5d8"
+    },
+    {
+      "path": "src/environment/coin-environment-config.cmake.in",
+      "matches_base": true,
+      "sha256": "46c0af382503478f8bff7ec5b38ac64a0a6dec1b19db686ff557b36c6de22dc3"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxAction.cpp",
+      "matches_base": true,
+      "sha256": "5686ece7c78cb7cb33fdd841e2de31ceeb025306c23bc1397f5426ba9fd1c9e6"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxBackend.cpp",
+      "matches_base": true,
+      "sha256": "e88f179298bd2bc3f938e12bea076bfa035dc36f997f8f199b973b5335894567"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxBackend.h",
+      "matches_base": true,
+      "sha256": "66baae38f95d341eaa7bdfbd791abc0db1803ff6d986d162c50ff79bcac1db0a"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxGpuTiming.h",
+      "matches_base": true,
+      "sha256": "5bfe2356b06a67dde71fffaf558dcdb26a8891d4328c9c86bf3326f78f1dd6eb"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxLowering.cpp",
+      "matches_base": true,
+      "sha256": "06e28de10e27c79630e8128eed94f5d88537a2560d9da6f3e4d9f85ca4775078"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxLowering.h",
+      "matches_base": true,
+      "sha256": "e85aaf2900b49df6917a81c6e2d141afa2ceea8480fa3c647f046634ee5cfe2f"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxOcclusion.inl",
+      "matches_base": true,
+      "sha256": "e781440726b351b8354ba7f9a09449abb32e5ce4a89c30e9a5493e014c476a54"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxProgramCache.h",
+      "matches_base": true,
+      "sha256": "629e2be31f954322c310c95bec8131c2a5c2d8b48e6fe6125180f54b8f9a4133"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxProgramSelection.h",
+      "matches_base": true,
+      "sha256": "7aa1339e6d2ab82ed082b06cd00b3c6c2d1da877d8ed088657c238ee2bd14a70"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxRuntime.cpp",
+      "matches_base": true,
+      "sha256": "ce96d1a6be4b7b94008ca2e31d0f397b52473c86490fa4e4e015dfaec2fad720"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxWsiAck.h",
+      "matches_base": true,
+      "sha256": "bd94e94272ae9318cb93a2e469e3da2492454b11c8b08a41712378318a74e554"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinRenderAreaActiveTasks.h",
+      "matches_base": true,
+      "sha256": "48c45fe6df7128eed7526e1e05039ef830220c4d19fbe6ea9ce583b1076ea002"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinRenderAreaOwnerSelection.h",
+      "matches_base": true,
+      "sha256": "6fa9fbb94e7aed167346e08428ee2f6dc5918eac7add7ef73d961c46d3e65da0"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinRenderAreaSamplePartition.h",
+      "matches_base": true,
+      "sha256": "71569960b3e037bb7df73202b2a0bc44f464868255a1060dc051401d3bb8bca6"
+    },
+    {
+      "path": "src/rendering/coinbgfx/coin_bgfx_wsi_receipt_v1.h",
+      "matches_base": true,
+      "sha256": "5dd787e367e108015686442c4936c5bcea692d91bea50a6e25879f95bb312324"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_alpha.sh",
+      "matches_base": true,
+      "sha256": "47ccde5b8e459a92cf3b21a0280c2b5beeb0751cb091774d1053d9b9d65be422"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_depth.sh",
+      "matches_base": true,
+      "sha256": "e956069b7a951f0bda0740519b6df4807b3a1ce1f416a78cd575d4563c3c8e9e"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_lighting.sh",
+      "matches_base": true,
+      "sha256": "6036d26c5599f8068d6ab4962e6eb4b5551c27f274131f078def9126d46fa262"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_anisotropic.sh",
+      "matches_base": true,
+      "sha256": "9787491ebbb0fe6fd9f13e8f1cdf387c623127441bd905d9be955b5c3c988dce"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area.sh",
+      "matches_base": true,
+      "sha256": "6659a93602110e6605b4f67037c98451265da2b92fdfeb10214b3d482ed79a2f"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_catcher.sh",
+      "matches_base": true,
+      "sha256": "f1e816dfbbaae0d41fb8e07dc7b5a3ce219e7779a071238903119c9dc0953a35"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_compact_sign.sh",
+      "matches_base": true,
+      "sha256": "172ccacb5057c7120953889da1432bec56ca779b9e3dd9acc3839ad81bfc0a85"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_orient_filter.sh",
+      "matches_base": true,
+      "sha256": "641ac2de688d2938bb1a9be5b8663b73ea7ff0b303f70284fc950ded25c4d09d"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_partition_common.sh",
+      "matches_base": true,
+      "sha256": "4787bbc2d4e34f8c08ea9e3ac5d6a433ff0dab40139fc4da635fea3fddc4bf4f"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_partition_owner.sh",
+      "matches_base": true,
+      "sha256": "cf1043dd28ff45c0c08e74307fa9e756d6386f6733bf899ef9053b18675bf617"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_partition_producer.sh",
+      "matches_base": true,
+      "sha256": "cb63ca2a471fd5a8eda68809c555d6785066be76bab268b7c807cd238ecc3563"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_partition_producer_math.sh",
+      "matches_base": true,
+      "sha256": "48cede1d3171422b45e7eb5072b0c97e2a2c5ec53ccfcd547d9957e6ba7ade65"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_partition_resolve.sh",
+      "matches_base": true,
+      "sha256": "7e86f91b1766678b86149ed80773f2dd7aac04e746556f66056b27b03661d07c"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_receiver.sh",
+      "matches_base": true,
+      "sha256": "e5a5d8883dd3200b6bfd3e6428ef091ca2d23795bfcaf323627b1ac34ae6d564"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_shadow.sh",
+      "matches_base": true,
+      "sha256": "226e976055676c41e6a375674df67a62a2ad06e9029235187de692e948a0aa8b"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_visibility.sh",
+      "matches_base": true,
+      "sha256": "2d5d931d638fc0c9970aa907cbf858b324a1d3eff26835b912d05197ce2815d3"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_area_visibility_scene.sh",
+      "matches_base": true,
+      "sha256": "f095b0679e9dc9d8f6554ecfde93374d4389fcab7f497e7c9d0e89f691b1063d"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_brdf.sh",
+      "matches_base": true,
+      "sha256": "22bbf0c339baf1b8490d9583d0e2e2321e2258f15fd5dfd42d86d2b6fc5e1b1f"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_environment.sh",
+      "matches_base": true,
+      "sha256": "043f35526d4e955b1f8e4a9e45646076f4ac857feaea3e901f55b69304374a3b"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_ibl.sh",
+      "matches_base": true,
+      "sha256": "27db4cf16f3101159386f44a93cb5abe8ffb194950a26f492e0cee987ce342c0"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_local_probe_math.sh",
+      "matches_base": true,
+      "sha256": "b320b7eec45560d7fa67942871bf4c4932299bf173a937d8593c20fe19d558c6"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_local_probes.sh",
+      "matches_base": true,
+      "sha256": "9a9e52cbb527a20253e90d98813895744f1bbc030e055a24c5f49b7b1b7f4dd9"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_ltc.sh",
+      "matches_base": true,
+      "sha256": "1b4f8f6b4f945ef151e957e90433b7a5c516c1cb82e881be9f1b0a48050c36c1"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_ltc_atlas.sh",
+      "matches_base": true,
+      "sha256": "c99fc9ba21a788cfac82f1215f952a0d849d6c550d030f034679086731c2c4af"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_ltc_energy.sh",
+      "matches_base": true,
+      "sha256": "4599e997626b3ed2b504e902835389ddd5047e1d1aec18872995628386d1c982"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_output.sh",
+      "matches_base": true,
+      "sha256": "1017c318e3c2c4baee25f5db8f161d1817e4fad6732f7708ac4067a3086cfad3"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_rough_planar.sh",
+      "matches_base": true,
+      "sha256": "d086b21ab7e46dcd6227d800dbb4ed8ee21f6ebc1cee34e3b024080dbb4d4cdb"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_pbr_shadows.sh",
+      "matches_base": true,
+      "sha256": "fb82d4a8a53bd318644c1f090372c00c7390b1dd7e7be93eba1c8d2e694ef060"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_shadow_quality.sh",
+      "matches_base": true,
+      "sha256": "af77663b45a36e3b02c9229fb780f7478e38a4387fc8820404743137542aaa16"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_shadow_visibility.sh",
+      "matches_base": true,
+      "sha256": "db9dc1ba6ea28b32ccc141dfbb515be1af62731c52575f9d3190e074b9fe5192"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_surface.sh",
+      "matches_base": true,
+      "sha256": "02ddc347ee693ba689a20c23b1892cc388c946ed2fc7b8b459b695cdb37ee673"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/coin_weighted.sh",
+      "matches_base": true,
+      "sha256": "d4ab3f8a7c8ba80ef0bb4bed7c573a454bbfa245dd08185ccaec0795ec4f8453"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_base_color.sc",
+      "matches_base": true,
+      "sha256": "914542826f101f95dbffc35f81638ab793513cca0ce5d09de1c8b6e64d01def2"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_composite.sc",
+      "matches_base": true,
+      "sha256": "1bf9379cf33d8bd0d30ee572521626d74759549e672067518055b7c1a944bff2"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_depth_readback.sc",
+      "matches_base": true,
+      "sha256": "7c56c686616604ead7776d392d81797bb3f8a6ff98a356749b6f53674bd62411"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_instanced_color.sc",
+      "matches_base": true,
+      "sha256": "8faedf802a753c34f71f0fae01fdcb21d1384c47cf85db794c01a5a9deee80f4"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_mip_area.sc",
+      "matches_base": true,
+      "sha256": "9debcfe2cbf4b92198fd8a3b0b41d880e7192d4748711d706cfb17bfe2b5ce47"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr.sc",
+      "matches_base": true,
+      "sha256": "3731385a9fcddda814531763768452ee6d5c0a2886da2dac71bd4bdb4d0fd93a"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area.sc",
+      "matches_base": true,
+      "sha256": "ebd39f26381125ad638727253b592bdb26097e68f17912281fe0468e4530bc43"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area_catcher.sc",
+      "matches_base": true,
+      "sha256": "4ac43ede2755c33b692337d2838e31a0514164d94b4d6d89dec9cfa389cf11da"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area_catcher_cached.sc",
+      "matches_base": true,
+      "sha256": "d028beff1ef7cfbd2c192ee82b8a3ce5a33485c16ea5588f18e3fa9de797610f"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area_catcher_owner.sc",
+      "matches_base": true,
+      "sha256": "623f139b015c14baf1b8819eb69ac0942e9388077681f1ed47c219072e2d40fd"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area_catcher_producer.sc",
+      "matches_base": true,
+      "sha256": "ddc74e219b7057e007861063a0ffbc66dbd94db3afe02136ca005a6117ef4b68"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area_catcher_resolve.sc",
+      "matches_base": true,
+      "sha256": "f93f151c490990eba06f509447072a5ae9355dd535f964423ea5f30a1d326bb0"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area_partition.sc",
+      "matches_base": true,
+      "sha256": "27797104ccafae37fa41c464ef89078182333bc6968a1b09a45f4c1e28fc3ccb"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area_resolve.sc",
+      "matches_base": true,
+      "sha256": "799822382151b548db83e05dd573d50fe407fbe22fe8e244deebbd8a4f7fb901"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area_shadow.sc",
+      "matches_base": true,
+      "sha256": "9fcc7fd5b599968927f48ccd9c86ae92b77b0ae1c52e81635be47c24e116d35c"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area_shadow_cached.sc",
+      "matches_base": true,
+      "sha256": "5a884e5175514f642e7bc409020b383b1e003c84312bbb6494eda8ea7be69dac"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area_shadow_owner.sc",
+      "matches_base": true,
+      "sha256": "4018fed35848503343550fe9f2907237861d5a0b6fe9f659e267aa9e168e59ae"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_area_shadow_producer.sc",
+      "matches_base": true,
+      "sha256": "fb1ac53f546f1a7b404cc4ca0fe7712738162811f2e08366cee45bb52082ab1c"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_ibl_array.sc",
+      "matches_base": true,
+      "sha256": "74b86906773c318222629e6351bb6e9b0f3119b38e1329b4d2a30af337c21983"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_occlusion.sc",
+      "matches_base": true,
+      "sha256": "a9755c173444e5f701411f0ae38aeb6ad2ec6dc5f6269e9afaadd1e49686849b"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_output.sc",
+      "matches_base": true,
+      "sha256": "350169a561c687dfb8a2dba4df76351f2ad390132efe058dad0857e3742fb005"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_refinement.sc",
+      "matches_base": true,
+      "sha256": "1a5259056ff36448129710a95d7995fac29fbb394edddba1cf85648fed1772f2"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_refinement_mix.sc",
+      "matches_base": true,
+      "sha256": "1ba9077aeba541434270028266cd0f3445f06abfcddb1a442250032cee630e35"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_refinement_resolve.sc",
+      "matches_base": true,
+      "sha256": "4ebfde660c8b841d2ee111d961eb835ab22ae187e288723665aee5c58c801794"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_shadow_ibl.sc",
+      "matches_base": true,
+      "sha256": "7ad469cdd25911fa6705204f039598f8a5a08fbc825ee84703e8ff6f284ac3f8"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_shadow_ibl_array.sc",
+      "matches_base": true,
+      "sha256": "8faa41574d4c50200cc2a4831a5c64f3342bb18c61f740d16377f4fe85ca513f"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_shadow_refinement.sc",
+      "matches_base": true,
+      "sha256": "e42fc0f4f5df8186d30dac476787ae0d9db6d8d50be312b85b828c34a8a3ab47"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_skybox.sc",
+      "matches_base": true,
+      "sha256": "9540b9a02215c6499b2497f8f613c4d0811fd0fdc76844883f08cb0d8a0b7759"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_skybox_array.sc",
+      "matches_base": true,
+      "sha256": "4fde59254a8b01943ab5558a9028d3e78ca3e0ff6fc8c63fc9d64b3571594cca"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_pbr_skybox_refinement.sc",
+      "matches_base": true,
+      "sha256": "337f68d3bad974849772f22f46a8fc48a39ba6fce94a824ba39a9982dc753a7c"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_peel_next.sc",
+      "matches_base": true,
+      "sha256": "f0a8b837639c4e089321babbf333b032044b520cfe0a367f690c8a50118e3048"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_shadow_diagnostic.sc",
+      "matches_base": true,
+      "sha256": "781ea0640817ad56765295caabfa75cfb265d8f3a696e4a6736153e37efd2c63"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_shadow_moments.sc",
+      "matches_base": true,
+      "sha256": "a6edbbaf22c95227b783a796024aedcbb97c162b65ceed01494be7560591f64d"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_shadow_oit.sc",
+      "matches_base": true,
+      "sha256": "6bcc83c6ff571f816fa1ba9f39cdb47facf2dc444985f0fa37bae232e9bdd644"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_shadow_peel.sc",
+      "matches_base": true,
+      "sha256": "0cddc8653e95178524c88f04742b2f38456b33c4ae8cab0a3dbdd62f117ac695"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_shadow_receiver.sc",
+      "matches_base": true,
+      "sha256": "2c530b3f84a6e12d84342968eaa4dfdabdd2bf732c2139315bd8b8970f3c2c9d"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_shadow_receiver4.sc",
+      "matches_base": true,
+      "sha256": "39197912fa108181939b61e7bef9f2b48ed253a406f17b1de61c29bb336cb43f"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_shadow_receiver8.sc",
+      "matches_base": true,
+      "sha256": "e920106117f4c7a2579f668c8983a9e153951852058ec5b27020a6cabc05ff95"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_solid_color.sc",
+      "matches_base": true,
+      "sha256": "b469253f25076459d63fb21f56c301e11a9b583e859fd283620b67687f094031"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_weighted_composite.sc",
+      "matches_base": true,
+      "sha256": "3f2b22f42ee56cb06bc0fce19219ffe62059ed435e47b93478914984a343444a"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/fs_weighted_oit.sc",
+      "matches_base": true,
+      "sha256": "ae2575170ec77efc8c937cc69a1e945f69f4581a61038b2dc65b4f96bdf15e02"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/varying.def.sc",
+      "matches_base": true,
+      "sha256": "68c617cd9111e79dbf701b6564ba4b9fb55541e3a8f9be370f2a28cd236e51ca"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/vs_base_color.sc",
+      "matches_base": true,
+      "sha256": "ce350ae9d104e8335d136f8b57ebdbc8dd318e77fa87d3eb1b9f31058f59b7d7"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/vs_instanced_color.sc",
+      "matches_base": true,
+      "sha256": "07c2aab589ddb81315c14f4aeb7952d82052e23f9f00ca1a8b30d4b0e16c837f"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/vs_pbr.sc",
+      "matches_base": true,
+      "sha256": "acdfc18605c15cd77da5725164e9c533e28af82ad685ec45dfaafc63a1d1ecba"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/vs_pbr_area_shadow.sc",
+      "matches_base": true,
+      "sha256": "2ff4abb4f88d8eb2e22f0e37b6f8640a092231576c4dcc41715244ae1de5a013"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/vs_pbr_occlusion.sc",
+      "matches_base": true,
+      "sha256": "288f59242a356bc3536e15b674b994f8b6eeae614841e9fa8f2472c5cd98ee46"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/vs_shadow_moments.sc",
+      "matches_base": true,
+      "sha256": "b41ee0e07b9a4e455397efe59aef36638156185215c0479f99a9339436ad86ec"
+    },
+    {
+      "path": "src/rendering/coinbgfx/shaders/vs_shadow_receiver.sc",
+      "matches_base": true,
+      "sha256": "0c9d9e14f649dedbc21eb618496f900c18a48aca670df53806f6860f9c47da79"
+    }
+  ]
+}

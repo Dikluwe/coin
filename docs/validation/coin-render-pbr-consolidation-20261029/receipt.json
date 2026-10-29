@@ -1,0 +1,363 @@
+{
+  "status": "PASS",
+  "date": "2026-10-29",
+  "pbr_base": "ce72805f0536f8f0ef07dc5575d301b3ddffa507",
+  "pbr_commit": "f8efe7752be0ae0740c2b8abe0e2bd410fa8587d",
+  "integration_recovery": "2328b76807c28bdf97dd5f5efb174b8be9055908",
+  "branch": "codex/pbr-clean",
+  "default_capture": "conventional",
+  "retained": "opt-in; synchronous whole-root opaque profile",
+  "ctest": {
+    "name": "(empty)",
+    "tests": "42",
+    "failures": "0",
+    "disabled": "0",
+    "skipped": "0",
+    "hostname": "",
+    "time": "127",
+    "timestamp": "2026-10-29T14:41:52"
+  },
+  "exact_parity_buffers": 468,
+  "surface_results": {
+    "status": "PASS",
+    "fixtures": 14,
+    "comparisons": [
+      {
+        "fixture": "normal-and-maps",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "61afb624062c339f4dafc931ace36eef21bfd329e34684cdfd41b0aa2d5ed47c",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "normal-and-maps",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "b891e0f3582201cdb11be2b3b19c3b1ba31a5448e12685829049ad43b8fc6e92",
+        "reference_equal": true
+      },
+      {
+        "fixture": "no-images",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "51e1159c3d593cc1bb0ecfb014925460efaf8e06959f1e7a2915fdef09f37893",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "no-images",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "b891e0f3582201cdb11be2b3b19c3b1ba31a5448e12685829049ad43b8fc6e92",
+        "reference_equal": true
+      },
+      {
+        "fixture": "ibl-only",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "9078faf5bdbf125c8ea3b2beeafe43f0ce03ae0d66ac85e0bac9092d0b800d2d",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "ibl-only",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "b891e0f3582201cdb11be2b3b19c3b1ba31a5448e12685829049ad43b8fc6e92",
+        "reference_equal": true
+      },
+      {
+        "fixture": "direct-only",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "d5f5dad4e17270086af71aa48b165679ade7a0633b59970bd7e4bbad0bcebfa8",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "direct-only",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "b891e0f3582201cdb11be2b3b19c3b1ba31a5448e12685829049ad43b8fc6e92",
+        "reference_equal": true
+      },
+      {
+        "fixture": "diagnostic-bent",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "2229cdc0632fdd245e14e4ad4cf2239fc679569f2959cbfa4575ee314929cbc9",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "diagnostic-bent",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "b891e0f3582201cdb11be2b3b19c3b1ba31a5448e12685829049ad43b8fc6e92",
+        "reference_equal": true
+      },
+      {
+        "fixture": "ibl64",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "3350e37ba843ede6fc42b454269449c76a41ad8c99e993eb87301dbc009ee9d9",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "ibl64",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "b891e0f3582201cdb11be2b3b19c3b1ba31a5448e12685829049ad43b8fc6e92",
+        "reference_equal": true
+      },
+      {
+        "fixture": "rotated90",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "e4dd42cee65b8bd220d0d2e748c98965c3c6173fa02c669305eb052ac1a56a08",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "rotated90",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "b891e0f3582201cdb11be2b3b19c3b1ba31a5448e12685829049ad43b8fc6e92",
+        "reference_equal": true
+      },
+      {
+        "fixture": "mirrored-model",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "00823ed80c4f2cd1914c415087592f849a90a826325d3176eefb6bee685a4338",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "mirrored-model",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "75a4fc295994f543c1be9d6499a654fa5427aed19e072a703664d8aae72591f3",
+        "reference_equal": true
+      },
+      {
+        "fixture": "mirrored-uv",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "33084a8a2016bfde933d2440e0d7560211f8168530484932be9f7b0a1a75a239",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "mirrored-uv",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "b891e0f3582201cdb11be2b3b19c3b1ba31a5448e12685829049ad43b8fc6e92",
+        "reference_equal": true
+      },
+      {
+        "fixture": "degenerate-uv",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "659d16c0b3498ad902027291e9b9063e25552d8697e8da741bdab10f68eabd10",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "degenerate-uv",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "b891e0f3582201cdb11be2b3b19c3b1ba31a5448e12685829049ad43b8fc6e92",
+        "reference_equal": true
+      },
+      {
+        "fixture": "bump-transform",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "92f3c04dae5be149f5b90294dc81bfd66020d3ade3aae879fd5734db2de525d6",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "bump-transform",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "b891e0f3582201cdb11be2b3b19c3b1ba31a5448e12685829049ad43b8fc6e92",
+        "reference_equal": true
+      },
+      {
+        "fixture": "unit7-projection",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "6b9a00c47d62a6fbd21500a7d4b795a7665183da1533f1e4c05de491225e1f54",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "unit7-projection",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "b891e0f3582201cdb11be2b3b19c3b1ba31a5448e12685829049ad43b8fc6e92",
+        "reference_equal": true
+      },
+      {
+        "fixture": "sphere",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "2bcdff0001a3be8b37d62017f86ea97c69543613442052b745d3dbf82cbf8790",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "sphere",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "ecbf8cd42ba96789161e6398aeaa28be20609e4aa14b0d523b6ae6a326ced47b",
+        "reference_equal": true
+      },
+      {
+        "fixture": "sphere-nonuniform",
+        "buffer": "rgba",
+        "callback_equal": true,
+        "sha256": "c4c3fb45717e5636a94649dea013f474c24283c1a6726a0ce6dd178abd110db6",
+        "reference_equal": true,
+        "reference_max": 0,
+        "reference_changed_channels": 0
+      },
+      {
+        "fixture": "sphere-nonuniform",
+        "buffer": "depth",
+        "callback_equal": true,
+        "sha256": "8b19bc8751e1f45dbb04c3213fb5e6c1dd85c33524148e9f959964ded5ab08b3",
+        "reference_equal": true
+      }
+    ],
+    "exact_update_buffers": 18
+  },
+  "assembly": {
+    "ppm": {
+      "equal": true,
+      "bytes": 921615,
+      "sha256_conventional": "10329134f2c82f370e745d75ab2d621608af83d509c81c8db81ad8f304251765",
+      "sha256_retained": "10329134f2c82f370e745d75ab2d621608af83d509c81c8db81ad8f304251765"
+    },
+    "depth.f32": {
+      "equal": true,
+      "bytes": 1228800,
+      "sha256_conventional": "379c0d2aa6bab541e4a8a22e20ccbbcc546e4446e9f580a5233c8e662cdc47ba",
+      "sha256_retained": "379c0d2aa6bab541e4a8a22e20ccbbcc546e4446e9f580a5233c8e662cdc47ba"
+    },
+    "png": {
+      "equal": false,
+      "bytes": 74467,
+      "sha256_conventional": "449a1c8af302ef47c61c05bc716e3a9da7e1b13d55ce8aca1975263dd96f54f1",
+      "sha256_retained": "0e01355d1fd3cb8377653d1c3bb2215908b6076d069c4adb3039e78a4842f875",
+      "decoded_pixels_equal": true
+    }
+  },
+  "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU, 615.71.09",
+  "bgfx_commit": "81d81fba72c42d348c589514c774bbfe01e110fa",
+  "bgfx_private_wsi_patch": "cmake/bgfx-wsi/coin-bgfx-wsi-recovery-scoped-ack-v1.patch",
+  "installed_consumer_exit": 0,
+  "source_reference_verified_files": 114,
+  "runtime_files": [
+    {
+      "path": "/dev/shm/coin-pbr-retained/lib/libCoin.so",
+      "sha256": "f93a003dc31e1874e610a504728b6be1fc4631bfeba258d2fa578801c45294e1",
+      "bytes": 12384136
+    },
+    {
+      "path": "/dev/shm/coin-pbr-retained/lib/libCoinRender.so",
+      "sha256": "040c3fb43ca3f57af680ed199b3f3c46713c0e06edf5a593833e048979124b88",
+      "bytes": 16200712
+    },
+    {
+      "path": "/dev/shm/coin-pbr-retained/lib/libCoinEnvironment.so",
+      "sha256": "633f5959850069d937ae0b117ae9971e6d2585d03c12181606937fe500883d18",
+      "bytes": 307824
+    },
+    {
+      "path": "/dev/shm/coin-pbr-bgfx-prefix/lib/libbgfx.a",
+      "sha256": "7657a822fcabd36e6f763c49b0539e11b05ef8f63232eceb7f229b029d1e3c12",
+      "bytes": 3180050
+    },
+    {
+      "path": "/dev/shm/coin-pbr-bgfx-prefix/bin/shaderc",
+      "sha256": "d6a6ba92342018f20000d220f36691f74cafd177c4aee4b5da71d60a6ceda0e5",
+      "bytes": 15132752
+    },
+    {
+      "path": "/tmp/coin-c17-reference-consumer",
+      "sha256": "fa4d7fb5e1658d98dcb357f6000f704b6eb32a814cf518279646da18aef277b7",
+      "bytes": 47752
+    },
+    {
+      "path": "/tmp/coin-pbr-reference-build/lib/libCoin.so",
+      "sha256": "93ce0770a88bd8c9465ce7bb7166bfb367063521201b1a17284beac2856a3c29",
+      "bytes": 11978808
+    },
+    {
+      "path": "/tmp/coin-pbr-reference-build/lib/libCoinRender.so",
+      "sha256": "ead6d13360c9f3ad19f87400463ecd40e72b18f7e2cb92c22921779b24ef0942",
+      "bytes": 16086280
+    },
+    {
+      "path": "/tmp/coin-pbr-reference-build/lib/libCoinEnvironment.so",
+      "sha256": "771c4d98a7ac9402d6111c1cda6bd9699ba31fa2f95c7f47508988734a0c389c",
+      "bytes": 307824
+    },
+    {
+      "path": "/tmp/coin-retained-ibl/environments/studio.cibl",
+      "sha256": "ed0d8f67fce21ebdafbe58dac8385a446b7ad32578828d0083ebff05eb7217d7",
+      "bytes": 1968484
+    },
+    {
+      "path": "/tmp/coin-c17-product.cani",
+      "sha256": "c7e3de446289d4429330daa6077eefea9bef71f34ab6e0a0232e8f916f3b8fd1",
+      "bytes": 1050680
+    },
+    {
+      "path": "/tmp/coin-c20-assembly/industrial-session/scene.iv",
+      "sha256": "d75c5b7b91c434c75d71d8a6a01813fa61b97832824ee4f24d393b78fb29f427",
+      "bytes": 1352867
+    },
+    {
+      "path": "/tmp/coin-pbr-assembly-no-floor.iv",
+      "sha256": "9778085012ef0a58aba0d41354f5f117cdd6b97046735fd7d316f078103bcbf5",
+      "bytes": 1352515
+    },
+    {
+      "path": "/dev/shm/coin-pbr-retained-sdk/lib/libCoinRender.so",
+      "sha256": "77d3709e65d10057d1642aac14db2063babe52f74643aca230f3883688fe3100",
+      "bytes": 16200712
+    },
+    {
+      "path": "/dev/shm/coin-pbr-retained-consumer/retained_consumer",
+      "sha256": "93733c07c9c86bd7ccd32cd3063a0671b1332f3af14465004bbfe628d849b7a0",
+      "bytes": 27368
+    }
+  ],
+  "limits": [
+    "No FPS/memory gain inferred from frame parity",
+    "No new Android/wgpu qualification",
+    "Retained selection overlays, transparency, asynchronous/path/custom-callback capture and independent shadowMapScene remain outside this profile",
+    "PBR geometry or plan changes may rebuild transport; no second capture/planning is introduced",
+    "Assembly comparison uses exported CAD body geometry and viewer camera, not a fresh in-process FreeCAD viewport run",
+    "512 MiB reflection CPU budget is an admission limit, not measured consumption"
+  ]
+}
