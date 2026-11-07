@@ -1,4 +1,5 @@
 include(cc-list/Tests.cmake)
+include(glglue-lifetime/Tests.cmake)
 include(action-apply-exceptions/Tests.cmake)
 include(SbSmallMapTests.cmake)
 
