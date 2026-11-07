@@ -384,6 +384,17 @@ rbptree_remove_node(cc_rbptree * t, cc_rbptree_node * z)
   t->counter--;
 }
 
+static void
+rbptree_reset(cc_rbptree * t)
+{
+  t->root = &rbptree_sentinel;
+  t->counter = 0;
+  t->inlinepointer[0] = NULL;
+  t->inlinepointer[1] = NULL;
+  t->inlinedata[0] = NULL;
+  t->inlinedata[1] = NULL;
+}
+
 /*!
  * Initialize \c t. This is needed before making any operations
  * on the tree.
@@ -403,8 +414,7 @@ cc_rbptree_init(cc_rbptree * t)
   }
   CC_GLOBAL_UNLOCK;
 
-  t->root = &rbptree_sentinel;
-  t->counter = 0;
+  rbptree_reset(t);
 }
 
 /*
@@ -430,8 +440,10 @@ cc_rbptree_clean(cc_rbptree * t)
 {
   if (t->root != &rbptree_sentinel) {
     rbptree_recursive_clean(t->root);
-    cc_rbptree_init(t);
   }
+  // Cleanup may run after the subsystem's shutdown hook. Reset only the
+  // local state; init() could register another hook while Coin is exiting.
+  rbptree_reset(t);
 }
 
 
@@ -701,6 +713,39 @@ BOOST_AUTO_TEST_CASE(rbptree_unrelated_pointer_lookup_and_remove)
   }
   BOOST_CHECK(!cc_rbptree_remove(&tree, &absent));
   cc_rbptree_clean(&tree);
+}
+
+static void
+rbptree_count_items(void * pointer, void * data, void * closure)
+{
+  (void) pointer;
+  (void) data;
+  int * count = static_cast<int *>(closure);
+  (*count)++;
+}
+
+BOOST_AUTO_TEST_CASE(rbptree_clean_clears_every_representation)
+{
+  int values[4] = { 0, 1, 2, 3 };
+  for (int length = 0; length <= 3; length++) {
+    cc_rbptree tree;
+    cc_rbptree_init(&tree);
+    for (int i = 0; i < length; i++) {
+      cc_rbptree_insert(&tree, &values[i], &values[3 - i]);
+    }
+
+    cc_rbptree_clean(&tree);
+    BOOST_CHECK_EQUAL(cc_rbptree_size(&tree), 0U);
+
+    int count = 0;
+    cc_rbptree_traverse(&tree, rbptree_count_items, &count);
+    BOOST_CHECK_EQUAL(count, 0);
+
+    cc_rbptree_insert(&tree, &values[0], &values[1]);
+    BOOST_CHECK_EQUAL(cc_rbptree_size(&tree), 1U);
+    BOOST_CHECK(cc_rbptree_remove(&tree, &values[0]));
+    BOOST_CHECK_EQUAL(cc_rbptree_size(&tree), 0U);
+  }
 }
 
 BOOST_AUTO_TEST_CASE(rbptree_stress)
