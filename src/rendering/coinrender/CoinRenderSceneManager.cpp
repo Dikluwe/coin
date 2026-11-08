@@ -110,6 +110,9 @@ CoinRenderSceneManager::setSceneGraph(SoNode * root)
   if (root) root->ref();
   if (this->pimpl->scene) this->pimpl->scene->unref();
   this->pimpl->scene = root;
+  // Replacing the desired root supersedes its old image immediately, even
+  // when another owner keeps that previous root alive until the next render.
+  this->pimpl->action->getPimpl()->publishedRevisions.bind(root);
 }
 
 SoNode *

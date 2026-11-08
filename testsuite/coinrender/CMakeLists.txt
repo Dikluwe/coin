@@ -1,5 +1,22 @@
 # CoinRender-specific tests, kept separate from the general testsuite.
 if(COIN_BUILD_RENDER)
+  add_executable(CoinRenderFreshnessTest CoinRenderFreshnessTest.cpp)
+  if(COIN_RENDER_BACKEND STREQUAL "BGFX" OR COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+    target_compile_definitions(CoinRenderFreshnessTest PRIVATE COIN_FRESHNESS_GPU=1)
+  endif()
+  target_link_libraries(CoinRenderFreshnessTest CoinRender Coin)
+  add_test(NAME CoinRenderFreshnessTest COMMAND CoinRenderFreshnessTest)
+  set_tests_properties(CoinRenderFreshnessTest PROPERTIES TIMEOUT 180 RUN_SERIAL TRUE)
+  add_executable(CoinRenderRetainedRevisionAudit CoinRenderRetainedRevisionAudit.cpp)
+  target_compile_definitions(CoinRenderRetainedRevisionAudit PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+  target_include_directories(CoinRenderRetainedRevisionAudit PRIVATE
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+  target_link_libraries(CoinRenderRetainedRevisionAudit CoinRender Coin)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/retained-revision-audit)
+  add_test(NAME CoinRenderRetainedRevisionAudit COMMAND CoinRenderRetainedRevisionAudit
+    ${CMAKE_CURRENT_BINARY_DIR}/retained-revision-audit)
+  set_tests_properties(CoinRenderRetainedRevisionAudit PROPERTIES TIMEOUT 180 RUN_SERIAL TRUE)
 	if(NOT COIN_RENDER_BACKEND STREQUAL "BGFX")
 		add_executable(CoinRenderRetainedPBRBoundaryTest CoinRenderRetainedPBRBoundaryTest.cpp)
 		target_compile_definitions(CoinRenderRetainedPBRBoundaryTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)

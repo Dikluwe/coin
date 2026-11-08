@@ -66,6 +66,7 @@
 #include <Inventor/elements/SoCoordinateElement.h>
 #include <Inventor/elements/SoMultiTextureEnabledElement.h>
 #include <algorithm>
+#include "rendering/coinrender/CoinRenderPublishedRevision.h"
 #include <new>
 #include <exception>
 
@@ -128,6 +129,7 @@ public:
     for (const auto type : accepted) acceptedNodeTypes.push_back(type.getKey());
     std::sort(acceptedNodeTypes.begin(), acceptedNodeTypes.end());
   }
+  CoinRenderRevisionTracker * publishedRevisions = nullptr;
   static void visit(SoAction * raw, SoNode * node) {
     auto * action = static_cast<CoinRenderSceneCapture *>(raw);
     if (action->hasUnsupportedRendering()) return;
@@ -183,6 +185,14 @@ public:
         action->markUnsupported(node, "Invalid retained alpha-test fields");
       return;
     }
+    if (node->isOfType(SoCamera::getClassTypeId())) {
+      auto * camera = static_cast<SoCamera *>(node);
+      if (action->publishedRevisions) action->publishedRevisions->observeCamera(camera);
+      if (camera->getStereoMode() != SoCamera::MONOSCOPIC) {
+        action->markUnsupported(node, "Retained native camera profile is monoscopic; use the conventional stereo action");
+        return;
+      }
+    }
     node->IRRender(action);
   }
 private:
@@ -215,14 +225,18 @@ CoinRenderAction::Status actionStatus(CoinRenderBackendStatus value) {
 }
 
 struct CoinRenderRetainedRenderer::P {
-  explicit P(const SbViewportRegion & viewport) : capture(viewport) {}
+  explicit P(const SbViewportRegion & viewport) : capture(viewport) {
+    capture.publishedRevisions = &revisions;
+  }
   ~P() { sceneChanges.detach(); if (root) root->unref(); }
   CoinRenderSceneCapture capture;
   SoRenderPlan plan;
   SoRetainedUpdater updater;
   CoinRenderSceneChanges sceneChanges;
+  CoinRenderRevisionTracker revisions;
   SoNode * root = nullptr;
   SbUniqueId rootRevision = 0;
+  uint64_t stereoRevision = 0;
   bool captureValid = false;
   uint64_t planRevision = 0, targetOwner = 0;
   SoRenderOrder plannedOrder = SoRenderOrder::BackToFront;
@@ -245,10 +259,15 @@ CoinRenderRetainedRenderer::CoinRenderRetainedRenderer(const SbViewportRegion & 
 CoinRenderRetainedRenderer::~CoinRenderRetainedRenderer() { delete p; }
 void CoinRenderRetainedRenderer::setViewportRegion(const SbViewportRegion & viewport) {
   if (p->capture.getViewportRegion() == viewport) return;
+  p->revisions.changed(true);
   p->capture.setViewportRegion(viewport); p->captureValid = false;
 }
-void CoinRenderRetainedRenderer::setClearColor(const SbColor4f & color) { p->clear = color; }
+void CoinRenderRetainedRenderer::setClearColor(const SbColor4f & color) {
+  if (p->clear != color) p->revisions.changed();
+  p->clear = color;
+}
 void CoinRenderRetainedRenderer::setTransparencyType(CoinRenderAction::TransparencyType type) {
+  if (p->transparencyType != type) p->revisions.changed();
   p->transparencyType = type;
 }
 const SbString & CoinRenderRetainedRenderer::getLastError() const { return p->error; }
@@ -256,7 +275,12 @@ const SoDrawList & CoinRenderRetainedRenderer::getDrawList() const { return p->c
 const SoRenderPlan & CoinRenderRetainedRenderer::getRenderPlan() const { return p->plan; }
 uint64_t CoinRenderRetainedRenderer::getCaptureCount() const { return p->captureCount; }
 uint64_t CoinRenderRetainedRenderer::getPlanBuildCount() const { return p->planBuildCount; }
-void CoinRenderRetainedRenderer::invalidate() { p->captureValid = false; }
+void CoinRenderRetainedRenderer::invalidate() {
+  // Explicit producer invalidation authorizes observing authoring memory again,
+  // even if its preceding edits deliberately suppressed field notifications.
+  p->revisions.changed(true);
+  p->captureValid = false;
+}
 CoinRenderRetainedRenderer::Statistics CoinRenderRetainedRenderer::getStatistics() const {
   auto value = p->statistics;
   value.captures = p->captureCount; value.planBuilds = p->planBuildCount;
@@ -308,6 +332,10 @@ CoinRenderRetainedRenderer::render(SoNode * root, CoinRenderTarget & target) {
       p->sceneChanges.attach(root);
       p->captureValid = false;
     }
+    p->revisions.bind(root);
+    const auto producerReceipt = p->revisions.capture();
+    const auto stereoRevision = p->revisions.stereoRevision();
+    if (p->stereoRevision != stereoRevision) p->captureValid = false;
     const bool changed = p->rootRevision != root->getNodeId();
     if (p->captureValid && changed) {
       SoRetainedUpdater::Result update;
@@ -340,6 +368,7 @@ CoinRenderRetainedRenderer::render(SoNode * root, CoinRenderTarget & target) {
       p->planRevision = list.getRenderPlanRevision();
     }
     p->rootRevision = root->getNodeId();
+    p->stereoRevision = stereoRevision;
     p->captureValid = true;
     const uint64_t owner = target.getPimpl()->resourceOwnerId;
     if (!p->transport || p->destination != &target || p->targetOwner != owner) {
@@ -357,7 +386,7 @@ CoinRenderRetainedRenderer::render(SoNode * root, CoinRenderTarget & target) {
     params.clearColor = p->clear;
     params.flags = SO_PARAM_CLEAR_WINDOW | SO_PARAM_CLEAR_DEPTH;
     p->transport->setTransparencyType(p->transparencyType);
-    p->transport->submitOwnedCapture(list, p->plan, params);
+    p->transport->submitOwnedCapture(list, p->plan, params, producerReceipt);
     p->error = p->transport->getResult().diagnostic.c_str();
     if (p->transport->getResult().status != CoinRenderBackendStatus::SUCCESS) p->captureValid = false;
     if (p->captureValid) {

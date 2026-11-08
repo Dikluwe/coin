@@ -87,6 +87,7 @@ CoinRenderAction::~CoinRenderAction(void)
 void
 CoinRenderAction::setViewportRegion(const SbViewportRegion & region)
 {
+  if (this->pimpl->viewport != region) this->pimpl->publishedRevisions.changed(true);
   inherited::setViewportRegion(region);
   this->pimpl->viewport = region;
   this->pimpl->cachedRoot = NULL;
@@ -102,6 +103,7 @@ void CoinRenderAction::setAbortCallback(CoinRenderAbortCB * callback, void * use
 {
   this->pimpl->abortCallback = callback; this->pimpl->abortUserdata = userdata;
   this->pimpl->abortResponse = CONTINUE;
+  this->pimpl->publishedRevisions.changed();
   this->pimpl->cachedRoot = nullptr;
   this->pimpl->clearTranslationProof();
 }
@@ -145,6 +147,7 @@ void CoinRenderAction::removePreRenderCallback(CoinRenderPreRenderCB * callback,
 void CoinRenderAction::invalidateState()
 {
   auto & p = this->pimpl.get();
+  p.publishedRevisions.changed(true);
   p.cachedRoot = nullptr;
   p.invalidatedDuringApply = true;
   if (p.isApplying) { p.stateInvalidationPending = true; return; }
@@ -165,12 +168,15 @@ void CoinRenderAction::setSortedObjectOrderStrategy(SortedObjectOrderStrategy st
   CoinRenderSortedObjectOrderCB * callback, void * userdata)
 {
   this->pimpl->sortingStrategy = strategy; this->pimpl->sortingCallback = callback;
-  this->pimpl->sortingUserdata = userdata; this->pimpl->cachedRoot = nullptr;
+  this->pimpl->sortingUserdata = userdata;
+  this->pimpl->publishedRevisions.changed();
+  this->pimpl->cachedRoot = nullptr;
   this->pimpl->clearTranslationProof();
 }
 void CoinRenderAction::setTransparentDelayedObjectRenderType(TransparentDelayedObjectRenderType type)
 {
   this->pimpl->delayedRenderType = type;
+  this->pimpl->publishedRevisions.changed();
   this->pimpl->cachedRoot = nullptr; this->pimpl->clearTranslationProof();
 }
 CoinRenderAction::TransparentDelayedObjectRenderType
@@ -178,6 +184,7 @@ CoinRenderAction::getTransparentDelayedObjectRenderType() const { return this->p
 void CoinRenderAction::setSmoothing(SbBool enabled)
 {
   this->pimpl->smoothing = enabled != FALSE;
+  this->pimpl->publishedRevisions.changed();
   this->pimpl->cachedRoot = nullptr; this->pimpl->clearTranslationProof();
 }
 SbBool CoinRenderAction::isSmoothing() const { return this->pimpl->smoothing; }
@@ -185,6 +192,7 @@ void CoinRenderAction::setDelayedObjDepthWrite(SbBool enabled)
 {
   if (this->pimpl->delayedObjDepthWrite != (enabled != FALSE)) {
     this->pimpl->delayedObjDepthWrite = enabled != FALSE;
+    this->pimpl->publishedRevisions.changed();
     this->pimpl->cachedRoot = nullptr; this->pimpl->clearTranslationProof();
   }
 }
@@ -197,6 +205,7 @@ CoinRenderAction::setRenderTarget(CoinRenderTarget * target)
   if (this->pimpl->target != target && this->pimpl->target)
     this->pimpl->target->getPimpl()->detachedFromAction();
   this->pimpl->target = target;
+  this->pimpl->publishedRevisions.changed();
   this->pimpl->cachedRoot = NULL;
 }
 
@@ -210,6 +219,7 @@ void
 CoinRenderAction::setBackgroundColor(const SbColor4f & color)
 {
   this->pimpl->backgroundColor = color;
+  this->pimpl->publishedRevisions.changed();
   this->pimpl->cachedRoot = NULL;
 }
 
@@ -224,6 +234,7 @@ CoinRenderAction::setTransparencyType(TransparencyType type)
 {
   if (this->pimpl->transparencyType != type) {
     this->pimpl->transparencyType = type;
+    this->pimpl->publishedRevisions.changed();
     this->pimpl->cachedRoot = NULL;
   }
 }
@@ -239,6 +250,7 @@ CoinRenderAction::setDrawMode(DrawMode mode)
 {
   if (this->pimpl->drawMode != mode) {
     this->pimpl->drawMode = mode;
+    this->pimpl->publishedRevisions.changed();
     this->pimpl->cachedRoot = NULL;
   }
 }
@@ -254,6 +266,7 @@ CoinRenderAction::setOverlayColor(const SbColor4f & color)
 {
   if (this->pimpl->overlayColor != color) {
     this->pimpl->overlayColor = color;
+    this->pimpl->publishedRevisions.changed();
     this->pimpl->cachedRoot = NULL;
   }
 }
@@ -269,6 +282,7 @@ CoinRenderAction::setTexturesEnabled(SbBool enabled)
 {
   if (this->pimpl->texturesEnabled != enabled) {
     this->pimpl->texturesEnabled = enabled;
+    this->pimpl->publishedRevisions.changed();
     this->pimpl->cachedRoot = NULL;
   }
 }
@@ -282,6 +296,7 @@ CoinRenderAction::isTexturesEnabled(void) const
 void CoinRenderAction::setPassCallback(CoinRenderPassCB * callback, void * userdata)
 {
   this->pimpl->passCallback = callback; this->pimpl->passUserdata = userdata;
+  this->pimpl->publishedRevisions.changed();
   this->pimpl->cachedRoot = nullptr; this->pimpl->clearTranslationProof();
 }
 int CoinRenderAction::getCurPass() const { return this->pimpl->currentPass; }
@@ -289,12 +304,14 @@ void CoinRenderAction::setCurPass(int pass, int total)
 {
   this->pimpl->externalPass = true; this->pimpl->requestedExternalPass = pass;
   this->pimpl->currentPass = pass; this->pimpl->numPasses = total;
+  this->pimpl->publishedRevisions.changed();
   this->pimpl->cachedRoot = nullptr; this->pimpl->clearTranslationProof();
 }
 void CoinRenderAction::setNumPasses(int passes) {
   this->pimpl->externalPass = false; this->pimpl->currentPass = 0;
   if (this->pimpl->numPasses != passes) {
     this->pimpl->numPasses = passes;
+    this->pimpl->publishedRevisions.changed();
     this->pimpl->cachedRoot = NULL;
   }
 }
@@ -302,6 +319,7 @@ int CoinRenderAction::getNumPasses() const { return this->pimpl->numPasses; }
 void CoinRenderAction::setMultipassBufferBudget(uint64_t bytes) {
   if (this->pimpl->multipassBufferBudget != bytes) {
     this->pimpl->multipassBufferBudget = bytes;
+    this->pimpl->publishedRevisions.changed();
     this->pimpl->cachedRoot = NULL;
   }
 }
@@ -312,6 +330,7 @@ uint64_t CoinRenderAction::getMultipassBufferBudget() const {
 void CoinRenderAction::setSortedLayersNumPasses(int passes) {
   if (this->pimpl->transparencyOptions.layers != static_cast<uint32_t>(passes)) {
     this->pimpl->transparencyOptions.layers = static_cast<uint32_t>(passes);
+    this->pimpl->publishedRevisions.changed();
     this->pimpl->cachedRoot = NULL;
   }
 }
@@ -323,6 +342,7 @@ int CoinRenderAction::getSortedLayersNumPasses(void) const {
 void CoinRenderAction::setTransparencyBufferBudget(uint64_t bytes) {
   if (this->pimpl->transparencyOptions.bufferBudget != bytes) {
     this->pimpl->transparencyOptions.bufferBudget = bytes;
+    this->pimpl->publishedRevisions.changed();
     this->pimpl->cachedRoot = NULL;
   }
 }
@@ -344,6 +364,7 @@ SbBool CoinRenderAction::setPortableShaderModule(SoShaderProgram *program,
     program->ref();
     registration->program=std::shared_ptr<SoShaderProgram>(program,[](SoShaderProgram *node){node->unref();});
     this->pimpl->portableShaderModules[program]=registration;
+    this->pimpl->publishedRevisions.changed();
     this->pimpl->hasLastValidPlan=false;
     return TRUE;
   } catch(const std::bad_alloc &) { return FALSE; }
@@ -351,20 +372,26 @@ SbBool CoinRenderAction::setPortableShaderModule(SoShaderProgram *program,
 
 void CoinRenderAction::clearPortableShaderModule(SoShaderProgram *program)
 {
-  this->pimpl->portableShaderModules.erase(program);
-  this->pimpl->hasLastValidPlan=false;
+  if (this->pimpl->portableShaderModules.erase(program)) {
+    this->pimpl->publishedRevisions.changed();
+    this->pimpl->hasLastValidPlan=false;
+  }
 }
 
 void CoinRenderAction::clearPortableShaderModules()
 {
-  this->pimpl->portableShaderModules.clear();
-  this->pimpl->hasLastValidPlan=false;
+  if (!this->pimpl->portableShaderModules.empty()) {
+    this->pimpl->portableShaderModules.clear();
+    this->pimpl->publishedRevisions.changed();
+    this->pimpl->hasLastValidPlan=false;
+  }
 }
 
 void
 CoinRenderAction::setFastPathEnabled(SbBool enable)
 {
   this->pimpl->fastPathEnabled = (enable != FALSE);
+  this->pimpl->publishedRevisions.changed();
   this->pimpl->cachedRoot = NULL;
 }
 

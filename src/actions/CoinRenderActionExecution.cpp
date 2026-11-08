@@ -366,6 +366,8 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     this->master->invalidateState();
     this->isApplying = true;
   }
+  this->publishedRevisions.bind(cacheRoot);
+  const auto producerReceipt = this->publishedRevisions.capture();
   const bool partialUpdate = this->updateOrigin != SbVec2f(0, 0) || this->updateSize != SbVec2f(1, 1);
   int updateRect[4] = {0, 0, 0, 0};
   if (partialUpdate) {
@@ -1015,6 +1017,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   // Execute frame on target
   const auto * submissionPreflight = capturedPreflight.compositionFor(executionPlan)
     ? &capturedPreflight : nullptr;
+  CoinRenderRevisionScope revisionScope(&executionPlan, producerReceipt, executionPlan.revision);
   CoinRenderFrameExecutionResult execRes =
       this->asyncTicket
           ? this->target->pimpl->executeFrameAsync(executionPlan, *this->asyncTicket, reuseDecision,

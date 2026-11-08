@@ -37,6 +37,7 @@
 
 #include <Inventor/SbBasic.h>
 #include <vector>
+#include <memory>
 #include <cstdint>
 #include <cstddef>
 #include <cstdio>
@@ -69,13 +70,45 @@ struct CoinRenderCacheTelemetry {
   uint64_t submissionSerial = 0;
 };
 
+class CoinRenderPublishedRevision;
+class CoinRenderRevisionTracker;
+class CoinRenderRevisionScope;
+
+/** Opaque proof of a published producer revision and a target publication.
+ * Copies own no scene nodes. Revisions follow producer notifications and
+ * explicit render configuration changes, including camera/viewport changes;
+ * silent authoring edits are deliberately outside this contract. Camera revision
+ * identifies the camera set of this scene, not a GPU/device generation.
+ */
+class CoinRenderPresentationReceipt {
+public:
+  uint64_t getSceneIdentity() const { return sceneIdentity; }
+  uint64_t getSceneRevision() const { return sceneRevision; }
+  uint64_t getCameraIdentity() const { return cameraIdentity; }
+  uint64_t getCameraRevision() const { return cameraRevision; }
+  uint64_t getResourceRevision() const { return resourceRevision; }
+private:
+  friend class CoinRenderRevisionTracker;
+  friend class CoinRenderRevisionScope;
+  friend class CoinRenderTarget;
+  friend class CoinRenderTargetP;
+  std::shared_ptr<const CoinRenderPublishedRevision> authority;
+  uint64_t sceneIdentity = 0, sceneRevision = 0, cameraIdentity = 0, cameraRevision = 0, resourceRevision = 0;
+  uint64_t targetOwner = 0, targetEpoch = 0, resourceGeneration = 0, publication = 0;
+  uint64_t token = 0, deviceGeneration = 0, submissionSerial = 0;
+};
+
 /**
  * Opaque experimental handle for an asynchronous offscreen readback.
  *
  * A ticket remains valid independently of the action and target lifetime.
- * Successful polling or explicit cancellation consumes it.
+ * Successful polling or explicit cancellation consumes it. Its presentation
+ * receipt can become stale while historical pollReadback remains valid.
+ * Qualified synchronous submissions read their own frame even when a backend
+ * was configured to allow pipelined predecessor readback.
  */
 struct CoinRenderReadbackTicket {
+  CoinRenderPresentationReceipt presentation;
   uint64_t token = 0;
   uint64_t generation = 0;
   uint64_t submissionSerial = 0;
@@ -123,7 +156,8 @@ public:
     READBACK_INVALID_TICKET,
     READBACK_DEVICE_LOST,
     READBACK_ERROR,
-    READBACK_UNSUPPORTED
+    READBACK_UNSUPPORTED,
+    READBACK_STALE_PRESENTATION
   };
 
   static CoinRenderTarget * createOffscreen(const SbVec2i32 & size);
@@ -265,6 +299,18 @@ public:
                                      std::vector<uint8_t> & outColor,
                                      std::vector<float> & outDepth,
                                      SbString * diagnostic = nullptr);
+  /** Last committed receipt. Unqualified external DTO submissions have none.
+   * Historical pixel access remains available regardless of receipt freshness.
+   * These target methods obey the target's existing single-thread ownership.
+   */
+  CoinRenderPresentationReceipt getPresentationReceipt() const;
+  SbBool admitsPresentation(const CoinRenderPresentationReceipt &) const;
+  /** Final readback admission for presentation of the current revision. Checks
+   * before and after polling; stale results preserve outputs. A refusal before
+   * polling does not consume the ticket: pollReadback can still read history.
+   */
+  ReadbackStatus pollCurrentReadback(const CoinRenderReadbackTicket &,
+    std::vector<uint8_t> &, std::vector<float> &, SbString * diagnostic = nullptr) const;
   static SbBool cancelReadback(const CoinRenderReadbackTicket & ticket);
   /** Target-scoped increasing publication identity, not a native window presentation fence.
    * Backend/cache counters and asynchronous tickets retain their own submission

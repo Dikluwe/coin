@@ -14,6 +14,7 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoFaceSet.h>
 #include <Inventor/nodes/SoTextureUnit.h>
+#include <Inventor/nodes/SoTexture3.h>
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include <memory>
 #include <vector>
@@ -113,12 +114,17 @@ int main() {
   check(retained.getCaptureCount() == 2, "camera pose mutation conservatively recaptures");
   auto * empty = new SoSeparator; root->addChild(empty); compare();
   check(retained.getCaptureCount() == 3, "structure mutation conservatively recaptures");
+  auto * admittedState = new SoTextureUnit; root->insertChild(admittedState,3); compare();
+  check(target->admitsPresentation(target->getPresentationReceipt()), "admitted texture unit publishes a qualified frame");
+  root->removeChild(admittedState); compare();
   std::vector<uint8_t> previous; target->readbackRGBA(previous);
   const auto serial = target->getLastSubmissionSerial();
-  auto * unsupportedState = new SoTextureUnit; root->insertChild(unsupportedState,3);
+  auto * unsupportedState = new SoTexture3; root->insertChild(unsupportedState,3);
   check(retained.render(root,*target) == CoinRenderAction::UNSUPPORTED, "unsupported inserted state is not lost through retention");
   std::vector<uint8_t> after; target->readbackRGBA(after);
   check(previous == after && target->getLastSubmissionSerial() == serial, "failed rebuild preserves publication");
+  check(!target->admitsPresentation(target->getPresentationReceipt()),
+        "failed newer scene cannot declare the preserved older image current");
   root->removeChild(unsupportedState); compare();
   check(coin_render_composition_classification_count_for_tests() == before, "retention never invokes another composition classifier");
   // Normal apply(root) retains the root in command paths. Inherited state at

@@ -1,4 +1,5 @@
 #include "rendering/coinrender/CoinRenderRetainedTransport.h"
+#include "rendering/coinrender/CoinRenderPublishedRevision.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
@@ -141,8 +142,10 @@ SbBool CoinRenderRetainedTransport::render(const SoDrawList & list, const SoRend
   const SoRenderParams & params, const SoSelectionState * selection)
 { return submitCapture(list, plan, params, selection, CaptureOwnership::External); }
 SbBool CoinRenderRetainedTransport::submitOwnedCapture(const SoDrawList & list,
-  const SoRenderPlan & plan, const SoRenderParams & params)
-{ return submitCapture(list, plan, params, nullptr, CaptureOwnership::RendererOwned); }
+  const SoRenderPlan & plan, const SoRenderParams & params, const CoinRenderPresentationReceipt & proof)
+{ producerReceipt = proof;
+  struct Reset { CoinRenderPresentationReceipt & proof; ~Reset() { proof = {}; } } reset{producerReceipt};
+  return submitCapture(list, plan, params, nullptr, CaptureOwnership::RendererOwned); }
 
 SbBool
 CoinRenderRetainedTransport::submitCapture(const SoDrawList & list, const SoRenderPlan & plan,
@@ -181,6 +184,7 @@ CoinRenderRetainedTransport::submitCapture(const SoDrawList & list, const SoRend
       resolved.opaqueIdentity = cache.opaqueIdentity;
       CoinRenderResolvedCompositionScope orderScope(frame, cache.plannedDrawIndices);
       CoinRenderFrameBorrow borrow(frame, cache.borrow, kind != CoinRenderFrameReuseKind::REUSE, rendererOwnsCapture);
+      CoinRenderRevisionScope revisionScope(&frame, producerReceipt, list.getResourceRevision());
       result = destination.executeFrame(frame, {kind, previousRevision}, &resolved);
       cache.reuseValid = rendererOwnsCapture && result.status == CoinRenderBackendStatus::SUCCESS;
       if (cache.reuseValid) {

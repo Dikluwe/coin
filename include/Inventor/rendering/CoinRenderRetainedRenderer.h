@@ -12,7 +12,7 @@ class SoRenderPlan;
 /** Experimental FreeCAD retained capture -> selected CoinRender executor.
  * Retains capture and the upstream plan; the fork's updater patches supported
  * notifications and otherwise rebuilds. Supports synchronous window/offscreen
- * RGBA8, triangles and shared Core stroke expansion, BASE_COLOR/PHONG,
+ * RGBA8, monoscopic cameras, triangles and shared Core stroke expansion, BASE_COLOR/PHONG,
  * directional/point/spot lights, fog, clipping, polygon offset, 2D textures,
  * unpacked material arrays and geometry in VertexProperty. The native planner
  * supplies captured, opaque-first or back-to-front object order; the target selects its existing
@@ -55,7 +55,8 @@ public:
     uint64_t materialSlots = 0; // Current transport gauge, not a cumulative counter.
   };
   Statistics getStatistics() const;
-  // Diagnostic control for equivalence/benchmarks; never schedules extra work
+  // Explicit producer publication/invalidation, also used by equivalence controls.
+  // Advances presentation authority; never schedules extra work
   // in the ordinary retained path.
   void invalidate();
 

@@ -3,6 +3,7 @@
 
 #include "rendering/SoRenderBackend.h"
 #include <Inventor/rendering/CoinRenderOptions.h>
+#include <Inventor/rendering/CoinRenderTarget.h>
 #include "rendering/coinrender/CoinRenderBackend.h"
 #include <Inventor/rendering/CoinRenderRetainedRenderer.h>
 
@@ -26,7 +27,8 @@ private:
   void setTransparencyType(CoinRenderAction::TransparencyType);
   CoinRenderAction::TransparencyType transparencyType = CoinRenderAction::SORTED_OBJECT_BLEND;
   void rebindTarget(CoinRenderTarget & destination);
-  SbBool submitOwnedCapture(const SoDrawList &, const SoRenderPlan &, const SoRenderParams &);
+  SbBool submitOwnedCapture(const SoDrawList &, const SoRenderPlan &, const SoRenderParams &,
+                            const CoinRenderPresentationReceipt &);
   // Only the renderer owns the capture and can authorize reuse. External
   // SoRenderBackend callers may mutate their draw list without a revision.
   enum class CaptureOwnership { External, RendererOwned };
@@ -34,6 +36,7 @@ private:
   std::unique_ptr<TransportCache> transportCache;
   SbBool submitCapture(const SoDrawList &, const SoRenderPlan &, const SoRenderParams &,
                        const SoSelectionState *, CaptureOwnership ownership);
+  CoinRenderPresentationReceipt producerReceipt;
   CoinRenderOptions transportOptions;
   CoinRenderTarget * target;
   CoinRenderSubmitResult result;

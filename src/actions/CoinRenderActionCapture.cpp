@@ -887,6 +887,7 @@ CoinRenderActionP::cameraStereoPostCB(void * userdata, SoCallbackAction * action
 {
   auto * owner = static_cast<CoinRenderActionP *>(userdata);
   const auto * camera = static_cast<const SoCamera *>(node);
+  owner->publishedRevisions.observeCamera(const_cast<SoCamera *>(camera));
   owner->frameStereoStates.push_back({camera, static_cast<int>(camera->getStereoMode()),
     camera->getStereoAdjustment(), camera->getBalanceAdjustment()});
   if (owner->capturingShadowScene && camera->getStereoMode() == SoCamera::MONOSCOPIC)

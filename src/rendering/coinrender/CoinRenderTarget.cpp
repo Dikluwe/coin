@@ -5,6 +5,7 @@
 #include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #include "rendering/coinrender/CoinRenderBumpMapCore.h"
 #include <utility>
+#include "rendering/coinrender/CoinRenderPublishedRevision.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else
@@ -175,6 +176,7 @@ CoinRenderTargetP::resize(const SbVec2i32 & newSize)
   if (this->kind == KIND_WINDOW && this->status == CoinRenderTarget::TARGET_READY &&
       !this->suspended && newSize == this->size) return true;
   this->stagedTargets.clear();
+  ++this->presentationEpoch;
   ++this->resourceGeneration;
   this->lastSubmissionSerial = 0;
   this->legacyBorrowValid = false;
@@ -671,6 +673,7 @@ CoinRenderTargetP::executePartialFrame(const CoinRenderFramePlan & frame, const 
         size_t(rectangle[2]), depth.data() + to);
     }
     this->colorBuffer.swap(color); this->depthBuffer.swap(depth);
+    this->presentationReceipt = {};
     ++this->lastSubmissionSerial;
     this->lastValidatedPlanRevision = 0;
     this->synchronousReadbackValid = this->borrowedReadbackValid = true;
@@ -746,6 +749,14 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
                                           const CoinRenderFrameReuseDecision & reuse,
                                           const CoinRenderFramePreflight * capturedPreflight)
 {
+  auto producerReceipt = CoinRenderRevisionScope::forFrame(&frame);
+  const uint64_t candidateEpoch = this->presentationEpoch;
+  const auto currentProducer = [&]() {
+    return candidateEpoch == this->presentationEpoch &&
+      (!producerReceipt.authority || CoinRenderRevisionTracker::current(producerReceipt));
+  };
+  if (!currentProducer())
+    return {CoinRenderBackendStatus::NOT_READY, "Stale scene/camera revision before execution"};
   const auto previousBorrowIdentity = std::move(this->validatedBorrowIdentity);
   using PhaseClock = std::chrono::steady_clock;
   const auto phaseBegin = PhaseClock::now();
@@ -930,9 +941,24 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
   const auto multipassAdmission = this->backend->preflightMultipass(frame, this->size);
   if (multipassAdmission.status != CoinRenderBackendStatus::SUCCESS) return multipassAdmission;
   const auto phasePrepared = PhaseClock::now();
+  if (!currentProducer())
+    return {CoinRenderBackendStatus::NOT_READY, "Stale scene/camera revision before submission"};
+  // A receipt for this producer revision must never label a pipelined
+  // predecessor as current. Reuse the executor's existing bounded own-frame
+  // readback contract; async tickets already name their actual submission.
+  struct CurrentReadbackScope {
+    bool & value; bool previous;
+    ~CurrentReadbackScope() { value = previous; }
+  } currentReadbackScope{this->requiresCurrentReadback, this->requiresCurrentReadback};
+  if (producerReceipt.authority && !outTicket) this->requiresCurrentReadback = true;
   CoinRenderSubmitResult res = outTicket
     ? this->backend->submitAsync(frame, *this, *submitTicket, reuse)
     : this->backend->submit(frame, *this, reuse);
+  if (res.status == CoinRenderBackendStatus::SUCCESS && !currentProducer()) {
+    if (candidateTicket.token) CoinRenderTarget::cancelReadback(candidateTicket);
+    // GPU submission may already have occurred. Never publish it as current.
+    return {CoinRenderBackendStatus::NOT_READY, "Stale scene/camera revision before publication"};
+  }
   if (res.status == CoinRenderBackendStatus::SUCCESS &&
       (this->kind == KIND_OFFSCREEN || captureWindow) && !this->directTextureOutput) {
     const uint64_t pixels = uint64_t(this->size[0]) * this->size[1];
@@ -1002,8 +1028,18 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     std::fprintf(stderr, "COIN_RENDER_PHASE target validation_ms=%.6f prepare_ms=%.6f submit_ms=%.6f\n",
       ms(phaseBegin, phaseValidated), ms(phaseValidated, phasePrepared), ms(phasePrepared, now));
   }
-  if (outTicket)
+  producerReceipt.targetOwner = this->resourceOwnerId;
+  producerReceipt.targetEpoch = this->presentationEpoch;
+  producerReceipt.resourceGeneration = this->resourceGeneration;
+  producerReceipt.publication = this->lastSubmissionSerial + 1;
+  producerReceipt.token = candidateTicket.token;
+  producerReceipt.deviceGeneration = candidateTicket.generation;
+  producerReceipt.submissionSerial = candidateTicket.submissionSerial;
+  this->presentationReceipt = producerReceipt;
+  if (outTicket) {
+    candidateTicket.presentation = producerReceipt;
     *outTicket = candidateTicket;
+  }
   this->lastValidatedPlanRevision = frame.revision;
   this->validatedBorrowIdentity = borrowIdentity;
   this->validatedBorrowSize = this->size;
@@ -1081,6 +1117,7 @@ SbBool CoinRenderTarget::setPbrEffects(const CoinRenderPbrEffects & effects) {
   if(!coin_render_valid_pbr_effects(effects,diagnostic)) {
     this->pimpl->lastError=diagnostic.c_str();return FALSE;
   }
+  if (!(this->pimpl->options.pbrEffects == effects)) ++this->pimpl->presentationEpoch;
   this->pimpl->options.pbrEffects=effects;this->pimpl->lastError.clear();return TRUE;
 }
 
@@ -1090,6 +1127,7 @@ SbBool CoinRenderTarget::setPbrExposureStops(float stops)
     this->pimpl->lastError = "PBR exposure requires finite stops in [-16,16]";
     return FALSE;
   }
+  if (this->pimpl->options.pbrExposureStops != stops) ++this->pimpl->presentationEpoch;
   this->pimpl->options.pbrExposureStops = stops;
   this->pimpl->lastError.clear();
   return TRUE;
@@ -1100,6 +1138,8 @@ SbBool CoinRenderTarget::setPbrEnvironmentParameters(float rotationRadians, floa
   if (!std::isfinite(rotationRadians) || !std::isfinite(intensity) || intensity < 0 || intensity > 64) {
     this->pimpl->lastError = "IBL rotation must be finite and intensity in [0,64]"; return FALSE;
   }
+  if (this->pimpl->options.pbrEnvironmentRotation != rotationRadians ||
+      this->pimpl->options.pbrEnvironmentIntensity != intensity) ++this->pimpl->presentationEpoch;
   this->pimpl->options.pbrEnvironmentRotation = rotationRadians;
   this->pimpl->options.pbrEnvironmentIntensity = intensity;
   this->pimpl->lastError.clear(); return TRUE;
@@ -1403,6 +1443,7 @@ CoinRenderTarget::setDepthReadbackEnabled(SbBool enabled)
   }
   const bool requested = enabled != FALSE;
   if (this->pimpl->depthReadbackEnabled != requested) {
+    ++this->pimpl->presentationEpoch;
     this->pimpl->depthReadbackEnabled = requested;
     this->pimpl->synchronousReadbackValid = false;
     this->pimpl->legacyBorrowValid = false;
@@ -1434,6 +1475,43 @@ CoinRenderTarget::pollReadback(const CoinRenderReadbackTicket & ticket,
 {
   if (diagnostic) *diagnostic = "";
   return CoinRenderTargetP::backendRuntime().pollReadback(ticket, outColor, outDepth, diagnostic);
+}
+
+CoinRenderPresentationReceipt
+CoinRenderTarget::getPresentationReceipt() const { return this->pimpl->presentationReceipt; }
+
+SbBool
+CoinRenderTarget::admitsPresentation(const CoinRenderPresentationReceipt & receipt) const
+{
+  const auto & target = this->pimpl.get();
+  return target.status == TARGET_READY && receipt.targetOwner == target.resourceOwnerId &&
+    receipt.targetEpoch == target.presentationEpoch &&
+    receipt.resourceGeneration == target.resourceGeneration &&
+    receipt.publication && receipt.publication == target.lastSubmissionSerial &&
+    receipt.authority == target.presentationReceipt.authority &&
+    CoinRenderRevisionTracker::current(receipt) ? TRUE : FALSE;
+}
+
+CoinRenderTarget::ReadbackStatus
+CoinRenderTarget::pollCurrentReadback(const CoinRenderReadbackTicket & ticket,
+  std::vector<uint8_t> & color, std::vector<float> & depth, SbString * diagnostic) const
+{
+  const auto & receipt = ticket.presentation;
+  if (!admitsPresentation(receipt) || !receipt.token || receipt.token != ticket.token ||
+      receipt.deviceGeneration != ticket.generation || receipt.submissionSerial != ticket.submissionSerial) {
+    if (diagnostic) *diagnostic = "Stale or unqualified scene/camera presentation receipt";
+    return READBACK_STALE_PRESENTATION;
+  }
+  std::vector<uint8_t> candidateColor;
+  std::vector<float> candidateDepth;
+  const auto result = pollReadback(ticket, candidateColor, candidateDepth, diagnostic);
+  if (result != READBACK_READY) return result;
+  if (!admitsPresentation(receipt)) {
+    if (diagnostic) *diagnostic = "Scene/camera changed during readback; historical ticket consumed";
+    return READBACK_STALE_PRESENTATION;
+  }
+  color.swap(candidateColor); depth.swap(candidateDepth);
+  return READBACK_READY;
 }
 
 SbBool

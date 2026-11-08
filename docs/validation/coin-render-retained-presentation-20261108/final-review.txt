@@ -1,0 +1,66 @@
+Revisão final antes de commit — 08/11/2026
+
+Não encontrei defeito bloqueante adicional no diff de atualidade ou nos caminhos
+CoinRender/PBR qualificados abaixo. Nenhum código produtivo foi alterado durante
+esta última revisão. A revisão cobre a nossa integração, não a proposta do tritao.
+
+Conferidos: revogação imediata dos três setters estéreo e do registro de shaders,
+falhas/no-ops transacionais, ownership dos observadores weak, ausência de touch
+no grafo convencional, escopo privado de autoridade, borrow/reuse sem bypass,
+rollback de publicação, geracões de dispositivo/target separadas e scripts que
+reprovam falhas/omissões. Os 747 hashes de evidências e 27 hashes de fontes da
+rodada anterior bateram antes da atualização dos relatórios desta revisão.
+A matriz anterior de oito casos e seus 19 testes dos scripts permanecem válidos;
+os fontes produtivos são os mesmos. Os resultados abaixo ampliam a cobertura.
+
+Regressões convencionais e PBR
+BGFX: 16 testes da suíte estendida passaram; dois controles que pediam Coin/GL
+falharam inicialmente por não abrir display X11 no sandbox. wgpu: cinco passaram
+e os mesmos dois controles Coin/GL falharam pela mesma razão. As falhas originais
+foram preservadas, sem transformá-las em aprovação por skip ou alterar tolerâncias.
+
+Os controles CoinRenderCameraReuseReferenceTest e CoinRenderStereoEyeTest foram
+reexecutados nos dois executores Vulkan sem exigir a referência Coin/GL externa:
+ambos passaram, incluindo câmera em perspectiva/ortográfica, reconstrução fria,
+restauração de cache, vistas estéreo, anaglyph e transparência/texturas por olho.
+Isso é qualificação do caminho convencional CoinRender, não de Coin/GL físico.
+CoinRenderActionTest, RetainedFeatures, RetainedConnector e ManagerStereoCore
+passaram nos dois builds. O controle wgpu de recusa PBR preservou a publicação.
+
+BGFX PBR: comparações de materiais/projeção, galeria/exposição, duas IBLs,
+superfícies, anisotropia, efeitos, reflexão e admissão/ownership/orçamento IBL
+passaram. 324 buffers do teste de 54 cenas/3 estados e 12 da galeria foram
+idênticos aos hashes já versionados. Os 28 buffers atuais de superfícies e 28 de
+anisotropia coincidem com a biblioteca preservada da base 099bf06d74e, consumida
+por um programa público compilado com os headers base correspondentes.
+Os hashes dessas superfícies não são iguais aos recibos históricos de outubro:
+a comparação direta com a base desta tarefa confirma que a diferença é anterior
+a este diff, não foi introduzida pelas correções. Não se misturaram baselines.
+Superfícies: 14 fixtures/28 buffers e 20 buffers de atualização exatos entre
+retido e callback. Anisotropia: 14 fixtures/28 buffers e 18 de atualização exatos.
+IBL: studio/asymmetric, 20 buffers exatos por ambiente; efeitos e admissão passam.
+
+Limitação Coin/GL investigada
+Fora do sandbox, Xvfb foi acessível, mas Coin/GL não conseguiu criar contexto GLX.
+O mesmo consumidor público clássico foi executado com as bibliotecas da base e
+com as atuais: ambos falharam na criação do contexto, nos três modos de câmera,
+com root NodeId inalterado. Não há regressão diferencial demonstrada por essa
+falha de ambiente; também não há uma aprovação de pixels Coin/GL nesta revisão.
+Não foi feita correção ampla no glue GLX. Para qualificar essa referência, repetir
+em ambiente que forneça contexto GLX funcional e manter esses controles estritos.
+
+Limitações anteriores mantidas
+PENDING legítimo e snapshot público independente continuam não implementados.
+O renderer IR retido é explicitamente mono; estéreo convencional permanece ativo.
+Admissão de atualidade não é fence de compositor nem abort de GPU. O contrato
+continua com publicação na thread do produtor e sem nova captura/plano para
+validar atualidade. Não se qualificaram Android, GPU dedicada, FreeCAD/Qt ou o
+par de revisões do relato do PR #72.
+
+Artefatos
+/tmp/coin-retained-final-review-20261108 preserva comandos, logs, JUnit, buffers
+PBR, controles base, comparações e hashes. final-review-summary.json resume o
+resultado distinguindo testes qualificados da referência Coin/GL indisponível.
+O recibo de commit/push é registrado separadamente após a operação.
+Destino autorizado: Dikluwe/coin, branch codex/coinrender-retained-integration.
+Não foram preparados PR nem resposta pública nas discussões.

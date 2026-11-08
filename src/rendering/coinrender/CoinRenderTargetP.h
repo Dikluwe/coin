@@ -109,6 +109,8 @@ public:
   void clear(float r, float g, float b, float a, float depthVal = 1.0f);
   void readbackRGBA(std::vector<uint8_t> & outRgba) const;
   void readbackDepth(std::vector<float> & outDepth) const;
+  CoinRenderPresentationReceipt presentationReceipt;
+  uint64_t presentationEpoch = 0;
   uint64_t lastSubmissionSerial{0}; // Per-target public commits, independent of backend queue/ticket serials.
   uint64_t lastValidatedPlanRevision{0};
 

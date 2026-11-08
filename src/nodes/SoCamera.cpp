@@ -115,6 +115,7 @@
 */
 
 #include <Inventor/nodes/SoCamera.h>
+#include "nodes/SoCameraP.h"
 #include <Inventor/actions/SoIRRenderAction.h>
 
 #include <cfloat> // for FLT_EPSILON
@@ -341,6 +342,7 @@ SO_NODE_ABSTRACT_SOURCE(SoCamera);
   Constructor.
 */
 SoCamera::SoCamera()
+  : pimpl(nullptr)
 {
   SO_NODE_INTERNAL_CONSTRUCTOR(SoCamera);
 
@@ -370,6 +372,32 @@ SoCamera::SoCamera()
 */
 SoCamera::~SoCamera()
 {
+  delete this->pimpl;
+}
+
+void SoCameraP::observeStereo(SoCamera * camera,
+                             const std::shared_ptr<SoCameraStereoObserver> & observer)
+{
+  if (!camera->pimpl) camera->pimpl = new SoCameraP;
+  auto & entries = camera->pimpl->observers;
+  for (auto it = entries.begin(); it != entries.end();) {
+    const auto current = it->lock();
+    if (!current || !current->isActive()) it = entries.erase(it);
+    else {
+      if (current == observer) return;
+      ++it;
+    }
+  }
+  entries.push_back(observer);
+}
+
+void SoCameraP::publishStereo()
+{
+  for (auto it = this->observers.begin(); it != this->observers.end();) {
+    const auto observer = it->lock();
+    if (!observer || !observer->isActive()) it = this->observers.erase(it);
+    else { observer->stereoChanged(); ++it; }
+  }
 }
 
 // Doc in superclass.
@@ -1056,7 +1084,9 @@ SoCamera::drawCroppedFrame(SoGLRenderAction *action,
 void
 SoCamera::setStereoMode(StereoMode mode)
 {
+  if (this->stereomode == mode) return;
   this->stereomode = mode;
+  if (this->pimpl) this->pimpl->publishStereo();
 }
 
 /*!
@@ -1102,7 +1132,9 @@ SoCamera::getStereoMode(void) const
 void
 SoCamera::setStereoAdjustment(float adjustment)
 {
+  if (this->stereoadjustment == adjustment) return;
   this->stereoadjustment = adjustment;
+  if (this->pimpl) this->pimpl->publishStereo();
 }
 
 /*!
@@ -1130,7 +1162,9 @@ SoCamera::getStereoAdjustment(void) const
 void
 SoCamera::setBalanceAdjustment(float adjustment)
 {
+  if (this->balanceadjustment == adjustment) return;
   this->balanceadjustment = adjustment;
+  if (this->pimpl) this->pimpl->publishStereo();
 }
 
 /*!

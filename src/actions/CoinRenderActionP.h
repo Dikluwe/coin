@@ -12,6 +12,7 @@
 #include "rendering/coinrender/CoinRenderRecordingBackend.h"
 #include "rendering/coinrender/CoinRenderRttCore.h"
 #include <Inventor/sensors/SoNodeSensor.h>
+#include "rendering/coinrender/CoinRenderPublishedRevision.h"
 #include <string>
 #include <deque>
 #include <vector>
@@ -69,6 +70,7 @@ public:
   void commitTranslationOverlay();
   static SoCallbackAction::Response translationPreCB(void *, SoCallbackAction *, const SoNode *);
 
+  CoinRenderRevisionTracker publishedRevisions;
   template <typename F>
   void executePassSnapshots(F traversalFn, SoNode * cacheRoot);
 
