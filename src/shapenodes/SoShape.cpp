@@ -1140,9 +1140,13 @@ SoShape::invokeLineSegmentCallbacks(SoAction * const action,
           n.normalize();
           pp->setObjectNormal(n);
 
+          // Each endpoint's texture weight uses the distance to the
+          // opposite endpoint. Preserve the historical degenerate fallback.
+          const float texweight1 = total > 0.0f ? len2 : len1;
+          const float texweight2 = total > 0.0f ? len1 : len2;
           SbVec4f tc =
-            v1->getTextureCoords() * len1 +
-            v2->getTextureCoords() * len2;
+            v1->getTextureCoords() * texweight1 +
+            v2->getTextureCoords() * texweight2;
           pp->setObjectTextureCoords(tc);
           pp->setMaterialIndex(len1 >= len2 ?
                                v1->getMaterialIndex() :
