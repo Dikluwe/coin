@@ -180,10 +180,11 @@ void legacyTests() {
   // widened sum; ordinary Float arithmetic is an admissible preserved result.
   const SbVec4f nonzeroProducts[]={SbVec4f(8*d,16*d,32*d,64*d),SbVec4f(8*d,16*d,32*d,64*d),SbVec4f(8*d,16*d,32*d,64*d)};
   Result r=pick(nonzeroProducts); equal(r.tex,r.old,"nonzero subnormal products preserve Float result",true);
-  // The independent line path still uses its legacy weights in this baseline.
+  // The composition includes corrected line texture weights; normals and
+  // material selection retain their historical conventions.
   const SbVec4f line[]={SbVec4f(2,4,6,8),SbVec4f(10,12,14,16),SbVec4f(0,0,0,0)};
   r=pick(line,.25f,0,NULL,1);
-  equal(r.tex,SbVec4f(8,10,12,14),"line legacy reversed texture weights",true);
+  equal(r.tex,SbVec4f(4,6,8,10),"composed line texture weights",true);
   const SbVec4f point[]={SbVec4f(h,-0.0f,d,7),SbVec4f(0,0,0,0),SbVec4f(0,0,0,0)};
   r=pick(point,0,0,NULL,2); equal(r.tex,point[0],"point texture unchanged",true);
   functionalTest();
