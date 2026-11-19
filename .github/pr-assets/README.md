@@ -39,3 +39,10 @@ PR #869 at `fd771d4bab5`. The same FBO-backed node transitions from `RGBA8` to
 fixed. OpenGL introspection reports that the baseline retains `GL_RGBA8` for
 both color transitions and exits with code 139 for depth. The candidate
 installs each requested storage type and completes all three tests.
+
+`texture2-image-override-before-after.png` compares Coin `31a4ea1bbd1` with
+PR #872 at `751b8c79602`. A red/blue `SoTexture2` marked with
+`setOverride(TRUE)` is followed by a green/yellow texture on unit zero. The
+images are direct framebuffer captures: the baseline renders the later
+green/yellow texture, while the candidate preserves and renders the overriding
+red/blue texture.
