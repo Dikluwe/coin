@@ -4,7 +4,6 @@ set(COIN_ACTIONS_FILES
 	SoActionP.cpp
 	SoBoxHighlightRenderAction.cpp
 	SoCallbackAction.cpp
-	SoTriangleSnapshot.cpp
 	SoGLRenderAction.cpp
 	SoGetBoundingBoxAction.cpp
 	SoGetMatrixAction.cpp
