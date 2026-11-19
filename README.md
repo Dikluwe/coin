@@ -1,5 +1,7 @@
 # Coin texture-coordinate PR evidence
 
+[Published PR index: B01 upstream and 23 thematic drafts](PR-INDEX.md)
+
 These images are actual frames from Coin's `SoOffscreenRenderer`, using the standard legacy OpenGL renderer under Xvfb/Mesa llvmpipe. No CoinRender or generated artwork is involved. Each comparison uses the exact parent and head recorded below, the same scene-generating executable linked against master, and only switches libCoin through LD_LIBRARY_PATH. Both libraries use Debug -O0 -g0, threads and legacy GL enabled; EGL disabled.
 
 Every successful pair has byte-identical exported Inventor scenes and the same reported renderer. Original frames are 480 x 320 RGB; PNG conversion is lossless. Comparison panels display the complete original frames side by side with labels and picking values underneath. Rendered pixels are not retouched. A Debug abort before rendering is reported as an abort; no before frame is fabricated.
