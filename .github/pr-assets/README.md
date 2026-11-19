@@ -17,3 +17,11 @@ texture data shown inside the panels come from the corresponding Coin builds.
 embedded in PR #862. Its four outcomes reproduce the Coin results captured by
 the diagnostic: `16x16` is accepted in both builds, while `17x16` changes from
 accepted to rejected when the configured limit is enforced.
+
+`glimage-upload-target-before-after.png` compares Coin `31a4ea1bbd1` with the
+upload-target PrePR at `f3127490888`. The same GLX program traverses a
+`SoTexture2` immediately after a `SoTexture3`, then creates a `SoTexture3` on
+texture unit 1 while unit 0 does not select 3D. OpenGL readback reports missing
+`0x0x0` storage for both cases on the baseline and valid `4x4x1` and `4x4x4`
+storage on the candidate. The colored cells and slices are the actual uploaded
+texels returned by OpenGL.
