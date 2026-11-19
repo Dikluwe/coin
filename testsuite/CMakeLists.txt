@@ -483,4 +483,4 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endforeach()
 endif()
 
-include(AllocationHookContracts.cmake)
+include(SoDepthBufferTests.cmake)
