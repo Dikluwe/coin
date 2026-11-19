@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650">
+  <rect width="1200" height="650" fill="#171a20"/>
+
+  <text x="600" y="58" text-anchor="middle" fill="#f4f6f8"
+        font-family="DejaVu Sans, sans-serif" font-size="34" font-weight="700">
+    COIN_MAXIMUM_TEXTURE2_SIZE=16
+  </text>
+  <text x="600" y="94" text-anchor="middle" fill="#aeb7c4"
+        font-family="DejaVu Sans, sans-serif" font-size="19">
+    Actual results returned by Coin's OpenGL texture-size validation
+  </text>
+
+  <text x="540" y="148" text-anchor="middle" fill="#f4f6f8"
+        font-family="DejaVu Sans, sans-serif" font-size="26" font-weight="700">BEFORE</text>
+  <text x="540" y="174" text-anchor="middle" fill="#aeb7c4"
+        font-family="DejaVu Sans, sans-serif" font-size="17">Original Coin</text>
+  <text x="950" y="148" text-anchor="middle" fill="#f4f6f8"
+        font-family="DejaVu Sans, sans-serif" font-size="26" font-weight="700">AFTER</text>
+  <text x="950" y="174" text-anchor="middle" fill="#aeb7c4"
+        font-family="DejaVu Sans, sans-serif" font-size="17">PR #862</text>
+
+  <text x="48" y="255" fill="#f4f6f8" font-family="DejaVu Sans, sans-serif"
+        font-size="30" font-weight="700">16 × 16</text>
+  <text x="48" y="286" fill="#aeb7c4" font-family="DejaVu Sans, sans-serif"
+        font-size="18">AT THE LIMIT</text>
+
+  <rect x="335" y="205" width="410" height="125" rx="10" fill="#37ad69"/>
+  <text x="540" y="263" text-anchor="middle" fill="#ffffff"
+        font-family="DejaVu Sans, sans-serif" font-size="28" font-weight="700">ACCEPTED</text>
+  <text x="540" y="294" text-anchor="middle" fill="#e8fff1"
+        font-family="DejaVu Sans, sans-serif" font-size="17">Coin returned TRUE</text>
+
+  <rect x="745" y="205" width="410" height="125" rx="10" fill="#37ad69"/>
+  <text x="950" y="263" text-anchor="middle" fill="#ffffff"
+        font-family="DejaVu Sans, sans-serif" font-size="28" font-weight="700">ACCEPTED</text>
+  <text x="950" y="294" text-anchor="middle" fill="#e8fff1"
+        font-family="DejaVu Sans, sans-serif" font-size="17">Coin returned TRUE</text>
+
+  <line x1="48" y1="365" x2="1155" y2="365" stroke="#353b45" stroke-width="2"/>
+
+  <text x="48" y="447" fill="#f4f6f8" font-family="DejaVu Sans, sans-serif"
+        font-size="30" font-weight="700">17 × 16</text>
+  <text x="48" y="478" fill="#aeb7c4" font-family="DejaVu Sans, sans-serif"
+        font-size="18">OVER THE LIMIT</text>
+
+  <rect x="335" y="397" width="410" height="125" rx="10" fill="#37ad69"/>
+  <text x="540" y="455" text-anchor="middle" fill="#ffffff"
+        font-family="DejaVu Sans, sans-serif" font-size="28" font-weight="700">ACCEPTED</text>
+  <text x="540" y="486" text-anchor="middle" fill="#e8fff1"
+        font-family="DejaVu Sans, sans-serif" font-size="17">Configured limit was bypassed</text>
+
+  <rect x="745" y="397" width="410" height="125" rx="10" fill="#d9515b"/>
+  <text x="950" y="455" text-anchor="middle" fill="#ffffff"
+        font-family="DejaVu Sans, sans-serif" font-size="28" font-weight="700">REJECTED</text>
+  <text x="950" y="486" text-anchor="middle" fill="#fff0f1"
+        font-family="DejaVu Sans, sans-serif" font-size="17">Configured limit is enforced</text>
+
+  <rect x="48" y="566" width="1107" height="52" rx="8" fill="#222731"/>
+  <text x="601" y="599" text-anchor="middle" fill="#d9dee7"
+        font-family="DejaVu Sans, sans-serif" font-size="18">
+    Expected: dimensions up to 16 are accepted; any dimension above 16 is rejected.
+  </text>
+</svg>

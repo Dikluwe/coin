@@ -12,3 +12,8 @@ created the complete texture chain.
 
 The presentation labels were added after capture; the acceptance results and
 texture data shown inside the panels come from the corresponding Coin builds.
+
+`texture-size-limits-before-after-v2.svg` is the labeled source for the PNG
+embedded in PR #862. Its four outcomes reproduce the Coin results captured by
+the diagnostic: `16x16` is accepted in both builds, while `17x16` changes from
+accepted to rejected when the configured limit is enforced.
