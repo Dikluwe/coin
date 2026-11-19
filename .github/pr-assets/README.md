@@ -25,3 +25,10 @@ texture unit 1 while unit 0 does not select 3D. OpenGL readback reports missing
 `0x0x0` storage for both cases on the baseline and valid `4x4x1` and `4x4x4`
 storage on the candidate. The colored cells and slices are the actual uploaded
 texels returned by OpenGL.
+
+`scenetexture2-background-before-after.png` compares Coin `31a4ea1bbd1` with
+PR #868 at `40e0af8ef1d`. The same FBO-backed `SoSceneTexture2` first publishes
+RGBA `(31,101,233,71)`, then changes only `backgroundColor` to
+`(197,41,83,211)`. OpenGL readback still returns the old color on the baseline
+and the new color on the candidate. The panels composite the actual returned
+RGBA texels over a checkerboard to make their alpha values visible.
