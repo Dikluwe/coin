@@ -192,3 +192,5 @@ foreach(_quad_strip_pick_scenario
     COMMAND CoinQuadStripPickOrderTest ${_quad_strip_pick_scenario})
 endforeach()
 
+
+include(SoOffscreenRendererTests.cmake)
