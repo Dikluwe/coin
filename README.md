@@ -1,3 +1,11 @@
+# Contribution evidence for the Coin upstream
+
+All active PRs target **coin3d/coin**, with source branches and visual evidence hosted in the fork. [Current upstream PR index](PR-INDEX.md). Former fork reviews are closed and redirect to their upstream replacements.
+
+The records below preserve the earlier preparation history; they do not define the current PR destination.
+
+---
+
 # Current status after removing duplicate segment picking
 
 23 active texture themes; LIN #26 is closed in favor of upstream #871. [Corrected review index](PR-INDEX.md) · [Deduplication proof and explicit integration contracts](dedup-20261119/README.md).
