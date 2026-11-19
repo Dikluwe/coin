@@ -218,6 +218,7 @@ add_executable(CoinTests
 	TestSuiteUtils.cpp
 	TestSuiteMisc.cpp
 	InternalMacroTest.cpp
+	SoComplexityCallbackTest.cpp
 	InternalSmallMapTest.cpp
 	Texture2OverrideTest.cpp
 	${COIN_TEST_SOURCES}
