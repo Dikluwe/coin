@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="5"
+	failures="4"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:49:55"
+	>
+	<testcase name="SoSphereTexturePick_functions" classname="SoSphereTexturePick_functions" time="0.0161496" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="picking;texture-coordinates"/>
+		</properties>
+		<system-out>FAIL user function transformed=0 cube=0 all=0: unit zero raw function result, including Q
+  actual (0.524462,0.564094,0,1), expected (5.99053,-8.03175,2.98649,10.5909)
+FAIL user function transformed=0 cube=0 all=0: only accepted nearest or pickAll roots evaluate unit zero callback
+FAIL user function transformed=0 cube=0 all=1: unit zero raw function result, including Q
+  actual (0.524462,0.564094,0,1), expected (5.99053,-8.03175,2.98649,10.5909)
+FAIL user function transformed=0 cube=0 all=1: unit zero raw function result, including Q
+  actual (0.975538,0.564094,0,1), expected (17.6095,-9.96825,-0.886492,11.5591)
+FAIL user function transformed=0 cube=0 all=1: only accepted nearest or pickAll roots evaluate unit zero callback
+FAIL user function transformed=0 cube=1 all=0: unit zero raw function result, including Q
+  actual (0.524462,0.564094,0,1), expected (5.99053,-8.03175,2.98649,10.5909)
+FAIL user function transformed=0 cube=1 all=0: only accepted nearest or pickAll roots evaluate unit zero callback
+FAIL user function transformed=0 cube=1 all=1: unit zero raw function result, including Q
+  actual (0.524462,0.564094,0,1), expected (5.99053,-8.03175,2.98649,10.5909)
+FAIL user function transformed=0 cube=1 all=1: unit zero raw function result, including Q
+  actual (0.975538,0.564094,0,1), expected (17.6095,-9.96825,-0.886492,11.5591)
+FAIL user function transformed=0 cube=1 all=1: only accepted nearest or pickAll roots evaluate unit zero callback
+FAIL user function transformed=1 cube=0 all=0: unit zero raw function result, including Q
+  actual (0.524462,0.564094,0,1), expected (5.99053,-8.03175,2.98649,10.5909)
+FAIL user function transformed=1 cube=0 all=0: only accepted nearest or pickAll roots evaluate unit zero callback
+FAIL user function transformed=1 cube=0 all=1: unit zero raw function result, including Q
+  actual (0.524462,0.564094,0,1), expected (5.99053,-8.03175,2.98649,10.5909)
+FAIL user function transformed=1 cube=0 all=1: unit zero raw function result, including Q
+  actual (0.975538,0.564094,0,1), expected (17.6095,-9.96825,-0.886492,11.5591)
+FAIL user function transformed=1 cube=0 all=1: only accepted nearest or pickAll roots evaluate unit zero callback
+FAIL user function transformed=1 cube=1 all=0: unit zero raw function result, including Q
+  actual (0.524462,0.564094,0,1), expected (5.99053,-8.03175,2.98649,10.5909)
+FAIL user function transformed=1 cube=1 all=0: only accepted nearest or pickAll roots evaluate unit zero callback
+FAIL user function transformed=1 cube=1 all=1: unit zero raw function result, including Q
+  actual (0.524462,0.564094,0,1), expected (5.99053,-8.03175,2.98649,10.5909)
+FAIL user function transformed=1 cube=1 all=1: unit zero raw function result, including Q
+  actual (0.975538,0.564094,0,1), expected (17.6095,-9.96825,-0.886492,11.5591)
+FAIL user function transformed=1 cube=1 all=1: only accepted nearest or pickAll roots evaluate unit zero callback
+FAIL raw homogeneous result and texture matrix: raw result preserves zero Q, negative Q, and signed zero bits
+FAIL raw homogeneous result and texture matrix: public texture coordinate keeps historical matrix transform without Q divide
+  actual (6.10615,-4.10703,7,1), expected (4,-9,20,0)
+FAIL raw homogeneous result and texture matrix: raw result preserves zero Q, negative Q, and signed zero bits
+FAIL raw homogeneous result and texture matrix: public texture coordinate keeps historical matrix transform without Q divide
+  actual (6.10615,-4.10703,7,1), expected (-31,33,-29,-7)
+FAIL raw homogeneous result and texture matrix: raw result preserves zero Q, negative Q, and signed zero bits
+FAIL raw homogeneous result and texture matrix: public texture coordinate keeps historical matrix transform without Q divide
+  actual (6.10615,-4.10703,7,1), expected (-0,0,-0,-0)
+FAIL boundary=0 function=1 all=0: boundary functional result or legacy angular result
+  actual (0.75,0.5,0,1), expected (33,-31,7,31.25)
+FAIL boundary=0 function=1 all=0: boundary evaluates function exactly once per accepted hit
+FAIL boundary=0 function=1 all=1: boundary functional result or legacy angular result
+  actual (0.75,0.5,0,1), expected (33,-31,7,31.25)
+FAIL boundary=0 function=1 all=1: boundary evaluates function exactly once per accepted hit
+FAIL boundary=1 function=1 all=0: boundary functional result or legacy angular result
+  actual (1,0.5,0,1), expected (34,-32,-1,31.5)
+FAIL boundary=1 function=1 all=0: boundary evaluates function exactly once per accepted hit
+FAIL boundary=1 function=1 all=1: boundary functional result or legacy angular result
+  actual (1,0.5,0,1), expected (34,-32,-1,31.5)
+FAIL boundary=1 function=1 all=1: boundary evaluates function exactly once per accepted hit
+Coin warning in SbSphere::SbSphere(): Radius should be &gt;= 0.0f.
+Coin warning in SbSphere::setValue(): Radius should be &gt;= 0.0f.
+Coin warning in SbSphere::setRadius(): Radius should be &gt;= 0.0f.
+Coin warning in SbSphere::SbSphere(): Radius should be &gt;= 0.0f.
+Coin warning in SbSphere::setValue(): Radius should be &gt;= 0.0f.
+Coin warning in SbSphere::setRadius(): Radius should be &gt;= 0.0f.
+Coin warning in SbSphere::SbSphere(): Radius should be &gt;= 0.0f.
+Coin warning in SbSphere::setValue(): Radius should be &gt;= 0.0f.
+Coin warning in SbSphere::setRadius(): Radius should be &gt;= 0.0f.
+FAIL boundary=2 function=1 all=0: boundary functional result or legacy angular result
+  actual (0.5,0.5,0,1), expected (25,-30,2,30.5)
+FAIL boundary=2 function=1 all=0: boundary evaluates function exactly once per accepted hit
+Coin warning in SbSphere::SbSphere(): Radius should be &gt;= 0.0f.
+Coin warning in SbSphere::setValue(): Radius should be &gt;= 0.0f.
+Coin warning in SbSphere::setRadius(): Radius should be &gt;= 0.0f.
+FAIL boundary=2 function=1 all=1: boundary functional result or legacy angular result
+  actual (0.5,0.5,0,1), expected (25,-30,2,30.5)
+FAIL boundary=2 function=1 all=1: boundary functional result or legacy angular result
+  actual (1,0.5,0,1), expected (37,-32,-2,31.5)
+FAIL boundary=2 function=1 all=1: boundary evaluates function exactly once per accepted hit
+FAIL boundary=3 function=1 all=0: boundary functional result or legacy angular result
+  actual (0.5,0.5,0,1), expected (31,-31,0,31)
+FAIL boundary=3 function=1 all=0: boundary evaluates function exactly once per accepted hit
+FAIL boundary=3 function=1 all=1: boundary functional result or legacy angular result
+  actual (0.5,0.5,0,1), expected (31,-31,0,31)
+FAIL boundary=3 function=1 all=1: boundary evaluates function exactly once per accepted hit
+233 checks, 43 failures
+</system-out>
+	</testcase>
+	<testcase name="SoSphereTexturePick_generators" classname="SoSphereTexturePick_generators" time="0.0156222" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="picking;texture-coordinates"/>
+		</properties>
+		<system-out>FAIL real CubeMap generator=0 transformed=0: analytic generator coordinate at exact hit
+  actual (0.524462,0.564094,0,1), expected (0.15,0.2,0.968246,1)
+FAIL real CubeMap generator=0 transformed=0: analytic generator coordinate at exact hit
+  actual (0.975538,0.564094,0,1), expected (0.15,0.2,-0.968246,1)
+FAIL real CubeMap generator=0 transformed=1: analytic generator coordinate at exact hit
+  actual (0.524462,0.564094,0,1), expected (0.28622,0.254417,0.92377,1)
+FAIL real CubeMap generator=0 transformed=1: analytic generator coordinate at exact hit
+  actual (0.975538,0.564094,0,1), expected (0.28622,0.254417,-0.92377,1)
+FAIL real CubeMap generator=1 transformed=0: analytic generator coordinate at exact hit
+  actual (0.524462,0.564094,0,1), expected (0.310341,0.413788,0.855844,1)
+FAIL real CubeMap generator=1 transformed=0: analytic generator coordinate at exact hit
+  actual (0.975538,0.564094,0,1), expected (-0.274855,-0.366473,0.888905,1)
+FAIL real CubeMap generator=1 transformed=1: analytic generator coordinate at exact hit
+  actual (0.524462,0.564094,0,1), expected (0.969602,-0.194718,0.148176,1)
+FAIL real CubeMap generator=1 transformed=1: analytic generator coordinate at exact hit
+  actual (0.975538,0.564094,0,1), expected (-0.181201,-0.631906,0.753565,1)
+102 checks, 8 failures
+</system-out>
+	</testcase>
+	<testcase name="SoSphereTexturePick_clipping" classname="SoSphereTexturePick_clipping" time="0.0138471" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="picking;texture-coordinates"/>
+		</properties>
+		<system-out>FAIL clipping mode=0: surviving hit receives function coordinate
+  actual (0.524462,0.564094,0,1), expected (11.9905,-14.0318,2.98649,16.5909)
+FAIL clipping mode=0: surviving hit receives function coordinate
+  actual (0.975538,0.564094,0,1), expected (23.6095,-15.9682,-0.886492,17.5591)
+FAIL clipping mode=0: clipped roots do not evaluate user function
+FAIL clipping mode=1: surviving hit receives function coordinate
+  actual (0.975538,0.564094,0,1), expected (23.6095,-15.9682,-0.886492,17.5591)
+FAIL clipping mode=1: clipped roots do not evaluate user function
+FAIL clipping mode=2: surviving hit receives function coordinate
+  actual (0.524462,0.564094,0,1), expected (11.9905,-14.0318,2.98649,16.5909)
+FAIL clipping mode=2: clipped roots do not evaluate user function
+FAIL clipping mode=3: surviving hit receives function coordinate
+  actual (0.975538,0.564094,0,1), expected (23.6095,-15.9682,-0.886492,17.5591)
+FAIL clipping mode=3: clipped roots do not evaluate user function
+22 checks, 9 failures
+</system-out>
+	</testcase>
+	<testcase name="SoSphereTexturePick_legacy" classname="SoSphereTexturePick_legacy" time="0.0157677" status="run">
+		<properties>
+			<property name="cmake_labels" value="picking;texture-coordinates"/>
+		</properties>
+		<system-out>163 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="SoSphereTexturePick_scopes" classname="SoSphereTexturePick_scopes" time="0.0137102" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="picking;texture-coordinates"/>
+		</properties>
+		<system-out>FAIL separator restoration and action reuse: inner state, restored outer state, and reset default
+  actual (0.553074,0.63099,0,1), expected (57.4019,-56.134,2.96603,58.642)
+FAIL separator restoration and action reuse: inner state, restored outer state, and reset default
+  actual (0.946926,0.63099,0,1), expected (62.5981,-57.866,1.23397,59.508)
+FAIL separator restoration and action reuse: inner state, restored outer state, and reset default
+  actual (0.553074,0.63099,0,1), expected (21.4019,-20.134,2.96603,22.642)
+FAIL separator restoration and action reuse: inner state, restored outer state, and reset default
+  actual (0.946926,0.63099,0,1), expected (26.5981,-21.866,1.23397,23.508)
+FAIL separator restoration and action reuse: functions remain within restored scopes
+FAIL separator restoration and action reuse: inner state, restored outer state, and reset default
+  actual (0.553074,0.63099,0,1), expected (57.4019,-56.134,2.96603,58.642)
+FAIL separator restoration and action reuse: inner state, restored outer state, and reset default
+  actual (0.946926,0.63099,0,1), expected (62.5981,-57.866,1.23397,59.508)
+FAIL separator restoration and action reuse: inner state, restored outer state, and reset default
+  actual (0.553074,0.63099,0,1), expected (21.4019,-20.134,2.96603,22.642)
+FAIL separator restoration and action reuse: inner state, restored outer state, and reset default
+  actual (0.946926,0.63099,0,1), expected (26.5981,-21.866,1.23397,23.508)
+FAIL separator restoration and action reuse: functions remain within restored scopes
+40 checks, 10 failures
+</system-out>
+	</testcase>
+</testsuite>

@@ -1,0 +1,59 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 95: M07_06_repair
+1/2 Test #95: M07_06_repair ....................***Failed    0.03 sec
+FAIL cofactor sum zero lost representable H residual component=0
+  got -8.27180613e-25 want -0.666666687
+FAIL cofactor sum zero lost representable H residual component=1
+  got -1 want -0.666666687
+FAIL cofactor sum zero lost representable H residual component=2
+  got 2.22044605e-16 want 0.333333343
+FAIL cofactor residual followed by camera rotation component=0
+  got -0.707106829 want -0.942809045
+FAIL cofactor residual followed by camera rotation component=1
+  got -0.707106709 want 7.94728621e-08
+FAIL cofactor residual followed by camera rotation component=2
+  got 1.71142673e-08 want 0.333333313
+FAIL cofactor sum zero lost representable H residual component=0
+  got -8.27180613e-25 want -0.666666687
+FAIL cofactor sum zero lost representable H residual component=1
+  got -1 want -0.666666687
+FAIL cofactor sum zero lost representable H residual component=2
+  got 2.22044605e-16 want 0.333333343
+FAIL cofactor residual followed by camera rotation component=0
+  got -0.707106829 want -0.942809045
+FAIL cofactor residual followed by camera rotation component=1
+  got -0.707106709 want 7.94728621e-08
+FAIL cofactor residual followed by camera rotation component=2
+  got 1.71142673e-08 want 0.333333313
+FAIL cofactor sum zero lost representable H residual component=0
+  got 0.5 want 0.295875847
+FAIL cofactor sum zero lost representable H residual component=1
+  got 0.146446615 want 0.295875847
+FAIL cofactor residual followed by camera rotation component=0
+  got 0.249999985 want 0.211324856
+FAIL cofactor residual followed by camera rotation component=1
+  got 0.25000003 want 0.5
+FAIL cofactor sum zero lost representable H residual component=0
+  got 0.5 want 0.295875847
+FAIL cofactor sum zero lost representable H residual component=1
+  got 0.146446615 want 0.295875847
+FAIL cofactor residual followed by camera rotation component=0
+  got 0.249999985 want 0.211324856
+FAIL cofactor residual followed by camera rotation component=1
+  got 0.25000003 want 0.5
+40 checks, 20 failures
+
+    Start 96: M07_06_legacy
+2/2 Test #96: M07_06_legacy ....................   Passed    0.03 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Label Time Summary:
+texture-coordinates    =   0.05 sec*proc (2 tests)
+
+Total Test time (real) =   0.06 sec
+
+The following tests FAILED:
+	 95 - M07_06_repair (Failed)
+Errors while running CTest

@@ -1,0 +1,66 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 75: LineTextureWeights_lines
+1/3 Test #75: LineTextureWeights_lines .........***Failed    0.01 sec
+FAIL texture follows position along line: got 13, want -3
+FAIL texture follows position along line: got -6, want 2
+FAIL texture follows position along line: got -2, want 6
+FAIL texture follows position along line: got 10, want 2
+FAIL texture follows position along line: got 11, want -1
+FAIL texture follows position along line: got -5, want 1
+FAIL texture follows position along line: got -1, want 5
+FAIL texture follows position along line: got 9, want 3
+FAIL texture follows position along line: got 9, want 1
+FAIL texture follows position along line: got -4, want 0
+FAIL texture follows position along line: got 0, want 4
+FAIL texture follows position along line: got 8, want 4
+FAIL texture follows position along line: got 1, want 9
+FAIL texture follows position along line: got 0, want -4
+FAIL texture follows position along line: got 4, want 0
+FAIL texture follows position along line: got 4, want 8
+FAIL texture follows position along line: got -1, want 11
+FAIL texture follows position along line: got 1, want -5
+FAIL texture follows position along line: got 5, want -1
+FAIL texture follows position along line: got 3, want 9
+FAIL texture follows position along line: got -3, want 13
+FAIL texture follows position along line: got 2, want -6
+FAIL texture follows position along line: got 6, want -2
+FAIL texture follows position along line: got 2, want 10
+FAIL texture follows position along line: got 13, want -3
+FAIL texture follows position along line: got -6, want 2
+FAIL texture follows position along line: got -2, want 6
+FAIL texture follows position along line: got 10, want 2
+FAIL texture follows position along line: got 11, want -1
+FAIL texture follows position along line: got -5, want 1
+FAIL texture follows position along line: got -1, want 5
+FAIL texture follows position along line: got 9, want 3
+FAIL texture follows position along line: got 9, want 1
+FAIL texture follows position along line: got -4, want 0
+FAIL texture follows position along line: got 0, want 4
+FAIL texture follows position along line: got 8, want 4
+FAIL texture follows position along line: got 1, want 9
+FAIL texture follows position along line: got 0, want -4
+FAIL texture follows position along line: got 4, want 0
+FAIL texture follows position along line: got 4, want 8
+FAIL texture follows position along line: got -1, want 11
+FAIL texture follows position along line: got 1, want -5
+FAIL texture follows position along line: got 5, want -1
+FAIL texture follows position along line: got 3, want 9
+FAIL texture follows position along line: got -3, want 13
+FAIL texture follows position along line: got 2, want -6
+FAIL texture follows position along line: got 6, want -2
+FAIL texture follows position along line: got 2, want 10
+lines: 168 checks, 48 failures
+
+    Start 76: LineTextureWeights_controls
+2/3 Test #76: LineTextureWeights_controls ......   Passed    0.01 sec
+    Start 77: LineTextureWeights_degenerate
+3/3 Test #77: LineTextureWeights_degenerate ....   Passed    0.02 sec
+
+67% tests passed, 1 tests failed out of 3
+
+Total Test time (real) =   0.05 sec
+
+The following tests FAILED:
+	 75 - LineTextureWeights_lines (Failed)
+Errors while running CTest

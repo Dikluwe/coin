@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="3"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:48:22"
+	>
+	<testcase name="TextureCoordinateEnvironmentReflection_callback" classname="TextureCoordinateEnvironmentReflection_callback" time="0.121193" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>callback: 65112 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateEnvironmentReflection_pick" classname="TextureCoordinateEnvironmentReflection_pick" time="0.121533" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>pick: 65112 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateEnvironmentReflection_gl" classname="TextureCoordinateEnvironmentReflection_gl" time="0.262908" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits)
+gl: 69542 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

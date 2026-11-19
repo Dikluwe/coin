@@ -1,0 +1,103 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 122: TextureCoordinate2VBO_lifecycle
+1/8 Test #122: TextureCoordinate2VBO_lifecycle ..........***Failed    0.06 sec
+FAIL lifecycle unit=0 step=8: no VBO below threshold, disabled, or empty
+FAIL lifecycle unit=0 step=8: retired VBO releases data and identity
+FAIL lifecycle unit=1 step=8: no VBO below threshold, disabled, or empty
+FAIL lifecycle unit=1 step=8: retired VBO releases data and identity
+FAIL lifecycle unit=7 step=8: no VBO below threshold, disabled, or empty
+FAIL lifecycle unit=7 step=8: retired VBO releases data and identity
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=lifecycle
+969 checks, 6 failures
+
+    Start 123: TextureCoordinate2VBO_empty
+2/8 Test #123: TextureCoordinate2VBO_empty ..............***Failed    0.07 sec
+FAIL empty zero-threshold unit=0 step=0: empty array has no VBO at zero threshold
+FAIL empty zero-threshold unit=0 step=2: empty array has no VBO at zero threshold
+FAIL empty zero-threshold unit=0 step=2: empty array releases prior VBO data and id
+FAIL empty zero-threshold unit=1 step=0: empty array has no VBO at zero threshold
+FAIL empty zero-threshold unit=1 step=2: empty array has no VBO at zero threshold
+FAIL empty zero-threshold unit=1 step=2: empty array releases prior VBO data and id
+FAIL empty zero-threshold unit=7 step=0: empty array has no VBO at zero threshold
+FAIL empty zero-threshold unit=7 step=2: empty array has no VBO at zero threshold
+FAIL empty zero-threshold unit=7 step=2: empty array releases prior VBO data and id
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=empty
+252 checks, 9 failures
+
+    Start 124: TextureCoordinate2VBO_separator
+3/8 Test #124: TextureCoordinate2VBO_separator ..........   Passed    0.08 sec
+    Start 125: TextureCoordinate2VBO_disabled
+4/8 Test #125: TextureCoordinate2VBO_disabled ...........   Passed    0.07 sec
+    Start 126: TextureCoordinate2VBO_invalid-negative
+5/8 Test #126: TextureCoordinate2VBO_invalid-negative ...Subprocess aborted***Exception:   0.94 sec
+BEGIN invalid unit=-1
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+    Start 127: TextureCoordinate2VBO_invalid-min
+6/8 Test #127: TextureCoordinate2VBO_invalid-min ........Subprocess aborted***Exception:   0.99 sec
+BEGIN invalid unit=-2147483648
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+    Start 128: TextureCoordinate2VBO_invalid-limit
+7/8 Test #128: TextureCoordinate2VBO_invalid-limit ......***Failed    0.09 sec
+BEGIN invalid unit=8
+FAIL invalid unit=8 phase=0: invalid unit does not register any VBO slot
+FAIL invalid unit=8 phase=1: invalid unit does not register any VBO slot
+FAIL invalid unit=8 phase=1: invalid unit preserves VBO data identity
+FAIL invalid unit=8 phase=1: invalid unit preserves CPU pointer and size
+FAIL invalid unit=8 phase=1: VBO CPU bytes
+FAIL invalid unit=8 phase=1: actual GL bytes
+FAIL invalid unit=8 phase=1: invalid unit preserves existing GL resource
+FAIL invalid unit=8 phase=2: invalid unit does not register any VBO slot
+FAIL invalid unit=8 phase=2: invalid unit preserves VBO data identity
+FAIL invalid unit=8 phase=2: invalid unit preserves CPU pointer and size
+FAIL invalid unit=8 phase=3: invalid unit does not register any VBO slot
+FAIL invalid unit=8 phase=3: invalid unit preserves VBO data identity
+FAIL invalid unit=8 phase=3: invalid unit preserves CPU pointer and size
+FAIL invalid unit=8 phase=4: invalid unit does not register any VBO slot
+FAIL invalid unit=8 phase=4: invalid unit preserves VBO data identity
+FAIL invalid unit=8 phase=4: invalid unit preserves CPU pointer and size
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=invalid-limit
+216 checks, 16 failures
+
+    Start 129: TextureCoordinate2VBO_invalid-above
+8/8 Test #129: TextureCoordinate2VBO_invalid-above ......***Failed    0.08 sec
+BEGIN invalid unit=13
+FAIL invalid unit=13 phase=0: invalid unit does not register any VBO slot
+FAIL invalid unit=13 phase=1: invalid unit does not register any VBO slot
+FAIL invalid unit=13 phase=1: invalid unit preserves VBO data identity
+FAIL invalid unit=13 phase=1: invalid unit preserves CPU pointer and size
+FAIL invalid unit=13 phase=1: VBO CPU bytes
+FAIL invalid unit=13 phase=1: actual GL bytes
+FAIL invalid unit=13 phase=1: invalid unit preserves existing GL resource
+FAIL invalid unit=13 phase=2: invalid unit does not register any VBO slot
+FAIL invalid unit=13 phase=2: invalid unit preserves VBO data identity
+FAIL invalid unit=13 phase=2: invalid unit preserves CPU pointer and size
+FAIL invalid unit=13 phase=3: invalid unit does not register any VBO slot
+FAIL invalid unit=13 phase=3: invalid unit preserves VBO data identity
+FAIL invalid unit=13 phase=3: invalid unit preserves CPU pointer and size
+FAIL invalid unit=13 phase=4: invalid unit does not register any VBO slot
+FAIL invalid unit=13 phase=4: invalid unit preserves VBO data identity
+FAIL invalid unit=13 phase=4: invalid unit preserves CPU pointer and size
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=invalid-above
+216 checks, 16 failures
+
+
+25% tests passed, 6 tests failed out of 8
+
+Label Time Summary:
+texture-coordinates    =   2.39 sec*proc (8 tests)
+
+Total Test time (real) =   2.40 sec
+
+The following tests FAILED:
+	122 - TextureCoordinate2VBO_lifecycle (Failed)
+	123 - TextureCoordinate2VBO_empty (Failed)
+	126 - TextureCoordinate2VBO_invalid-negative (Subprocess aborted)
+	127 - TextureCoordinate2VBO_invalid-min (Subprocess aborted)
+	128 - TextureCoordinate2VBO_invalid-limit (Failed)
+	129 - TextureCoordinate2VBO_invalid-above (Failed)
+Errors while running CTest

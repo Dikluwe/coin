@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="2"
+	failures="1"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:48:46"
+	>
+	<testcase name="M07_04_repair" classname="M07_04_repair" time="0.0257405" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL overflowed products cancel to representable value component=0
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=1
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=2
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=0
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=1
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=2
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=3
+  got -nan want 3
+FAIL overflowed addition of finite products has representable sum component=0
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=1
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=2
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=0
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=1
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=2
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=3
+  got inf want 2.55211755e+38
+FAIL underflowed products accumulate to nonzero subnormal component=0
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=1
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=2
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=0
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=1
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=2
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=3
+  got 0 want 1.40129846e-45
+FAIL exact zero Float sum lost representable residual component=0
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=1
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=2
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=0
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=1
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=2
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=3
+  got 0 want 1
+40 checks, 28 failures
+</system-out>
+	</testcase>
+	<testcase name="M07_04_legacy" classname="M07_04_legacy" time="0.0252484" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>50 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

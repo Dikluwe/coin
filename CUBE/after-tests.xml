@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="6"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:49:50"
+	>
+	<testcase name="TextureCubeMapCPU_callback_mesh" classname="TextureCubeMapCPU_callback_mesh" time="0.0301334" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>336 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCubeMapCPU_callback_state" classname="TextureCubeMapCPU_callback_state" time="0.0187535" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>Coin error in SbImage::readFile(): couldn't find 'coin-cubemap-cpu-do-not-load-this-file.png'.
+Coin warning in SoTextureCubeMap::filenameSensorCB(): Image file 'coin-cubemap-cpu-do-not-load-this-file.png' could not be read
+576 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCubeMapCPU_callback_reuse" classname="TextureCubeMapCPU_callback_reuse" time="0.0141057" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>22 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCubeMapCPU_pick_mesh" classname="TextureCubeMapCPU_pick_mesh" time="0.0227296" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>168 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCubeMapCPU_pick_state" classname="TextureCubeMapCPU_pick_state" time="0.0196393" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>Coin error in SbImage::readFile(): couldn't find 'coin-cubemap-cpu-do-not-load-this-file.png'.
+Coin warning in SoTextureCubeMap::filenameSensorCB(): Image file 'coin-cubemap-cpu-do-not-load-this-file.png' could not be read
+576 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCubeMapCPU_pick_reuse" classname="TextureCubeMapCPU_pick_reuse" time="0.0145306" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>22 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

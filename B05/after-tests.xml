@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="3"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:48:16"
+	>
+	<testcase name="TextureCoordinateNormalMap_callback" classname="TextureCoordinateNormalMap_callback" time="0.0268076" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>callback: 8236 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateNormalMap_pick" classname="TextureCoordinateNormalMap_pick" time="0.0261008" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>pick: 8236 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateNormalMap_gl" classname="TextureCoordinateNormalMap_gl" time="0.0939813" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits)
+gl: 9818 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

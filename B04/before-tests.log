@@ -1,0 +1,286 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+      Start 130: TextureCoordinateGeneratorGuards_default_valid
+ 1/45 Test #130: TextureCoordinateGeneratorGuards_default_valid ............   Passed    0.06 sec
+      Start 131: TextureCoordinateGeneratorGuards_default_negative
+ 2/45 Test #131: TextureCoordinateGeneratorGuards_default_negative .........Subprocess aborted***Exception:   0.94 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 132: TextureCoordinateGeneratorGuards_default_min
+ 3/45 Test #132: TextureCoordinateGeneratorGuards_default_min ..............Subprocess aborted***Exception:   0.94 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 133: TextureCoordinateGeneratorGuards_default_limit
+ 4/45 Test #133: TextureCoordinateGeneratorGuards_default_limit ............   Passed    0.08 sec
+      Start 134: TextureCoordinateGeneratorGuards_default_above
+ 5/45 Test #134: TextureCoordinateGeneratorGuards_default_above ............   Passed    0.07 sec
+      Start 135: TextureCoordinateGeneratorGuards_cube_valid
+ 6/45 Test #135: TextureCoordinateGeneratorGuards_cube_valid ...............   Passed    0.08 sec
+      Start 136: TextureCoordinateGeneratorGuards_cube_negative
+ 7/45 Test #136: TextureCoordinateGeneratorGuards_cube_negative ............Subprocess aborted***Exception:   0.93 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 137: TextureCoordinateGeneratorGuards_cube_min
+ 8/45 Test #137: TextureCoordinateGeneratorGuards_cube_min .................Subprocess aborted***Exception:   0.93 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 138: TextureCoordinateGeneratorGuards_cube_limit
+ 9/45 Test #138: TextureCoordinateGeneratorGuards_cube_limit ...............***Failed    0.08 sec
+FAIL cube private context invalid=8: invalid visit in other action preserves live CPU callback context
+FAIL cube private context invalid=8: invalid visit in other action preserves live CPU callback context
+FAIL cube private context invalid=8: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cube mode=limit
+1097 checks, 3 failures
+
+      Start 139: TextureCoordinateGeneratorGuards_cube_above
+10/45 Test #139: TextureCoordinateGeneratorGuards_cube_above ...............***Failed    0.08 sec
+FAIL cube private context invalid=13: invalid visit in other action preserves live CPU callback context
+FAIL cube private context invalid=13: invalid visit in other action preserves live CPU callback context
+FAIL cube private context invalid=13: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cube mode=above
+1097 checks, 3 failures
+
+      Start 140: TextureCoordinateGeneratorGuards_cylinder_valid
+11/45 Test #140: TextureCoordinateGeneratorGuards_cylinder_valid ...........   Passed    0.08 sec
+      Start 141: TextureCoordinateGeneratorGuards_cylinder_negative
+12/45 Test #141: TextureCoordinateGeneratorGuards_cylinder_negative ........Subprocess aborted***Exception:   0.92 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 142: TextureCoordinateGeneratorGuards_cylinder_min
+13/45 Test #142: TextureCoordinateGeneratorGuards_cylinder_min .............Subprocess aborted***Exception:   0.95 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 143: TextureCoordinateGeneratorGuards_cylinder_limit
+14/45 Test #143: TextureCoordinateGeneratorGuards_cylinder_limit ...........***Failed    0.08 sec
+FAIL cylinder private context invalid=8: invalid visit in other action preserves live CPU callback context
+FAIL cylinder private context invalid=8: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cylinder mode=limit
+1097 checks, 2 failures
+
+      Start 144: TextureCoordinateGeneratorGuards_cylinder_above
+15/45 Test #144: TextureCoordinateGeneratorGuards_cylinder_above ...........***Failed    0.08 sec
+FAIL cylinder private context invalid=13: invalid visit in other action preserves live CPU callback context
+FAIL cylinder private context invalid=13: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cylinder mode=above
+1097 checks, 2 failures
+
+      Start 145: TextureCoordinateGeneratorGuards_sphere_valid
+16/45 Test #145: TextureCoordinateGeneratorGuards_sphere_valid .............   Passed    0.07 sec
+      Start 146: TextureCoordinateGeneratorGuards_sphere_negative
+17/45 Test #146: TextureCoordinateGeneratorGuards_sphere_negative ..........Subprocess aborted***Exception:   0.92 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 147: TextureCoordinateGeneratorGuards_sphere_min
+18/45 Test #147: TextureCoordinateGeneratorGuards_sphere_min ...............Subprocess aborted***Exception:   0.92 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 148: TextureCoordinateGeneratorGuards_sphere_limit
+19/45 Test #148: TextureCoordinateGeneratorGuards_sphere_limit .............***Failed    0.08 sec
+FAIL sphere private context invalid=8: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=sphere mode=limit
+1097 checks, 1 failures
+
+      Start 149: TextureCoordinateGeneratorGuards_sphere_above
+20/45 Test #149: TextureCoordinateGeneratorGuards_sphere_above .............***Failed    0.07 sec
+FAIL sphere private context invalid=13: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=sphere mode=above
+1097 checks, 1 failures
+
+      Start 150: TextureCoordinateGeneratorGuards_environment_valid
+21/45 Test #150: TextureCoordinateGeneratorGuards_environment_valid ........   Passed    0.08 sec
+      Start 151: TextureCoordinateGeneratorGuards_environment_negative
+22/45 Test #151: TextureCoordinateGeneratorGuards_environment_negative .....Subprocess aborted***Exception:   0.91 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 152: TextureCoordinateGeneratorGuards_environment_min
+23/45 Test #152: TextureCoordinateGeneratorGuards_environment_min ..........Subprocess aborted***Exception:   0.92 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 153: TextureCoordinateGeneratorGuards_environment_limit
+24/45 Test #153: TextureCoordinateGeneratorGuards_environment_limit ........   Passed    0.08 sec
+      Start 154: TextureCoordinateGeneratorGuards_environment_above
+25/45 Test #154: TextureCoordinateGeneratorGuards_environment_above ........   Passed    0.08 sec
+      Start 155: TextureCoordinateGeneratorGuards_object_valid
+26/45 Test #155: TextureCoordinateGeneratorGuards_object_valid .............   Passed    0.08 sec
+      Start 156: TextureCoordinateGeneratorGuards_object_negative
+27/45 Test #156: TextureCoordinateGeneratorGuards_object_negative ..........Subprocess aborted***Exception:   0.95 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 157: TextureCoordinateGeneratorGuards_object_min
+28/45 Test #157: TextureCoordinateGeneratorGuards_object_min ...............Subprocess aborted***Exception:   0.95 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 158: TextureCoordinateGeneratorGuards_object_limit
+29/45 Test #158: TextureCoordinateGeneratorGuards_object_limit .............   Passed    0.08 sec
+      Start 159: TextureCoordinateGeneratorGuards_object_above
+30/45 Test #159: TextureCoordinateGeneratorGuards_object_above .............   Passed    0.08 sec
+      Start 160: TextureCoordinateGeneratorGuards_plane_valid
+31/45 Test #160: TextureCoordinateGeneratorGuards_plane_valid ..............   Passed    0.08 sec
+      Start 161: TextureCoordinateGeneratorGuards_plane_negative
+32/45 Test #161: TextureCoordinateGeneratorGuards_plane_negative ...........Subprocess aborted***Exception:   0.93 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 162: TextureCoordinateGeneratorGuards_plane_min
+33/45 Test #162: TextureCoordinateGeneratorGuards_plane_min ................Subprocess aborted***Exception:   0.97 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 163: TextureCoordinateGeneratorGuards_plane_limit
+34/45 Test #163: TextureCoordinateGeneratorGuards_plane_limit ..............   Passed    0.08 sec
+      Start 164: TextureCoordinateGeneratorGuards_plane_above
+35/45 Test #164: TextureCoordinateGeneratorGuards_plane_above ..............   Passed    0.08 sec
+      Start 165: TextureCoordinateGeneratorGuards_normalmap_valid
+36/45 Test #165: TextureCoordinateGeneratorGuards_normalmap_valid ..........   Passed    0.08 sec
+      Start 166: TextureCoordinateGeneratorGuards_normalmap_negative
+37/45 Test #166: TextureCoordinateGeneratorGuards_normalmap_negative .......Subprocess aborted***Exception:   0.95 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 167: TextureCoordinateGeneratorGuards_normalmap_min
+38/45 Test #167: TextureCoordinateGeneratorGuards_normalmap_min ............Subprocess aborted***Exception:   0.93 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 168: TextureCoordinateGeneratorGuards_normalmap_limit
+39/45 Test #168: TextureCoordinateGeneratorGuards_normalmap_limit ..........***Failed    0.08 sec
+FAIL normalmap invalid=8 predecessor=0: active GL texture preserved
+FAIL normalmap invalid=8 predecessor=0: CPU element slots and node identities preserved
+FAIL normalmap invalid=8 predecessor=0: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=8 predecessor=0: traversal issued no invalid GL commands
+FAIL normalmap invalid=8 predecessor=1: active GL texture preserved
+FAIL normalmap invalid=8 predecessor=1: CPU element slots and node identities preserved
+FAIL normalmap invalid=8 predecessor=1: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=8 predecessor=1: traversal issued no invalid GL commands
+FAIL normalmap invalid=8 predecessor=2: active GL texture preserved
+FAIL normalmap invalid=8 predecessor=2: CPU element slots and node identities preserved
+FAIL normalmap invalid=8 predecessor=2: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=8 predecessor=2: traversal issued no invalid GL commands
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=normalmap mode=limit
+1089 checks, 12 failures
+
+      Start 169: TextureCoordinateGeneratorGuards_normalmap_above
+40/45 Test #169: TextureCoordinateGeneratorGuards_normalmap_above ..........***Failed    0.08 sec
+FAIL normalmap invalid=13 predecessor=0: active GL texture preserved
+FAIL normalmap invalid=13 predecessor=0: CPU element slots and node identities preserved
+FAIL normalmap invalid=13 predecessor=0: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=13 predecessor=0: traversal issued no invalid GL commands
+FAIL normalmap invalid=13 predecessor=1: active GL texture preserved
+FAIL normalmap invalid=13 predecessor=1: CPU element slots and node identities preserved
+FAIL normalmap invalid=13 predecessor=1: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=13 predecessor=1: traversal issued no invalid GL commands
+FAIL normalmap invalid=13 predecessor=2: active GL texture preserved
+FAIL normalmap invalid=13 predecessor=2: CPU element slots and node identities preserved
+FAIL normalmap invalid=13 predecessor=2: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=13 predecessor=2: traversal issued no invalid GL commands
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=normalmap mode=above
+1089 checks, 12 failures
+
+      Start 170: TextureCoordinateGeneratorGuards_reflectionmap_valid
+41/45 Test #170: TextureCoordinateGeneratorGuards_reflectionmap_valid ......   Passed    0.08 sec
+      Start 171: TextureCoordinateGeneratorGuards_reflectionmap_negative
+42/45 Test #171: TextureCoordinateGeneratorGuards_reflectionmap_negative ...Subprocess aborted***Exception:   0.94 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 172: TextureCoordinateGeneratorGuards_reflectionmap_min
+43/45 Test #172: TextureCoordinateGeneratorGuards_reflectionmap_min ........Subprocess aborted***Exception:   0.93 sec
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+      Start 173: TextureCoordinateGeneratorGuards_reflectionmap_limit
+44/45 Test #173: TextureCoordinateGeneratorGuards_reflectionmap_limit ......***Failed    0.08 sec
+FAIL reflectionmap invalid=8 predecessor=0: active GL texture preserved
+FAIL reflectionmap invalid=8 predecessor=0: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=8 predecessor=0: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=8 predecessor=0: traversal issued no invalid GL commands
+FAIL reflectionmap invalid=8 predecessor=1: active GL texture preserved
+FAIL reflectionmap invalid=8 predecessor=1: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=8 predecessor=1: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=8 predecessor=1: traversal issued no invalid GL commands
+FAIL reflectionmap invalid=8 predecessor=2: active GL texture preserved
+FAIL reflectionmap invalid=8 predecessor=2: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=8 predecessor=2: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=8 predecessor=2: traversal issued no invalid GL commands
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=reflectionmap mode=limit
+1089 checks, 12 failures
+
+      Start 174: TextureCoordinateGeneratorGuards_reflectionmap_above
+45/45 Test #174: TextureCoordinateGeneratorGuards_reflectionmap_above ......***Failed    0.07 sec
+FAIL reflectionmap invalid=13 predecessor=0: active GL texture preserved
+FAIL reflectionmap invalid=13 predecessor=0: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=13 predecessor=0: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=13 predecessor=0: traversal issued no invalid GL commands
+FAIL reflectionmap invalid=13 predecessor=1: active GL texture preserved
+FAIL reflectionmap invalid=13 predecessor=1: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=13 predecessor=1: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=13 predecessor=1: traversal issued no invalid GL commands
+FAIL reflectionmap invalid=13 predecessor=2: active GL texture preserved
+FAIL reflectionmap invalid=13 predecessor=2: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=13 predecessor=2: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=13 predecessor=2: traversal issued no invalid GL commands
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=reflectionmap mode=above
+1089 checks, 12 failures
+
+
+38% tests passed, 28 tests failed out of 45
+
+Label Time Summary:
+texture-coordinates    =  18.89 sec*proc (45 tests)
+
+Total Test time (real) =  18.90 sec
+
+The following tests FAILED:
+	131 - TextureCoordinateGeneratorGuards_default_negative (Subprocess aborted)
+	132 - TextureCoordinateGeneratorGuards_default_min (Subprocess aborted)
+	136 - TextureCoordinateGeneratorGuards_cube_negative (Subprocess aborted)
+	137 - TextureCoordinateGeneratorGuards_cube_min (Subprocess aborted)
+	138 - TextureCoordinateGeneratorGuards_cube_limit (Failed)
+	139 - TextureCoordinateGeneratorGuards_cube_above (Failed)
+	141 - TextureCoordinateGeneratorGuards_cylinder_negative (Subprocess aborted)
+	142 - TextureCoordinateGeneratorGuards_cylinder_min (Subprocess aborted)
+	143 - TextureCoordinateGeneratorGuards_cylinder_limit (Failed)
+	144 - TextureCoordinateGeneratorGuards_cylinder_above (Failed)
+	146 - TextureCoordinateGeneratorGuards_sphere_negative (Subprocess aborted)
+	147 - TextureCoordinateGeneratorGuards_sphere_min (Subprocess aborted)
+	148 - TextureCoordinateGeneratorGuards_sphere_limit (Failed)
+	149 - TextureCoordinateGeneratorGuards_sphere_above (Failed)
+	151 - TextureCoordinateGeneratorGuards_environment_negative (Subprocess aborted)
+	152 - TextureCoordinateGeneratorGuards_environment_min (Subprocess aborted)
+	156 - TextureCoordinateGeneratorGuards_object_negative (Subprocess aborted)
+	157 - TextureCoordinateGeneratorGuards_object_min (Subprocess aborted)
+	161 - TextureCoordinateGeneratorGuards_plane_negative (Subprocess aborted)
+	162 - TextureCoordinateGeneratorGuards_plane_min (Subprocess aborted)
+	166 - TextureCoordinateGeneratorGuards_normalmap_negative (Subprocess aborted)
+	167 - TextureCoordinateGeneratorGuards_normalmap_min (Subprocess aborted)
+	168 - TextureCoordinateGeneratorGuards_normalmap_limit (Failed)
+	169 - TextureCoordinateGeneratorGuards_normalmap_above (Failed)
+	171 - TextureCoordinateGeneratorGuards_reflectionmap_negative (Subprocess aborted)
+	172 - TextureCoordinateGeneratorGuards_reflectionmap_min (Subprocess aborted)
+	173 - TextureCoordinateGeneratorGuards_reflectionmap_limit (Failed)
+	174 - TextureCoordinateGeneratorGuards_reflectionmap_above (Failed)
+Errors while running CTest

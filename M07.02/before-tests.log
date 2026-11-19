@@ -1,0 +1,27 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 87: M07_02_repair
+1/2 Test #87: M07_02_repair ....................***Failed    0.02 sec
+FAIL finite nonzero radial squared outside Float range component=1
+  got 0.5 want 0.267720461
+FAIL finite nonzero radial squared outside Float range component=1
+  got 0.5 want 0.732279539
+FAIL finite nonzero radial squared outside Float range component=1
+  got -1.39137679e-08 want 0.267720461
+FAIL finite nonzero radial squared outside Float range component=1
+  got 1 want 0.732279539
+20 checks, 4 failures
+
+    Start 88: M07_02_legacy
+2/2 Test #88: M07_02_legacy ....................   Passed    0.01 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Label Time Summary:
+texture-coordinates    =   0.03 sec*proc (2 tests)
+
+Total Test time (real) =   0.04 sec
+
+The following tests FAILED:
+	 87 - M07_02_repair (Failed)
+Errors while running CTest

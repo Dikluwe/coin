@@ -1,0 +1,163 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 87: M08_02_repair
+1/2 Test #87: M08_02_repair ....................***Failed    0.02 sec
+FAIL bundle direct component=0
+  got -nan want 0.5 (bits)
+FAIL bundle direct component=1
+  got 0 want 0.833333313 (bits)
+FAIL default callback unit zero component=0
+  got -nan want 0.5 (bits)
+FAIL default callback unit zero component=1
+  got 0 want 0.833333313 (bits)
+FAIL default callback additional unit component=0
+  got -nan want 0.5 (bits)
+FAIL default callback additional unit component=1
+  got 0 want 0.833333313 (bits)
+FAIL bundle direct component=0
+  got -nan want 0.5 (bits)
+FAIL bundle direct component=1
+  got 0 want 0.833333313 (bits)
+FAIL default callback unit zero component=0
+  got -nan want 0.5 (bits)
+FAIL default callback unit zero component=1
+  got 0 want 0.833333313 (bits)
+FAIL default callback additional unit component=0
+  got -nan want 0.5 (bits)
+FAIL default callback additional unit component=1
+  got 0 want 0.833333313 (bits)
+FAIL bundle direct component=0
+  got inf want 4 (bits)
+FAIL default callback unit zero component=0
+  got inf want 4 (bits)
+FAIL default callback additional unit component=0
+  got inf want 4 (bits)
+FAIL bundle direct component=0
+  got inf want 4 (bits)
+FAIL default callback unit zero component=0
+  got inf want 4 (bits)
+FAIL default callback additional unit component=0
+  got inf want 4 (bits)
+FAIL bundle direct component=0
+  got 0 want -nan (bits)
+FAIL bundle direct component=1
+  got -nan want 0.666666687 (bits)
+FAIL default callback unit zero component=0
+  got 0 want -nan (bits)
+FAIL default callback unit zero component=1
+  got -nan want 0.666666687 (bits)
+FAIL default callback additional unit component=0
+  got 0 want -nan (bits)
+FAIL default callback additional unit component=1
+  got -nan want 0.666666687 (bits)
+FAIL bundle direct component=0
+  got 0 want -nan (bits)
+FAIL bundle direct component=1
+  got -nan want 0.666666687 (bits)
+FAIL default callback unit zero component=0
+  got 0 want -nan (bits)
+FAIL default callback unit zero component=1
+  got -nan want 0.666666687 (bits)
+FAIL default callback additional unit component=0
+  got 0 want -nan (bits)
+FAIL default callback additional unit component=1
+  got -nan want 0.666666687 (bits)
+FAIL bundle direct component=0
+  got 0 want nan (bits)
+FAIL bundle direct component=1
+  got nan want 0.666666687 (bits)
+FAIL default callback unit zero component=0
+  got 0 want nan (bits)
+FAIL default callback unit zero component=1
+  got nan want 0.666666687 (bits)
+FAIL default callback additional unit component=0
+  got 0 want nan (bits)
+FAIL default callback additional unit component=1
+  got nan want 0.666666687 (bits)
+FAIL bundle direct component=0
+  got 0 want nan (bits)
+FAIL bundle direct component=1
+  got nan want 0.666666687 (bits)
+FAIL default callback unit zero component=0
+  got 0 want nan (bits)
+FAIL default callback unit zero component=1
+  got nan want 0.666666687 (bits)
+FAIL default callback additional unit component=0
+  got 0 want nan (bits)
+FAIL default callback additional unit component=1
+  got nan want 0.666666687 (bits)
+FAIL bundle direct component=0
+  got 0 want 0.5 (bits)
+FAIL bundle direct component=1
+  got -nan want 0.833333313 (bits)
+FAIL default callback unit zero component=0
+  got 0 want 0.5 (bits)
+FAIL default callback unit zero component=1
+  got -nan want 0.833333313 (bits)
+FAIL default callback additional unit component=0
+  got 0 want 0.5 (bits)
+FAIL default callback additional unit component=1
+  got -nan want 0.833333313 (bits)
+FAIL bundle direct component=0
+  got 0 want 0.5 (bits)
+FAIL bundle direct component=1
+  got -nan want 0.833333313 (bits)
+FAIL default callback unit zero component=0
+  got 0 want 0.5 (bits)
+FAIL default callback unit zero component=1
+  got -nan want 0.833333313 (bits)
+FAIL default callback additional unit component=0
+  got 0 want 0.5 (bits)
+FAIL default callback additional unit component=1
+  got -nan want 0.833333313 (bits)
+FAIL bundle direct component=0
+  got inf want 4 (bits)
+FAIL default callback unit zero component=0
+  got inf want 4 (bits)
+FAIL default callback additional unit component=0
+  got inf want 4 (bits)
+FAIL bundle direct component=0
+  got inf want 4 (bits)
+FAIL default callback unit zero component=0
+  got inf want 4 (bits)
+FAIL default callback additional unit component=0
+  got inf want 4 (bits)
+FAIL bundle direct component=1
+  got 0 want 0.666666687 (bits)
+FAIL default callback unit zero component=1
+  got 0 want 0.666666687 (bits)
+FAIL default callback additional unit component=1
+  got 0 want 0.666666687 (bits)
+FAIL bundle direct component=1
+  got 0 want 0.666666687 (bits)
+FAIL default callback unit zero component=1
+  got 0 want 0.666666687 (bits)
+FAIL default callback additional unit component=1
+  got 0 want 0.666666687 (bits)
+FAIL bundle direct component=1
+  got 0 want 0.666666687 (bits)
+FAIL default callback unit zero component=1
+  got 0 want 0.666666687 (bits)
+FAIL default callback additional unit component=1
+  got 0 want 0.666666687 (bits)
+FAIL bundle direct component=1
+  got 0 want 0.666666687 (bits)
+FAIL default callback unit zero component=1
+  got 0 want 0.666666687 (bits)
+FAIL default callback additional unit component=1
+  got 0 want 0.666666687 (bits)
+224 checks, 72 failures
+
+    Start 88: M08_02_legacy
+2/2 Test #88: M08_02_legacy ....................   Passed    0.03 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Label Time Summary:
+texture-coordinates    =   0.05 sec*proc (2 tests)
+
+Total Test time (real) =   0.06 sec
+
+The following tests FAILED:
+	 87 - M08_02_repair (Failed)
+Errors while running CTest

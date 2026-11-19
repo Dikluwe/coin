@@ -1,0 +1,1902 @@
+[
+  {
+    "id": "B01",
+    "base": "31a4ea1bbd1974616e6e25a9f3c2adf0de8bb642",
+    "head": "2e931d057c528f128f44e783cb528ff9359e92f7",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 6,
+        "failed": [
+          "TextureCoordinateTransition_default",
+          "TextureCoordinateTransition_cube",
+          "TextureCoordinateTransition_cylinder",
+          "TextureCoordinateTransition_sphere",
+          "TextureCoordinateTransition_limit"
+        ],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      },
+      "after": {
+        "exit": 0,
+        "total": 6,
+        "failed": [],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "transition-cube",
+        "different_pixels": 48412,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.625,
+              0.590909064,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.625,
+              0.590909064,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      },
+      {
+        "scene": "transition-cylinder",
+        "different_pixels": 48738,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.625,
+              0.590909064,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.625,
+              0.590909064,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      },
+      {
+        "scene": "transition-sphere",
+        "different_pixels": 49334,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.625,
+              0.590909064,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.625,
+              0.590909064,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      },
+      {
+        "scene": "transition-default",
+        "before_failure": "Debug abort before frame; see before-transition-default.log"
+      }
+    ]
+  },
+  {
+    "id": "B02",
+    "base": "2e931d057c528f128f44e783cb528ff9359e92f7",
+    "head": "35e9c7fe9678338d9205535ce7000ff095e1429c",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 6,
+        "failed": [
+          "TextureCoordinate3VBO_lifecycle",
+          "TextureCoordinate3VBO_separator",
+          "TextureCoordinate3VBO_disabled",
+          "TextureCoordinate3VBO_invalid-negative",
+          "TextureCoordinate3VBO_invalid-limit",
+          "TextureCoordinate3VBO_invalid-above"
+        ],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      },
+      "after": {
+        "exit": 0,
+        "total": 6,
+        "failed": [],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "vbo-coordinate3",
+        "different_pixels": 76290,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.625,
+              0.590909123,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.625,
+              0.590909123,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      }
+    ]
+  },
+  {
+    "id": "B03",
+    "base": "35e9c7fe9678338d9205535ce7000ff095e1429c",
+    "head": "38a43bf13a441f3967664c2a313ba9a042d98895",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 8,
+        "failed": [
+          "TextureCoordinate2VBO_lifecycle",
+          "TextureCoordinate2VBO_empty",
+          "TextureCoordinate2VBO_invalid-negative",
+          "TextureCoordinate2VBO_invalid-min",
+          "TextureCoordinate2VBO_invalid-limit",
+          "TextureCoordinate2VBO_invalid-above"
+        ],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      },
+      "after": {
+        "exit": 0,
+        "total": 8,
+        "failed": [],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      }
+    },
+    "scenes": []
+  },
+  {
+    "id": "B04",
+    "base": "38a43bf13a441f3967664c2a313ba9a042d98895",
+    "head": "bb2471c198b467fd55308eab999b40f7345b5e6a",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 45,
+        "failed": [
+          "TextureCoordinateGeneratorGuards_default_negative",
+          "TextureCoordinateGeneratorGuards_default_min",
+          "TextureCoordinateGeneratorGuards_cube_negative",
+          "TextureCoordinateGeneratorGuards_cube_min",
+          "TextureCoordinateGeneratorGuards_cube_limit",
+          "TextureCoordinateGeneratorGuards_cube_above",
+          "TextureCoordinateGeneratorGuards_cylinder_negative",
+          "TextureCoordinateGeneratorGuards_cylinder_min",
+          "TextureCoordinateGeneratorGuards_cylinder_limit",
+          "TextureCoordinateGeneratorGuards_cylinder_above",
+          "TextureCoordinateGeneratorGuards_sphere_negative",
+          "TextureCoordinateGeneratorGuards_sphere_min",
+          "TextureCoordinateGeneratorGuards_sphere_limit",
+          "TextureCoordinateGeneratorGuards_sphere_above",
+          "TextureCoordinateGeneratorGuards_environment_negative",
+          "TextureCoordinateGeneratorGuards_environment_min",
+          "TextureCoordinateGeneratorGuards_object_negative",
+          "TextureCoordinateGeneratorGuards_object_min",
+          "TextureCoordinateGeneratorGuards_plane_negative",
+          "TextureCoordinateGeneratorGuards_plane_min",
+          "TextureCoordinateGeneratorGuards_normalmap_negative",
+          "TextureCoordinateGeneratorGuards_normalmap_min",
+          "TextureCoordinateGeneratorGuards_normalmap_limit",
+          "TextureCoordinateGeneratorGuards_normalmap_above",
+          "TextureCoordinateGeneratorGuards_reflectionmap_negative",
+          "TextureCoordinateGeneratorGuards_reflectionmap_min",
+          "TextureCoordinateGeneratorGuards_reflectionmap_limit",
+          "TextureCoordinateGeneratorGuards_reflectionmap_above"
+        ],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      },
+      "after": {
+        "exit": 0,
+        "total": 45,
+        "failed": [],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      }
+    },
+    "scenes": []
+  },
+  {
+    "id": "B05",
+    "base": "bb2471c198b467fd55308eab999b40f7345b5e6a",
+    "head": "f87d02a4c4c3ced7671986c3d9e9b367f3bc9dd6",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 3,
+        "failed": [
+          "TextureCoordinateNormalMap_callback",
+          "TextureCoordinateNormalMap_pick",
+          "TextureCoordinateNormalMap_gl"
+        ],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      },
+      "after": {
+        "exit": 0,
+        "total": 3,
+        "failed": [],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "normalmap-fallback",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.400000036,
+              0.200000018,
+              0.889226973,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      }
+    ]
+  },
+  {
+    "id": "B06",
+    "base": "f87d02a4c4c3ced7671986c3d9e9b367f3bc9dd6",
+    "head": "431c984eb76141df258f5a5e60fb564c881366b2",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 3,
+        "failed": [
+          "TextureCoordinateEnvironmentReflection_callback",
+          "TextureCoordinateEnvironmentReflection_pick",
+          "TextureCoordinateEnvironmentReflection_gl"
+        ],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      },
+      "after": {
+        "exit": 0,
+        "total": 3,
+        "failed": [],
+        "skipped": [],
+        "mode": "GLX under Xvfb"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "environment",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.896290064,
+              0.761735678,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.71702075,
+              0.608454347,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      },
+      {
+        "scene": "reflectionmap-fallback",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.437085986,
+              0.306097776,
+              -0.830126762,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.748175621,
+              0.371598244,
+              0.510984063,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      }
+    ]
+  },
+  {
+    "id": "M07.01",
+    "base": "431c984eb76141df258f5a5e60fb564c881366b2",
+    "head": "b78966a35941d18e546042ddbdacf9f94d78e16e",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M07_01_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": []
+  },
+  {
+    "id": "M07.02",
+    "base": "b78966a35941d18e546042ddbdacf9f94d78e16e",
+    "head": "4506fa189519dd2f449fd78ffe7a960993de9e5d",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M07_02_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "sphere-huge",
+        "different_pixels": 35282,
+        "frame_pixels": 153600,
+        "before_picks": [],
+        "after_picks": [],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      },
+      {
+        "scene": "sphere-tiny",
+        "different_pixels": 23042,
+        "frame_pixels": 153600,
+        "before_picks": [],
+        "after_picks": [],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      },
+      {
+        "scene": "sphere-control",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.567376018,
+              0.564230204,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.567376018,
+              0.564230204,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      }
+    ]
+  },
+  {
+    "id": "M07.03",
+    "base": "4506fa189519dd2f449fd78ffe7a960993de9e5d",
+    "head": "589a8455cb7783c669344eb06474043b3ad66355",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M07_03_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "bbox-cube",
+        "different_pixels": 80028,
+        "frame_pixels": 153600,
+        "before_picks": [],
+        "after_picks": [],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      },
+      {
+        "scene": "bbox-cylinder",
+        "different_pixels": 80028,
+        "frame_pixels": 153600,
+        "before_picks": [],
+        "after_picks": [],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      }
+    ]
+  },
+  {
+    "id": "M07.04",
+    "base": "589a8455cb7783c669344eb06474043b3ad66355",
+    "head": "589e6acab20ff0b5d6d3903747958b22b15369a3",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M07_04_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": []
+  },
+  {
+    "id": "M07.05",
+    "base": "589e6acab20ff0b5d6d3903747958b22b15369a3",
+    "head": "330953c66cc02a8d228fa1a04fbe5bdd86c781cf",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M07_05_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": []
+  },
+  {
+    "id": "M07.06",
+    "base": "330953c66cc02a8d228fa1a04fbe5bdd86c781cf",
+    "head": "35ecd383eb854b3fefe2c625b7e73cbce290ad18",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M07_06_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": []
+  },
+  {
+    "id": "M07.07",
+    "base": "35ecd383eb854b3fefe2c625b7e73cbce290ad18",
+    "head": "409d099087fd6937a067a24507324f3373af7297",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M07_07_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": []
+  },
+  {
+    "id": "M07.08",
+    "base": "409d099087fd6937a067a24507324f3373af7297",
+    "head": "69504ba0e62bf3da22010ac20c3a5c3509fccb9d",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M07_08_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": []
+  },
+  {
+    "id": "M08.01",
+    "base": "69504ba0e62bf3da22010ac20c3a5c3509fccb9d",
+    "head": "db4aa40b4f2db66bfb38a08007cccd225b9be12f",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M08_01_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": []
+  },
+  {
+    "id": "M08.02",
+    "base": "db4aa40b4f2db66bfb38a08007cccd225b9be12f",
+    "head": "9baae78bb62a03698bffc9a0f21d2e2a2ee1d79c",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M08_02_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "bbox-bundle-gradient",
+        "different_pixels": 80028,
+        "frame_pixels": 153600,
+        "before_picks": [],
+        "after_picks": [],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      },
+      {
+        "scene": "bbox-bundle-reference",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [],
+        "after_picks": [],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      },
+      {
+        "scene": "bundle-normal",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.625,
+              0.590909064,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.625,
+              0.590909064,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      }
+    ]
+  },
+  {
+    "id": "M08.03",
+    "base": "9baae78bb62a03698bffc9a0f21d2e2a2ee1d79c",
+    "head": "073b993d1c9a978a948fdf113b415cfdb219146b",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M08_03_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": []
+  },
+  {
+    "id": "M08.04",
+    "base": "073b993d1c9a978a948fdf113b415cfdb219146b",
+    "head": "ddfb72c00ec3de277320ab3eb2c496b3855f984f",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M08_04_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": []
+  },
+  {
+    "id": "M09",
+    "base": "ddfb72c00ec3de277320ab3eb2c496b3855f984f",
+    "head": "990fcdcc9ca332065dc2a2ee2731e0549f0da332",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 2,
+        "failed": [
+          "M09_triangle_repair"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 2,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "triangle-picking",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.25,
+            "ray_y": 0.25,
+            "hit": 1,
+            "texture": [
+              0,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              0.25,
+              0.25,
+              0
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.25,
+            "ray_y": 0.25,
+            "hit": 1,
+            "texture": [
+              0.25,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              0.25,
+              0.25,
+              0
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      }
+    ]
+  },
+  {
+    "id": "LIN",
+    "base": "990fcdcc9ca332065dc2a2ee2731e0549f0da332",
+    "head": "9bd641686e21f03717674d2e75871d85474162a6",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 3,
+        "failed": [
+          "LineTextureWeights_lines"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 3,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "line-picking",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": -1.20000005,
+            "ray_y": 0,
+            "hit": 1,
+            "texture": [
+              0.87500006,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              -1.20000005,
+              0,
+              0
+            ]
+          },
+          {
+            "ray_x": -0.600000024,
+            "ray_y": 0,
+            "hit": 1,
+            "texture": [
+              0.6875,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              -0.600000024,
+              0,
+              0
+            ]
+          },
+          {
+            "ray_x": 0,
+            "ray_y": 0,
+            "hit": 1,
+            "texture": [
+              0.5,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "ray_x": 0.600000024,
+            "ray_y": 0,
+            "hit": 1,
+            "texture": [
+              0.3125,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              0.600000024,
+              0,
+              0
+            ]
+          },
+          {
+            "ray_x": 1.19999993,
+            "ray_y": 0,
+            "hit": 1,
+            "texture": [
+              0.12500003,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              1.19999993,
+              0,
+              0
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": -1.20000005,
+            "ray_y": 0,
+            "hit": 1,
+            "texture": [
+              0.124999993,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              -1.20000005,
+              0,
+              0
+            ]
+          },
+          {
+            "ray_x": -0.600000024,
+            "ray_y": 0,
+            "hit": 1,
+            "texture": [
+              0.3125,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              -0.600000024,
+              0,
+              0
+            ]
+          },
+          {
+            "ray_x": 0,
+            "ray_y": 0,
+            "hit": 1,
+            "texture": [
+              0.5,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "ray_x": 0.600000024,
+            "ray_y": 0,
+            "hit": 1,
+            "texture": [
+              0.6875,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              0.600000024,
+              0,
+              0
+            ]
+          },
+          {
+            "ray_x": 1.19999993,
+            "ray_y": 0,
+            "hit": 1,
+            "texture": [
+              0.875,
+              0.5,
+              0,
+              1
+            ],
+            "point": [
+              1.19999993,
+              0,
+              0
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      }
+    ]
+  },
+  {
+    "id": "CUBE",
+    "base": "9bd641686e21f03717674d2e75871d85474162a6",
+    "head": "7f0e3dd83fceb4a121a07d5261955702aba8742a",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 6,
+        "failed": [
+          "TextureCubeMapCPU_callback_mesh",
+          "TextureCubeMapCPU_callback_state",
+          "TextureCubeMapCPU_callback_reuse",
+          "TextureCubeMapCPU_pick_mesh",
+          "TextureCubeMapCPU_pick_state",
+          "TextureCubeMapCPU_pick_reuse"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 6,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "normalmap",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.400000036,
+              0.200000018,
+              0.889226973,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      },
+      {
+        "scene": "reflectionmap",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.748175621,
+              0.371598244,
+              0.510984063,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.889226913
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      }
+    ]
+  },
+  {
+    "id": "SPH",
+    "base": "7f0e3dd83fceb4a121a07d5261955702aba8742a",
+    "head": "37c190d8ef22acf99929c9a33c2467b36c73abe6",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 5,
+        "failed": [
+          "SoSphereTexturePick_functions",
+          "SoSphereTexturePick_generators",
+          "SoSphereTexturePick_clipping",
+          "SoSphereTexturePick_scopes"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 5,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "normalmap-native",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.566930115,
+              0.564094245,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.89442718
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.400000006,
+              0.200000003,
+              0.89442718,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.89442718
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      },
+      {
+        "scene": "reflectionmap-native",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.566930115,
+              0.564094245,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.89442718
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.759640574,
+              0.379820287,
+              0.527904093,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.89442718
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      },
+      {
+        "scene": "legacy-default-native",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.566930115,
+              0.564094245,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.89442718
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.566930115,
+              0.564094245,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.89442718
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": false
+      }
+    ]
+  },
+  {
+    "id": "ANA",
+    "base": "37c190d8ef22acf99929c9a33c2467b36c73abe6",
+    "head": "0d266d37a8e77b876f36ec422d9e1d2947b041b4",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 6,
+        "failed": [
+          "AnalyticShapeTexturePick_functions",
+          "AnalyticShapeTexturePick_generators",
+          "AnalyticShapeTexturePick_boundaries",
+          "AnalyticShapeTexturePick_scopes"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 6,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "analytic-cube",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.699999988,
+              0.600000024,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              1
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              1
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      },
+      {
+        "scene": "analytic-cone",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.75,
+              0.400000006,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.89442718,
+              0.44721359,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      },
+      {
+        "scene": "analytic-cylinder",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.565494895,
+              0.600000024,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.91651535
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.399999917,
+              0,
+              0.916515172,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.91651535
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      },
+      {
+        "scene": "analytic-vrmlsphere",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.566930115,
+              0.564094245,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.89442718
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.400000006,
+              0.200000003,
+              0.89442718,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.89442718
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      }
+    ]
+  },
+  {
+    "id": "VRML",
+    "base": "0d266d37a8e77b876f36ec422d9e1d2947b041b4",
+    "head": "b9de21a5b6d8fdef9455c19e65557740102c1f7f",
+    "build_type": "Debug -O0 -g0",
+    "no_coinrender": true,
+    "tests": {
+      "before": {
+        "exit": 8,
+        "total": 5,
+        "failed": [
+          "VRMLAnalyticTexturePick_functions",
+          "VRMLAnalyticTexturePick_generators",
+          "VRMLAnalyticTexturePick_boundaries",
+          "VRMLAnalyticTexturePick_scopes"
+        ],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      },
+      "after": {
+        "exit": 0,
+        "total": 5,
+        "failed": [],
+        "skipped": [],
+        "mode": "CPU with DISPLAY unset"
+      }
+    },
+    "scenes": [
+      {
+        "scene": "analytic-vrmlbox",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.699999988,
+              0.600000024,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              1
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              1
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      },
+      {
+        "scene": "analytic-vrmlcone",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.75,
+              0.400000006,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.89442718,
+              0.44721359,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      },
+      {
+        "scene": "analytic-vrmlcylinder",
+        "different_pixels": 0,
+        "frame_pixels": 153600,
+        "before_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.565494895,
+              0.600000024,
+              0,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.91651535
+            ]
+          }
+        ],
+        "after_picks": [
+          {
+            "ray_x": 0.400000006,
+            "ray_y": 0.200000003,
+            "hit": 1,
+            "texture": [
+              0.399999917,
+              0,
+              0.916515172,
+              1
+            ],
+            "point": [
+              0.400000006,
+              0.200000003,
+              0.91651535
+            ]
+          }
+        ],
+        "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+        "opengl": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5",
+        "picking_changed": true
+      }
+    ]
+  }
+]

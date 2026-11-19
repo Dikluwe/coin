@@ -1,0 +1,21 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 110: TextureCoordinateTransition_cpu
+1/6 Test #110: TextureCoordinateTransition_cpu ........   Passed    0.02 sec
+    Start 111: TextureCoordinateTransition_default
+2/6 Test #111: TextureCoordinateTransition_default ....   Passed    0.06 sec
+    Start 112: TextureCoordinateTransition_cube
+3/6 Test #112: TextureCoordinateTransition_cube .......   Passed    0.08 sec
+    Start 113: TextureCoordinateTransition_cylinder
+4/6 Test #113: TextureCoordinateTransition_cylinder ...   Passed    0.08 sec
+    Start 114: TextureCoordinateTransition_sphere
+5/6 Test #114: TextureCoordinateTransition_sphere .....   Passed    0.08 sec
+    Start 115: TextureCoordinateTransition_limit
+6/6 Test #115: TextureCoordinateTransition_limit ......   Passed    0.08 sec
+
+100% tests passed, 0 tests failed out of 6
+
+Label Time Summary:
+texture-coordinates    =   0.39 sec*proc (6 tests)
+
+Total Test time (real) =   0.39 sec

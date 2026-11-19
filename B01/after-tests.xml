@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="6"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:47:33"
+	>
+	<testcase name="TextureCoordinateTransition_cpu" classname="TextureCoordinateTransition_cpu" time="0.0180437" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>5928 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateTransition_default" classname="TextureCoordinateTransition_default" time="0.0605523" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>GL renderer: llvmpipe (LLVM 20.1.2, 256 bits); texture units: 8
+812 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateTransition_cube" classname="TextureCoordinateTransition_cube" time="0.0766033" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>GL renderer: llvmpipe (LLVM 20.1.2, 256 bits); texture units: 8
+1340 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateTransition_cylinder" classname="TextureCoordinateTransition_cylinder" time="0.0801962" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>GL renderer: llvmpipe (LLVM 20.1.2, 256 bits); texture units: 8
+1340 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateTransition_sphere" classname="TextureCoordinateTransition_sphere" time="0.0778007" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>GL renderer: llvmpipe (LLVM 20.1.2, 256 bits); texture units: 8
+1340 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateTransition_limit" classname="TextureCoordinateTransition_limit" time="0.0766206" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>Coin warning in SoTextureUnit::GLRender(): Texture unit 8 (counting from 0) requested. Your system only supports 8 texture units. (This warning message only shown once, but there could be more cases of this in the scene graph.)
+GL renderer: llvmpipe (LLVM 20.1.2, 256 bits); texture units: 8
+104 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

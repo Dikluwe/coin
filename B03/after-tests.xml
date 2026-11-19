@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="8"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:47:45"
+	>
+	<testcase name="TextureCoordinate2VBO_lifecycle" classname="TextureCoordinate2VBO_lifecycle" time="0.0670386" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=lifecycle
+969 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate2VBO_empty" classname="TextureCoordinate2VBO_empty" time="0.0819469" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=empty
+252 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate2VBO_separator" classname="TextureCoordinate2VBO_separator" time="0.0825283" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=separator
+981 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate2VBO_disabled" classname="TextureCoordinate2VBO_disabled" time="0.0833373" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=disabled
+870 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate2VBO_invalid-negative" classname="TextureCoordinate2VBO_invalid-negative" time="0.0812689" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>BEGIN invalid unit=-1
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=invalid-negative
+237 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate2VBO_invalid-min" classname="TextureCoordinate2VBO_invalid-min" time="0.0821508" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>BEGIN invalid unit=-2147483648
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=invalid-min
+237 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate2VBO_invalid-limit" classname="TextureCoordinate2VBO_invalid-limit" time="0.0885589" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>BEGIN invalid unit=8
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=invalid-limit
+237 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate2VBO_invalid-above" classname="TextureCoordinate2VBO_invalid-above" time="0.0778266" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>BEGIN invalid unit=13
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=invalid-above
+237 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="2"
+	failures="1"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:48:59"
+	>
+	<testcase name="M07_06_repair" classname="M07_06_repair" time="0.0267503" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL cofactor sum zero lost representable H residual component=0
+  got -8.27180613e-25 want -0.666666687
+FAIL cofactor sum zero lost representable H residual component=1
+  got -1 want -0.666666687
+FAIL cofactor sum zero lost representable H residual component=2
+  got 2.22044605e-16 want 0.333333343
+FAIL cofactor residual followed by camera rotation component=0
+  got -0.707106829 want -0.942809045
+FAIL cofactor residual followed by camera rotation component=1
+  got -0.707106709 want 7.94728621e-08
+FAIL cofactor residual followed by camera rotation component=2
+  got 1.71142673e-08 want 0.333333313
+FAIL cofactor sum zero lost representable H residual component=0
+  got -8.27180613e-25 want -0.666666687
+FAIL cofactor sum zero lost representable H residual component=1
+  got -1 want -0.666666687
+FAIL cofactor sum zero lost representable H residual component=2
+  got 2.22044605e-16 want 0.333333343
+FAIL cofactor residual followed by camera rotation component=0
+  got -0.707106829 want -0.942809045
+FAIL cofactor residual followed by camera rotation component=1
+  got -0.707106709 want 7.94728621e-08
+FAIL cofactor residual followed by camera rotation component=2
+  got 1.71142673e-08 want 0.333333313
+FAIL cofactor sum zero lost representable H residual component=0
+  got 0.5 want 0.295875847
+FAIL cofactor sum zero lost representable H residual component=1
+  got 0.146446615 want 0.295875847
+FAIL cofactor residual followed by camera rotation component=0
+  got 0.249999985 want 0.211324856
+FAIL cofactor residual followed by camera rotation component=1
+  got 0.25000003 want 0.5
+FAIL cofactor sum zero lost representable H residual component=0
+  got 0.5 want 0.295875847
+FAIL cofactor sum zero lost representable H residual component=1
+  got 0.146446615 want 0.295875847
+FAIL cofactor residual followed by camera rotation component=0
+  got 0.249999985 want 0.211324856
+FAIL cofactor residual followed by camera rotation component=1
+  got 0.25000003 want 0.5
+40 checks, 20 failures
+</system-out>
+	</testcase>
+	<testcase name="M07_06_legacy" classname="M07_06_legacy" time="0.025074" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+60 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

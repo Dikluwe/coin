@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="2"
+	failures="1"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:48:37"
+	>
+	<testcase name="M07_03_repair" classname="M07_03_repair" time="0.0221757" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL nonfinite point component preserves class while finite component recovers component=1
+  got 0 want 0.5
+FAIL nonfinite point component preserves class while finite component recovers component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=0
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 1 want 0.5
+FAIL cylinder finite box range case=1 component=0
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL cylinder finite box range case=2 component=0
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got -inf want -1
+FAIL cylinder finite box range case=2 component=0
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL nonfinite point component preserves class while finite component recovers component=1
+  got -nan want 0.5
+FAIL nonfinite point component preserves class while finite component recovers component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=2 component=0
+  got -inf want -1
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+FAIL cube finite box range case=2 component=0
+  got inf want 2
+FAIL cube finite box range case=2 component=1
+  got -inf want -1
+FAIL cube finite box range case=2 component=0
+  got inf want 2
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+FAIL cube finite box range case=2 component=0
+  got inf want 2
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+FAIL cube finite box range case=2 component=0
+  got -inf want -1
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+FAIL cube finite box range case=2 component=0
+  got inf want 2
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+FAIL cube finite box range case=2 component=0
+  got -inf want -1
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+230 checks, 64 failures
+</system-out>
+	</testcase>
+	<testcase name="M07_03_legacy" classname="M07_03_legacy" time="0.0209" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>220 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

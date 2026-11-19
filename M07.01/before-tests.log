@@ -1,0 +1,77 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 85: M07_01_repair
+1/2 Test #85: M07_01_repair ....................***Failed    0.01 sec
+FAIL finite determinant with overflowing reciprocal component=0
+  got 0 want 0.707106769
+FAIL finite determinant with overflowing reciprocal component=1
+  got 0 want 0.707106769
+FAIL finite determinant with overflowing reciprocal component=2
+  got 0 want 5.98942731e-22
+FAIL finite determinant with overflowing cofactor component=0
+  got -nan want 1
+FAIL finite determinant with overflowing cofactor component=1
+  got 0 want 2.93873588e-39
+FAIL finite determinant with overflowing cofactor component=2
+  got 0 want 2.93873588e-39
+FAIL finite determinant with underflowing cofactor component=0
+  got 0 want 6.13317356e-19
+FAIL finite determinant with overflowing reciprocal component=0
+  got 0 want 0.707106769
+FAIL finite determinant with overflowing reciprocal component=1
+  got 0 want 0.707106769
+FAIL finite determinant with overflowing reciprocal component=2
+  got 0 want 5.98942731e-22
+FAIL finite determinant with overflowing cofactor component=0
+  got -nan want 1
+FAIL finite determinant with overflowing cofactor component=1
+  got 0 want 2.93873588e-39
+FAIL finite determinant with overflowing cofactor component=2
+  got 0 want 2.93873588e-39
+FAIL finite determinant with underflowing cofactor component=0
+  got 0 want 6.13317356e-19
+FAIL overflowing affine determinant component=0
+  got 0 want 0.872871578
+FAIL overflowing affine determinant component=1
+  got 0 want 0.436435789
+FAIL overflowing affine determinant component=2
+  got 0 want 0.218217894
+FAIL overflowing affine determinant component=0
+  got 0 want 0.872871578
+FAIL overflowing affine determinant component=1
+  got 0 want 0.436435789
+FAIL overflowing affine determinant component=2
+  got 0 want 0.218217894
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+FAIL underflowing affine determinant component=0
+  got 0.218217894 want 0.872871578
+FAIL underflowing affine determinant component=2
+  got 0.872871578 want 0.218217894
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+FAIL underflowing affine determinant component=0
+  got 0.218217894 want 0.872871578
+FAIL underflowing affine determinant component=2
+  got 0.872871578 want 0.218217894
+FAIL affine composition range component=0
+  got 0 want 0.50000006
+FAIL affine composition range component=1
+  got 0 want 0.49999994
+FAIL affine composition range component=2
+  got 0 want 0.707106769
+55 checks, 27 failures
+
+    Start 86: M07_01_legacy
+2/2 Test #86: M07_01_legacy ....................   Passed    0.02 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Label Time Summary:
+texture-coordinates    =   0.03 sec*proc (2 tests)
+
+Total Test time (real) =   0.04 sec
+
+The following tests FAILED:
+	 85 - M07_01_repair (Failed)
+Errors while running CTest

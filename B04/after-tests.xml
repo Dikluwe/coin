@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="45"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="3"
+	timestamp="2026-11-19T16:48:08"
+	>
+	<testcase name="TextureCoordinateGeneratorGuards_default_valid" classname="TextureCoordinateGeneratorGuards_default_valid" time="0.0603881" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=default mode=valid
+3618 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_default_negative" classname="TextureCoordinateGeneratorGuards_default_negative" time="0.0748593" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=default mode=negative
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_default_min" classname="TextureCoordinateGeneratorGuards_default_min" time="0.0741935" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=default mode=min
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_default_limit" classname="TextureCoordinateGeneratorGuards_default_limit" time="0.0736624" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=default mode=limit
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_default_above" classname="TextureCoordinateGeneratorGuards_default_above" time="0.0756926" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=default mode=above
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cube_valid" classname="TextureCoordinateGeneratorGuards_cube_valid" time="0.0828674" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cube mode=valid
+3726 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cube_negative" classname="TextureCoordinateGeneratorGuards_cube_negative" time="0.0708145" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cube mode=negative
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cube_min" classname="TextureCoordinateGeneratorGuards_cube_min" time="0.077121" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cube mode=min
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cube_limit" classname="TextureCoordinateGeneratorGuards_cube_limit" time="0.0771276" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cube mode=limit
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cube_above" classname="TextureCoordinateGeneratorGuards_cube_above" time="0.0776148" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cube mode=above
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cylinder_valid" classname="TextureCoordinateGeneratorGuards_cylinder_valid" time="0.0791758" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cylinder mode=valid
+3726 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cylinder_negative" classname="TextureCoordinateGeneratorGuards_cylinder_negative" time="0.0768263" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cylinder mode=negative
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cylinder_min" classname="TextureCoordinateGeneratorGuards_cylinder_min" time="0.0764348" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cylinder mode=min
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cylinder_limit" classname="TextureCoordinateGeneratorGuards_cylinder_limit" time="0.0791866" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cylinder mode=limit
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cylinder_above" classname="TextureCoordinateGeneratorGuards_cylinder_above" time="0.078177" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cylinder mode=above
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_sphere_valid" classname="TextureCoordinateGeneratorGuards_sphere_valid" time="0.078325" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=sphere mode=valid
+3726 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_sphere_negative" classname="TextureCoordinateGeneratorGuards_sphere_negative" time="0.0753162" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=sphere mode=negative
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_sphere_min" classname="TextureCoordinateGeneratorGuards_sphere_min" time="0.0754584" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=sphere mode=min
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_sphere_limit" classname="TextureCoordinateGeneratorGuards_sphere_limit" time="0.0773542" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=sphere mode=limit
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_sphere_above" classname="TextureCoordinateGeneratorGuards_sphere_above" time="0.0770797" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=sphere mode=above
+1097 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_environment_valid" classname="TextureCoordinateGeneratorGuards_environment_valid" time="0.0773859" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=environment mode=valid
+3780 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_environment_negative" classname="TextureCoordinateGeneratorGuards_environment_negative" time="0.0774453" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=environment mode=negative
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_environment_min" classname="TextureCoordinateGeneratorGuards_environment_min" time="0.0783842" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=environment mode=min
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_environment_limit" classname="TextureCoordinateGeneratorGuards_environment_limit" time="0.0768123" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=environment mode=limit
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_environment_above" classname="TextureCoordinateGeneratorGuards_environment_above" time="0.0776858" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=environment mode=above
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_object_valid" classname="TextureCoordinateGeneratorGuards_object_valid" time="0.0774337" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=object mode=valid
+4266 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_object_negative" classname="TextureCoordinateGeneratorGuards_object_negative" time="0.0741899" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=object mode=negative
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_object_min" classname="TextureCoordinateGeneratorGuards_object_min" time="0.074507" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=object mode=min
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_object_limit" classname="TextureCoordinateGeneratorGuards_object_limit" time="0.0749734" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=object mode=limit
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_object_above" classname="TextureCoordinateGeneratorGuards_object_above" time="0.0762561" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=object mode=above
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_plane_valid" classname="TextureCoordinateGeneratorGuards_plane_valid" time="0.0754606" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=plane mode=valid
+4266 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_plane_negative" classname="TextureCoordinateGeneratorGuards_plane_negative" time="0.0740978" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=plane mode=negative
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_plane_min" classname="TextureCoordinateGeneratorGuards_plane_min" time="0.0748798" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=plane mode=min
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_plane_limit" classname="TextureCoordinateGeneratorGuards_plane_limit" time="0.0741361" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=plane mode=limit
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_plane_above" classname="TextureCoordinateGeneratorGuards_plane_above" time="0.0743744" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=plane mode=above
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_normalmap_valid" classname="TextureCoordinateGeneratorGuards_normalmap_valid" time="0.0766273" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=normalmap mode=valid
+3807 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_normalmap_negative" classname="TextureCoordinateGeneratorGuards_normalmap_negative" time="0.0834461" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=normalmap mode=negative
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_normalmap_min" classname="TextureCoordinateGeneratorGuards_normalmap_min" time="0.0696776" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=normalmap mode=min
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_normalmap_limit" classname="TextureCoordinateGeneratorGuards_normalmap_limit" time="0.0751947" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=normalmap mode=limit
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_normalmap_above" classname="TextureCoordinateGeneratorGuards_normalmap_above" time="0.0788989" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=normalmap mode=above
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_reflectionmap_valid" classname="TextureCoordinateGeneratorGuards_reflectionmap_valid" time="0.0763207" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=reflectionmap mode=valid
+3807 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_reflectionmap_negative" classname="TextureCoordinateGeneratorGuards_reflectionmap_negative" time="0.0755919" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=reflectionmap mode=negative
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_reflectionmap_min" classname="TextureCoordinateGeneratorGuards_reflectionmap_min" time="0.0771952" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=reflectionmap mode=min
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_reflectionmap_limit" classname="TextureCoordinateGeneratorGuards_reflectionmap_limit" time="0.0861449" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=reflectionmap mode=limit
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_reflectionmap_above" classname="TextureCoordinateGeneratorGuards_reflectionmap_above" time="0.0853408" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=reflectionmap mode=above
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

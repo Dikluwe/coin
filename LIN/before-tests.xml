@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="3"
+	failures="1"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:49:45"
+	>
+	<testcase name="LineTextureWeights_lines" classname="LineTextureWeights_lines" time="0.0146268" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>FAIL texture follows position along line: got 13, want -3
+FAIL texture follows position along line: got -6, want 2
+FAIL texture follows position along line: got -2, want 6
+FAIL texture follows position along line: got 10, want 2
+FAIL texture follows position along line: got 11, want -1
+FAIL texture follows position along line: got -5, want 1
+FAIL texture follows position along line: got -1, want 5
+FAIL texture follows position along line: got 9, want 3
+FAIL texture follows position along line: got 9, want 1
+FAIL texture follows position along line: got -4, want 0
+FAIL texture follows position along line: got 0, want 4
+FAIL texture follows position along line: got 8, want 4
+FAIL texture follows position along line: got 1, want 9
+FAIL texture follows position along line: got 0, want -4
+FAIL texture follows position along line: got 4, want 0
+FAIL texture follows position along line: got 4, want 8
+FAIL texture follows position along line: got -1, want 11
+FAIL texture follows position along line: got 1, want -5
+FAIL texture follows position along line: got 5, want -1
+FAIL texture follows position along line: got 3, want 9
+FAIL texture follows position along line: got -3, want 13
+FAIL texture follows position along line: got 2, want -6
+FAIL texture follows position along line: got 6, want -2
+FAIL texture follows position along line: got 2, want 10
+FAIL texture follows position along line: got 13, want -3
+FAIL texture follows position along line: got -6, want 2
+FAIL texture follows position along line: got -2, want 6
+FAIL texture follows position along line: got 10, want 2
+FAIL texture follows position along line: got 11, want -1
+FAIL texture follows position along line: got -5, want 1
+FAIL texture follows position along line: got -1, want 5
+FAIL texture follows position along line: got 9, want 3
+FAIL texture follows position along line: got 9, want 1
+FAIL texture follows position along line: got -4, want 0
+FAIL texture follows position along line: got 0, want 4
+FAIL texture follows position along line: got 8, want 4
+FAIL texture follows position along line: got 1, want 9
+FAIL texture follows position along line: got 0, want -4
+FAIL texture follows position along line: got 4, want 0
+FAIL texture follows position along line: got 4, want 8
+FAIL texture follows position along line: got -1, want 11
+FAIL texture follows position along line: got 1, want -5
+FAIL texture follows position along line: got 5, want -1
+FAIL texture follows position along line: got 3, want 9
+FAIL texture follows position along line: got -3, want 13
+FAIL texture follows position along line: got 2, want -6
+FAIL texture follows position along line: got 6, want -2
+FAIL texture follows position along line: got 2, want 10
+lines: 168 checks, 48 failures
+</system-out>
+	</testcase>
+	<testcase name="LineTextureWeights_controls" classname="LineTextureWeights_controls" time="0.0141616" status="run">
+		<properties/>
+		<system-out>controls: 9 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="LineTextureWeights_degenerate" classname="LineTextureWeights_degenerate" time="0.0156709" status="run">
+		<properties/>
+		<system-out>degenerate: 8 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

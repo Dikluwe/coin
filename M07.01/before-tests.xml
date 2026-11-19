@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="2"
+	failures="1"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:48:27"
+	>
+	<testcase name="M07_01_repair" classname="M07_01_repair" time="0.014631" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL finite determinant with overflowing reciprocal component=0
+  got 0 want 0.707106769
+FAIL finite determinant with overflowing reciprocal component=1
+  got 0 want 0.707106769
+FAIL finite determinant with overflowing reciprocal component=2
+  got 0 want 5.98942731e-22
+FAIL finite determinant with overflowing cofactor component=0
+  got -nan want 1
+FAIL finite determinant with overflowing cofactor component=1
+  got 0 want 2.93873588e-39
+FAIL finite determinant with overflowing cofactor component=2
+  got 0 want 2.93873588e-39
+FAIL finite determinant with underflowing cofactor component=0
+  got 0 want 6.13317356e-19
+FAIL finite determinant with overflowing reciprocal component=0
+  got 0 want 0.707106769
+FAIL finite determinant with overflowing reciprocal component=1
+  got 0 want 0.707106769
+FAIL finite determinant with overflowing reciprocal component=2
+  got 0 want 5.98942731e-22
+FAIL finite determinant with overflowing cofactor component=0
+  got -nan want 1
+FAIL finite determinant with overflowing cofactor component=1
+  got 0 want 2.93873588e-39
+FAIL finite determinant with overflowing cofactor component=2
+  got 0 want 2.93873588e-39
+FAIL finite determinant with underflowing cofactor component=0
+  got 0 want 6.13317356e-19
+FAIL overflowing affine determinant component=0
+  got 0 want 0.872871578
+FAIL overflowing affine determinant component=1
+  got 0 want 0.436435789
+FAIL overflowing affine determinant component=2
+  got 0 want 0.218217894
+FAIL overflowing affine determinant component=0
+  got 0 want 0.872871578
+FAIL overflowing affine determinant component=1
+  got 0 want 0.436435789
+FAIL overflowing affine determinant component=2
+  got 0 want 0.218217894
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+FAIL underflowing affine determinant component=0
+  got 0.218217894 want 0.872871578
+FAIL underflowing affine determinant component=2
+  got 0.872871578 want 0.218217894
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+FAIL underflowing affine determinant component=0
+  got 0.218217894 want 0.872871578
+FAIL underflowing affine determinant component=2
+  got 0.872871578 want 0.218217894
+FAIL affine composition range component=0
+  got 0 want 0.50000006
+FAIL affine composition range component=1
+  got 0 want 0.49999994
+FAIL affine composition range component=2
+  got 0 want 0.707106769
+55 checks, 27 failures
+</system-out>
+	</testcase>
+	<testcase name="M07_01_legacy" classname="M07_01_legacy" time="0.0154447" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular.
+Coin warning in SbMatrix::inverse(): Matrix is singular...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

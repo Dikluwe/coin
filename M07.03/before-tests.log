@@ -1,0 +1,147 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 89: M07_03_repair
+1/2 Test #89: M07_03_repair ....................***Failed    0.02 sec
+FAIL nonfinite point component preserves class while finite component recovers component=1
+  got 0 want 0.5
+FAIL nonfinite point component preserves class while finite component recovers component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=0
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 1 want 0.5
+FAIL cylinder finite box range case=1 component=0
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=1 component=1
+  got 0 want 0.5
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL cylinder finite box range case=2 component=0
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got -inf want -1
+FAIL cylinder finite box range case=2 component=0
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL cylinder finite box range case=2 component=1
+  got inf want 2
+FAIL nonfinite point component preserves class while finite component recovers component=1
+  got -nan want 0.5
+FAIL nonfinite point component preserves class while finite component recovers component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=0 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=0
+  got -nan want 0.5
+FAIL cube finite box range case=1 component=1
+  got -nan want 0.5
+FAIL cube finite box range case=2 component=0
+  got -inf want -1
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+FAIL cube finite box range case=2 component=0
+  got inf want 2
+FAIL cube finite box range case=2 component=1
+  got -inf want -1
+FAIL cube finite box range case=2 component=0
+  got inf want 2
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+FAIL cube finite box range case=2 component=0
+  got inf want 2
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+FAIL cube finite box range case=2 component=0
+  got -inf want -1
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+FAIL cube finite box range case=2 component=0
+  got inf want 2
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+FAIL cube finite box range case=2 component=0
+  got -inf want -1
+FAIL cube finite box range case=2 component=1
+  got inf want 2
+230 checks, 64 failures
+
+    Start 90: M07_03_legacy
+2/2 Test #90: M07_03_legacy ....................   Passed    0.02 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Label Time Summary:
+texture-coordinates    =   0.04 sec*proc (2 tests)
+
+Total Test time (real) =   0.05 sec
+
+The following tests FAILED:
+	 89 - M07_03_repair (Failed)
+Errors while running CTest

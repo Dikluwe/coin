@@ -1,0 +1,209 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 116: TextureCoordinate3VBO_lifecycle
+1/6 Test #116: TextureCoordinate3VBO_lifecycle ..........***Failed    0.07 sec
+FAIL lifecycle unit=0 step=0: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=1: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=1: VBO present (no CPU fallback)
+FAIL lifecycle unit=0 step=2: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=2: VBO present (no CPU fallback)
+FAIL lifecycle unit=0 step=3: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=3: VBO present (no CPU fallback)
+FAIL lifecycle unit=0 step=4: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=5: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=5: VBO present (no CPU fallback)
+FAIL lifecycle unit=0 step=6: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=7: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=7: VBO present (no CPU fallback)
+FAIL lifecycle unit=0 step=8: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=9: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=9: VBO present (no CPU fallback)
+FAIL lifecycle unit=1 step=0: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=1: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=1: VBO present (no CPU fallback)
+FAIL lifecycle unit=1 step=2: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=2: VBO present (no CPU fallback)
+FAIL lifecycle unit=1 step=3: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=3: VBO present (no CPU fallback)
+FAIL lifecycle unit=1 step=4: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=5: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=5: VBO present (no CPU fallback)
+FAIL lifecycle unit=1 step=6: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=7: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=7: VBO present (no CPU fallback)
+FAIL lifecycle unit=1 step=8: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=9: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=9: VBO present (no CPU fallback)
+FAIL lifecycle unit=7 step=0: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=1: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=1: VBO present (no CPU fallback)
+FAIL lifecycle unit=7 step=2: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=2: VBO present (no CPU fallback)
+FAIL lifecycle unit=7 step=3: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=3: VBO present (no CPU fallback)
+FAIL lifecycle unit=7 step=4: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=5: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=5: VBO present (no CPU fallback)
+FAIL lifecycle unit=7 step=6: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=7: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=7: VBO present (no CPU fallback)
+FAIL lifecycle unit=7 step=8: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=9: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=9: VBO present (no CPU fallback)
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=lifecycle
+870 checks, 48 failures
+
+    Start 117: TextureCoordinate3VBO_separator
+2/6 Test #117: TextureCoordinate3VBO_separator ..........***Failed    0.09 sec
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: position VBO sentinel preserved
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: position VBO sentinel preserved
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: reused node preserves positions
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: position VBO sentinel preserved
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: position VBO sentinel preserved
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: reused node preserves positions
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: position VBO sentinel preserved
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: position VBO sentinel preserved
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: VBO present (no CPU fallback)
+FAIL separator/reuse unit=0: reused node preserves positions
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: position VBO sentinel preserved
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: position VBO sentinel preserved
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: reused node preserves positions
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: position VBO sentinel preserved
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: position VBO sentinel preserved
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: reused node preserves positions
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: position VBO sentinel preserved
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: position VBO sentinel preserved
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: VBO present (no CPU fallback)
+FAIL separator/reuse unit=1: reused node preserves positions
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: position VBO sentinel preserved
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: position VBO sentinel preserved
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: reused node preserves positions
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: position VBO sentinel preserved
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: position VBO sentinel preserved
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: reused node preserves positions
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: position VBO sentinel preserved
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: position VBO sentinel preserved
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: VBO present (no CPU fallback)
+FAIL separator/reuse unit=7: reused node preserves positions
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=separator
+756 checks, 72 failures
+
+    Start 118: TextureCoordinate3VBO_disabled
+3/6 Test #118: TextureCoordinate3VBO_disabled ...........***Failed    0.09 sec
+FAIL lifecycle unit=0 step=0: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=1: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=2: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=3: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=4: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=5: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=6: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=7: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=8: position VBO sentinel preserved
+FAIL lifecycle unit=0 step=9: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=0: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=1: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=2: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=3: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=4: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=5: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=6: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=7: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=8: position VBO sentinel preserved
+FAIL lifecycle unit=1 step=9: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=0: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=1: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=2: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=3: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=4: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=5: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=6: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=7: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=8: position VBO sentinel preserved
+FAIL lifecycle unit=7 step=9: position VBO sentinel preserved
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=disabled
+870 checks, 30 failures
+
+    Start 119: TextureCoordinate3VBO_invalid-negative
+4/6 Test #119: TextureCoordinate3VBO_invalid-negative ...Subprocess aborted***Exception:   1.00 sec
+FAIL invalid unit=-1: VBO present (no CPU fallback)
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+
+    Start 120: TextureCoordinate3VBO_invalid-limit
+5/6 Test #120: TextureCoordinate3VBO_invalid-limit ......***Failed    0.08 sec
+FAIL invalid unit=8: VBO present (no CPU fallback)
+FAIL invalid unit=8: position VBO sentinel preserved
+FAIL invalid unit=8: VBO present (no CPU fallback)
+FAIL invalid unit=8: position VBO sentinel preserved
+FAIL invalid unit=8: VBO present (no CPU fallback)
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=invalid-limit
+64 checks, 5 failures
+
+    Start 121: TextureCoordinate3VBO_invalid-above
+6/6 Test #121: TextureCoordinate3VBO_invalid-above ......***Failed    0.08 sec
+FAIL invalid unit=13: VBO present (no CPU fallback)
+FAIL invalid unit=13: position VBO sentinel preserved
+FAIL invalid unit=13: VBO present (no CPU fallback)
+FAIL invalid unit=13: position VBO sentinel preserved
+FAIL invalid unit=13: VBO present (no CPU fallback)
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=invalid-above
+64 checks, 5 failures
+
+
+0% tests passed, 6 tests failed out of 6
+
+Label Time Summary:
+texture-coordinates    =   1.41 sec*proc (6 tests)
+
+Total Test time (real) =   1.41 sec
+
+The following tests FAILED:
+	116 - TextureCoordinate3VBO_lifecycle (Failed)
+	117 - TextureCoordinate3VBO_separator (Failed)
+	118 - TextureCoordinate3VBO_disabled (Failed)
+	119 - TextureCoordinate3VBO_invalid-negative (Subprocess aborted)
+	120 - TextureCoordinate3VBO_invalid-limit (Failed)
+	121 - TextureCoordinate3VBO_invalid-above (Failed)
+Errors while running CTest

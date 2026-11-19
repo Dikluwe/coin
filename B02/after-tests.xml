@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="6"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:47:39"
+	>
+	<testcase name="TextureCoordinate3VBO_lifecycle" classname="TextureCoordinate3VBO_lifecycle" time="0.0645748" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=lifecycle
+969 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate3VBO_separator" classname="TextureCoordinate3VBO_separator" time="0.0823552" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=separator
+981 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate3VBO_disabled" classname="TextureCoordinate3VBO_disabled" time="0.0789104" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=disabled
+870 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate3VBO_invalid-negative" classname="TextureCoordinate3VBO_invalid-negative" time="0.0739561" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=invalid-negative
+79 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate3VBO_invalid-limit" classname="TextureCoordinate3VBO_invalid-limit" time="0.0736396" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=invalid-limit
+79 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinate3VBO_invalid-above" classname="TextureCoordinate3VBO_invalid-above" time="0.0792965" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 mode=invalid-above
+79 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

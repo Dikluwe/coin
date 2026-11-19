@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="2"
+	failures="1"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:49:06"
+	>
+	<testcase name="M07_07_repair" classname="M07_07_repair" time="0.027523" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL nonzero seam longitude retains representable angle component=0
+  got -1.39137679e-08 want 1.59154943e-13
+FAIL nonzero seam longitude retains representable angle component=0
+  got -1.39137679e-08 want 1.59154941e-31
+FAIL nonzero seam longitude retains representable angle component=0
+  got -1.39137679e-08 want 1.5915948e-41
+FAIL nonzero seam longitude retains representable angle component=0
+  got -1.39137679e-08 want 1.59154943e-13
+FAIL nonzero seam longitude retains representable angle component=0
+  got -1.39137679e-08 want 1.59154941e-31
+FAIL nonzero seam longitude retains representable angle component=0
+  got -1.39137679e-08 want 1.5915948e-41
+40 checks, 6 failures
+</system-out>
+	</testcase>
+	<testcase name="M07_07_legacy" classname="M07_07_legacy" time="0.0288214" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>60 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

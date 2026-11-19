@@ -1,0 +1,27 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start  99: M07_08_repair
+1/2 Test  #99: M07_08_repair ....................***Failed    0.02 sec
+FAIL south latitude retains nonzero complement with normal radial square component=1
+  got -1.39137679e-08 want 3.18309886e-13
+FAIL south latitude retains nonzero complement with normal radial square component=1
+  got -1.39137679e-08 want 3.18309886e-13
+FAIL south latitude retains nonzero complement with normal radial square component=1
+  got -1.39137679e-08 want 3.18309905e-19
+FAIL south latitude retains nonzero complement with normal radial square component=1
+  got -1.39137679e-08 want 3.18309886e-13
+20 checks, 4 failures
+
+    Start 100: M07_08_legacy
+2/2 Test #100: M07_08_legacy ....................   Passed    0.02 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Label Time Summary:
+texture-coordinates    =   0.05 sec*proc (2 tests)
+
+Total Test time (real) =   0.06 sec
+
+The following tests FAILED:
+	 99 - M07_08_repair (Failed)
+Errors while running CTest

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="2"
+	failures="1"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:49:20"
+	>
+	<testcase name="M08_01_repair" classname="M08_01_repair" time="0.0252872" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL 4D per-component reciprocal conversion s
+FAIL 4D per-component reciprocal conversion t
+FAIL 4D per-component reciprocal conversion s
+FAIL 4D per-component reciprocal conversion t
+FAIL 4D per-component reciprocal conversion t
+15 checks, 5 failures
+</system-out>
+	</testcase>
+	<testcase name="M08_01_legacy" classname="M08_01_legacy" time="0.0242697" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>Coin warning in SoMultiTextureCoordinateElement::get2(): texture coordinate index -1 out of bounds [0, 0] -- returning a default coordinate
+Coin warning in SoMultiTextureCoordinateElement::get2(): texture coordinate index 1 out of bounds [0, 0] -- returning a default coordinate
+33 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

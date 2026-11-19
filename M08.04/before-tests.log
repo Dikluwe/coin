@@ -1,0 +1,51 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 91: M08_04_repair
+1/2 Test #91: M08_04_repair ....................***Failed    0.01 sec
+FAIL picked setter transforms raw four components component=0
+  got -nan want 1 (bits)
+FAIL copy retains transformed texture component=0
+  got -nan want 1 (bits)
+FAIL setter accepts transformed reference alias component=0
+  got -nan want 1 (bits)
+FAIL alias copied to object coordinates component=0
+  got -nan want 1 (bits)
+FAIL setter accepts object reference alias component=0
+  got -nan want 1 (bits)
+FAIL picked setter transforms raw four components component=0
+  got 0 want 1.40129846e-45 (bits)
+FAIL copy retains transformed texture component=0
+  got 0 want 1.40129846e-45 (bits)
+FAIL picked setter transforms raw four components component=1
+  got 0 want 1 (bits)
+FAIL copy retains transformed texture component=1
+  got 0 want 1 (bits)
+FAIL setter accepts transformed reference alias component=1
+  got 0 want 1 (bits)
+FAIL alias copied to object coordinates component=1
+  got 0 want 1 (bits)
+FAIL setter accepts object reference alias component=1
+  got 0 want 1 (bits)
+FAIL picked setter transforms raw four components component=0
+  got inf want 3.40282347e+38 (bits)
+FAIL copy retains transformed texture component=0
+  got inf want 3.40282347e+38 (bits)
+FAIL nonidentity alias retains fallback source component=0
+  got 0 want 1 (bits)
+FAIL ancestor transforms texture using path inverse component=0
+  got -nan want 0 (bits)
+104 checks, 16 failures
+
+    Start 92: M08_04_legacy
+2/2 Test #92: M08_04_legacy ....................   Passed    0.02 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Label Time Summary:
+texture-coordinates    =   0.03 sec*proc (2 tests)
+
+Total Test time (real) =   0.04 sec
+
+The following tests FAILED:
+	 91 - M08_04_repair (Failed)
+Errors while running CTest

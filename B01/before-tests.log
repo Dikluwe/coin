@@ -1,0 +1,369 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 110: TextureCoordinateTransition_cpu
+1/6 Test #110: TextureCoordinateTransition_cpu ........   Passed    0.02 sec
+    Start 111: TextureCoordinateTransition_default
+2/6 Test #111: TextureCoordinateTransition_default ....Subprocess aborted***Exception:   1.06 sec
+FAIL default unit=1 predecessor=4: coordinate type for selected/preserved unit
+FAIL default unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=4: coordinate type for selected/preserved unit
+FAIL default unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=5: coordinate type for selected/preserved unit
+FAIL default unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=5: coordinate type for selected/preserved unit
+FAIL default unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=6: coordinate type for selected/preserved unit
+FAIL default unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=6: coordinate type for selected/preserved unit
+FAIL default unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=7: coordinate type for selected/preserved unit
+FAIL default unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=7: coordinate type for selected/preserved unit
+FAIL default unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=8: coordinate type for selected/preserved unit
+FAIL default unit=1 predecessor=8: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=8: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=8: S/T/R/Q texgen enable state
+FAIL default unit=1 predecessor=8: S/T/R/Q texgen enable state
+FAIL default preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL default preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL default preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL default preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL default preserve CPU/array unit=1: S/T/R/Q texgen enable state
+CoinTextureCoordinateTransitionTest: /dev/shm/coin-tc-publish-20261119/base-src/src/elements/SoMultiTextureCoordinateElement.cpp:325: const SbVec4f& SoMultiTextureCoordinateElement::get(int, const SbVec3f&, const SbVec3f&) const: Assertion `(ud.whatKind == FUNCTION || ud.whatKind == TEXGEN) && ud.funcCB' failed.
+
+    Start 112: TextureCoordinateTransition_cube
+3/6 Test #112: TextureCoordinateTransition_cube .......***Failed    0.08 sec
+FAIL cube unit=0 predecessor=4: coordinate type for selected/preserved unit
+FAIL cube unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=5: coordinate type for selected/preserved unit
+FAIL cube unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=6: coordinate type for selected/preserved unit
+FAIL cube unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=7: coordinate type for selected/preserved unit
+FAIL cube unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL cube unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cube separator unit=0: coordinate type for selected/preserved unit
+FAIL cube separator unit=0: S/T/R/Q texgen enable state
+FAIL cube separator unit=0: S/T/R/Q texgen enable state
+FAIL cube separator unit=0: S/T/R/Q texgen enable state
+FAIL cube separator unit=0: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=4: coordinate type for selected/preserved unit
+FAIL cube unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=5: coordinate type for selected/preserved unit
+FAIL cube unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=6: coordinate type for selected/preserved unit
+FAIL cube unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=7: coordinate type for selected/preserved unit
+FAIL cube unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL cube unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cube separator unit=1: coordinate type for selected/preserved unit
+FAIL cube separator unit=1: S/T/R/Q texgen enable state
+FAIL cube separator unit=1: S/T/R/Q texgen enable state
+FAIL cube separator unit=1: S/T/R/Q texgen enable state
+FAIL cube separator unit=1: S/T/R/Q texgen enable state
+GL renderer: llvmpipe (LLVM 20.1.2, 256 bits); texture units: 8
+1340 checks, 90 failures
+
+    Start 113: TextureCoordinateTransition_cylinder
+4/6 Test #113: TextureCoordinateTransition_cylinder ...***Failed    0.08 sec
+FAIL cylinder unit=0 predecessor=4: coordinate type for selected/preserved unit
+FAIL cylinder unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=5: coordinate type for selected/preserved unit
+FAIL cylinder unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=6: coordinate type for selected/preserved unit
+FAIL cylinder unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=7: coordinate type for selected/preserved unit
+FAIL cylinder unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL cylinder unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL cylinder separator unit=0: coordinate type for selected/preserved unit
+FAIL cylinder separator unit=0: S/T/R/Q texgen enable state
+FAIL cylinder separator unit=0: S/T/R/Q texgen enable state
+FAIL cylinder separator unit=0: S/T/R/Q texgen enable state
+FAIL cylinder separator unit=0: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=4: coordinate type for selected/preserved unit
+FAIL cylinder unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=5: coordinate type for selected/preserved unit
+FAIL cylinder unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=6: coordinate type for selected/preserved unit
+FAIL cylinder unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=7: coordinate type for selected/preserved unit
+FAIL cylinder unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL cylinder unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL cylinder separator unit=1: coordinate type for selected/preserved unit
+FAIL cylinder separator unit=1: S/T/R/Q texgen enable state
+FAIL cylinder separator unit=1: S/T/R/Q texgen enable state
+FAIL cylinder separator unit=1: S/T/R/Q texgen enable state
+FAIL cylinder separator unit=1: S/T/R/Q texgen enable state
+GL renderer: llvmpipe (LLVM 20.1.2, 256 bits); texture units: 8
+1340 checks, 90 failures
+
+    Start 114: TextureCoordinateTransition_sphere
+5/6 Test #114: TextureCoordinateTransition_sphere .....***Failed    0.08 sec
+FAIL sphere unit=0 predecessor=4: coordinate type for selected/preserved unit
+FAIL sphere unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=4: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=5: coordinate type for selected/preserved unit
+FAIL sphere unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=5: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=6: coordinate type for selected/preserved unit
+FAIL sphere unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=6: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=7: coordinate type for selected/preserved unit
+FAIL sphere unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL sphere unit=0 predecessor=7: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: coordinate type for selected/preserved unit
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=0: S/T/R/Q texgen enable state
+FAIL sphere separator unit=0: coordinate type for selected/preserved unit
+FAIL sphere separator unit=0: S/T/R/Q texgen enable state
+FAIL sphere separator unit=0: S/T/R/Q texgen enable state
+FAIL sphere separator unit=0: S/T/R/Q texgen enable state
+FAIL sphere separator unit=0: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=4: coordinate type for selected/preserved unit
+FAIL sphere unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=4: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=5: coordinate type for selected/preserved unit
+FAIL sphere unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=5: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=6: coordinate type for selected/preserved unit
+FAIL sphere unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=6: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=7: coordinate type for selected/preserved unit
+FAIL sphere unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL sphere unit=1 predecessor=7: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: coordinate type for selected/preserved unit
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere preserve CPU/array unit=1: S/T/R/Q texgen enable state
+FAIL sphere separator unit=1: coordinate type for selected/preserved unit
+FAIL sphere separator unit=1: S/T/R/Q texgen enable state
+FAIL sphere separator unit=1: S/T/R/Q texgen enable state
+FAIL sphere separator unit=1: S/T/R/Q texgen enable state
+FAIL sphere separator unit=1: S/T/R/Q texgen enable state
+GL renderer: llvmpipe (LLVM 20.1.2, 256 bits); texture units: 8
+1340 checks, 90 failures
+
+    Start 115: TextureCoordinateTransition_limit
+6/6 Test #115: TextureCoordinateTransition_limit ......***Failed    0.08 sec
+Coin warning in SoTextureUnit::GLRender(): Texture unit 8 (counting from 0) requested. Your system only supports 8 texture units. (This warning message only shown once, but there could be more cases of this in the scene graph.)
+FAIL unsupported unit: coordinate type for selected/preserved unit
+FAIL unsupported unit: S/T/R/Q texgen enable state
+FAIL unsupported unit: S/T/R/Q texgen enable state
+FAIL unsupported unit: S/T/R/Q texgen enable state
+FAIL unsupported unit: S/T/R/Q texgen enable state
+GL renderer: llvmpipe (LLVM 20.1.2, 256 bits); texture units: 8
+104 checks, 5 failures
+
+
+17% tests passed, 5 tests failed out of 6
+
+Label Time Summary:
+texture-coordinates    =   1.40 sec*proc (6 tests)
+
+Total Test time (real) =   1.41 sec
+
+The following tests FAILED:
+	111 - TextureCoordinateTransition_default (Subprocess aborted)
+	112 - TextureCoordinateTransition_cube (Failed)
+	113 - TextureCoordinateTransition_cylinder (Failed)
+	114 - TextureCoordinateTransition_sphere (Failed)
+	115 - TextureCoordinateTransition_limit (Failed)
+Errors while running CTest

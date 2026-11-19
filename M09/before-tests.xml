@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="2"
+	failures="1"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-11-19T16:49:41"
+	>
+	<testcase name="M09_triangle_repair" classname="M09_triangle_repair" time="0.0147995" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL zero cancellation and raw Q recovered component=0
+  got 0 want 0.25 (bits)
+FAIL zero cancellation and raw Q recovered component=3
+  got 0 want 0.25 (bits)
+FAIL all zero products recover positive minimum subnormal
+FAIL all zero products recover negative minimum subnormal
+FAIL zero products repair even when legacy sum is nonzero component=0
+  got 2.80259693e-45 want 4.20389539e-45 (bits)
+FAIL zero products repair even when legacy sum is nonzero component=1
+  got -2.80259693e-45 want -4.20389539e-45 (bits)
+FAIL zero products repair even when legacy sum is nonzero component=3
+  got 0 want 1.40129846e-45 (bits)
+FAIL large exponent gaps retain signed residuals and raw Q component=0
+  got 0 want -1.88079096e-37 (bits)
+FAIL large exponent gaps retain signed residuals and raw Q component=1
+  got 0 want 1.88079096e-37 (bits)
+FAIL component repairs are independent
+FAIL all six vertex orders recover the same residual
+FAIL all six vertex orders recover the same residual
+FAIL all six vertex orders recover the same residual
+FAIL all six vertex orders recover the same residual
+FAIL back face interpolation also repairs
+175 checks, 15 failures
+</system-out>
+	</testcase>
+	<testcase name="M09_triangle_legacy" classname="M09_triangle_legacy" time="0.0167553" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>617 checks, 0 failures
+</system-out>
+	</testcase>
+</testsuite>

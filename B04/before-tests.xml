@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="45"
+	failures="28"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="18"
+	timestamp="2026-11-19T16:47:49"
+	>
+	<testcase name="TextureCoordinateGeneratorGuards_default_valid" classname="TextureCoordinateGeneratorGuards_default_valid" time="0.0593359" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=default mode=valid
+3618 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_default_negative" classname="TextureCoordinateGeneratorGuards_default_negative" time="0.935118" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_default_min" classname="TextureCoordinateGeneratorGuards_default_min" time="0.937684" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_default_limit" classname="TextureCoordinateGeneratorGuards_default_limit" time="0.0777593" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=default mode=limit
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_default_above" classname="TextureCoordinateGeneratorGuards_default_above" time="0.0741051" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=default mode=above
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cube_valid" classname="TextureCoordinateGeneratorGuards_cube_valid" time="0.075301" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cube mode=valid
+3726 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cube_negative" classname="TextureCoordinateGeneratorGuards_cube_negative" time="0.932047" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cube_min" classname="TextureCoordinateGeneratorGuards_cube_min" time="0.930222" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cube_limit" classname="TextureCoordinateGeneratorGuards_cube_limit" time="0.0773676" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL cube private context invalid=8: invalid visit in other action preserves live CPU callback context
+FAIL cube private context invalid=8: invalid visit in other action preserves live CPU callback context
+FAIL cube private context invalid=8: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cube mode=limit
+1097 checks, 3 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cube_above" classname="TextureCoordinateGeneratorGuards_cube_above" time="0.0757889" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL cube private context invalid=13: invalid visit in other action preserves live CPU callback context
+FAIL cube private context invalid=13: invalid visit in other action preserves live CPU callback context
+FAIL cube private context invalid=13: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cube mode=above
+1097 checks, 3 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cylinder_valid" classname="TextureCoordinateGeneratorGuards_cylinder_valid" time="0.075907" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cylinder mode=valid
+3726 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cylinder_negative" classname="TextureCoordinateGeneratorGuards_cylinder_negative" time="0.923529" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cylinder_min" classname="TextureCoordinateGeneratorGuards_cylinder_min" time="0.946135" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cylinder_limit" classname="TextureCoordinateGeneratorGuards_cylinder_limit" time="0.0759301" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL cylinder private context invalid=8: invalid visit in other action preserves live CPU callback context
+FAIL cylinder private context invalid=8: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cylinder mode=limit
+1097 checks, 2 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_cylinder_above" classname="TextureCoordinateGeneratorGuards_cylinder_above" time="0.0766392" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL cylinder private context invalid=13: invalid visit in other action preserves live CPU callback context
+FAIL cylinder private context invalid=13: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=cylinder mode=above
+1097 checks, 2 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_sphere_valid" classname="TextureCoordinateGeneratorGuards_sphere_valid" time="0.0744308" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=sphere mode=valid
+3726 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_sphere_negative" classname="TextureCoordinateGeneratorGuards_sphere_negative" time="0.917638" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_sphere_min" classname="TextureCoordinateGeneratorGuards_sphere_min" time="0.9243" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_sphere_limit" classname="TextureCoordinateGeneratorGuards_sphere_limit" time="0.0762373" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL sphere private context invalid=8: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=sphere mode=limit
+1097 checks, 1 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_sphere_above" classname="TextureCoordinateGeneratorGuards_sphere_above" time="0.073934" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL sphere private context invalid=13: CPU callback does not use invalid action's shape/state
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=sphere mode=above
+1097 checks, 1 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_environment_valid" classname="TextureCoordinateGeneratorGuards_environment_valid" time="0.0754019" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=environment mode=valid
+3780 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_environment_negative" classname="TextureCoordinateGeneratorGuards_environment_negative" time="0.911921" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_environment_min" classname="TextureCoordinateGeneratorGuards_environment_min" time="0.923367" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_environment_limit" classname="TextureCoordinateGeneratorGuards_environment_limit" time="0.0772955" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=environment mode=limit
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_environment_above" classname="TextureCoordinateGeneratorGuards_environment_above" time="0.076179" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=environment mode=above
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_object_valid" classname="TextureCoordinateGeneratorGuards_object_valid" time="0.0779546" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=object mode=valid
+4266 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_object_negative" classname="TextureCoordinateGeneratorGuards_object_negative" time="0.945761" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_object_min" classname="TextureCoordinateGeneratorGuards_object_min" time="0.94682" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_object_limit" classname="TextureCoordinateGeneratorGuards_object_limit" time="0.0777245" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=object mode=limit
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_object_above" classname="TextureCoordinateGeneratorGuards_object_above" time="0.0785224" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=object mode=above
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_plane_valid" classname="TextureCoordinateGeneratorGuards_plane_valid" time="0.0815853" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=plane mode=valid
+4266 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_plane_negative" classname="TextureCoordinateGeneratorGuards_plane_negative" time="0.929888" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_plane_min" classname="TextureCoordinateGeneratorGuards_plane_min" time="0.969493" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_plane_limit" classname="TextureCoordinateGeneratorGuards_plane_limit" time="0.0815421" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=plane mode=limit
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_plane_above" classname="TextureCoordinateGeneratorGuards_plane_above" time="0.0789306" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=plane mode=above
+1089 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_normalmap_valid" classname="TextureCoordinateGeneratorGuards_normalmap_valid" time="0.0805073" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=normalmap mode=valid
+3807 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_normalmap_negative" classname="TextureCoordinateGeneratorGuards_normalmap_negative" time="0.953009" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_normalmap_min" classname="TextureCoordinateGeneratorGuards_normalmap_min" time="0.928691" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_normalmap_limit" classname="TextureCoordinateGeneratorGuards_normalmap_limit" time="0.0785468" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL normalmap invalid=8 predecessor=0: active GL texture preserved
+FAIL normalmap invalid=8 predecessor=0: CPU element slots and node identities preserved
+FAIL normalmap invalid=8 predecessor=0: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=8 predecessor=0: traversal issued no invalid GL commands
+FAIL normalmap invalid=8 predecessor=1: active GL texture preserved
+FAIL normalmap invalid=8 predecessor=1: CPU element slots and node identities preserved
+FAIL normalmap invalid=8 predecessor=1: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=8 predecessor=1: traversal issued no invalid GL commands
+FAIL normalmap invalid=8 predecessor=2: active GL texture preserved
+FAIL normalmap invalid=8 predecessor=2: CPU element slots and node identities preserved
+FAIL normalmap invalid=8 predecessor=2: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=8 predecessor=2: traversal issued no invalid GL commands
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=normalmap mode=limit
+1089 checks, 12 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_normalmap_above" classname="TextureCoordinateGeneratorGuards_normalmap_above" time="0.0776378" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL normalmap invalid=13 predecessor=0: active GL texture preserved
+FAIL normalmap invalid=13 predecessor=0: CPU element slots and node identities preserved
+FAIL normalmap invalid=13 predecessor=0: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=13 predecessor=0: traversal issued no invalid GL commands
+FAIL normalmap invalid=13 predecessor=1: active GL texture preserved
+FAIL normalmap invalid=13 predecessor=1: CPU element slots and node identities preserved
+FAIL normalmap invalid=13 predecessor=1: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=13 predecessor=1: traversal issued no invalid GL commands
+FAIL normalmap invalid=13 predecessor=2: active GL texture preserved
+FAIL normalmap invalid=13 predecessor=2: CPU element slots and node identities preserved
+FAIL normalmap invalid=13 predecessor=2: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL normalmap invalid=13 predecessor=2: traversal issued no invalid GL commands
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=normalmap mode=above
+1089 checks, 12 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_reflectionmap_valid" classname="TextureCoordinateGeneratorGuards_reflectionmap_valid" time="0.0792755" status="run">
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=reflectionmap mode=valid
+3807 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_reflectionmap_negative" classname="TextureCoordinateGeneratorGuards_reflectionmap_negative" time="0.93541" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_reflectionmap_min" classname="TextureCoordinateGeneratorGuards_reflectionmap_min" time="0.927986" status="fail">
+		<failure message="Subprocess aborted"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>terminate called after throwing an instance of 'std::out_of_range'
+  what():  SbList::operator[](): index out of range
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_reflectionmap_limit" classname="TextureCoordinateGeneratorGuards_reflectionmap_limit" time="0.0783603" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL reflectionmap invalid=8 predecessor=0: active GL texture preserved
+FAIL reflectionmap invalid=8 predecessor=0: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=8 predecessor=0: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=8 predecessor=0: traversal issued no invalid GL commands
+FAIL reflectionmap invalid=8 predecessor=1: active GL texture preserved
+FAIL reflectionmap invalid=8 predecessor=1: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=8 predecessor=1: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=8 predecessor=1: traversal issued no invalid GL commands
+FAIL reflectionmap invalid=8 predecessor=2: active GL texture preserved
+FAIL reflectionmap invalid=8 predecessor=2: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=8 predecessor=2: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=8 predecessor=2: traversal issued no invalid GL commands
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=reflectionmap mode=limit
+1089 checks, 12 failures
+</system-out>
+	</testcase>
+	<testcase name="TextureCoordinateGeneratorGuards_reflectionmap_above" classname="TextureCoordinateGeneratorGuards_reflectionmap_above" time="0.07438" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="texture-coordinates"/>
+		</properties>
+		<system-out>FAIL reflectionmap invalid=13 predecessor=0: active GL texture preserved
+FAIL reflectionmap invalid=13 predecessor=0: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=13 predecessor=0: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=13 predecessor=0: traversal issued no invalid GL commands
+FAIL reflectionmap invalid=13 predecessor=1: active GL texture preserved
+FAIL reflectionmap invalid=13 predecessor=1: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=13 predecessor=1: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=13 predecessor=1: traversal issued no invalid GL commands
+FAIL reflectionmap invalid=13 predecessor=2: active GL texture preserved
+FAIL reflectionmap invalid=13 predecessor=2: CPU element slots and node identities preserved
+FAIL reflectionmap invalid=13 predecessor=2: VBO slot count preserved
+Coin error in SoNode::GLRenderS(): GL error: 'GL_INVALID_OPERATION', nodetype: Group (set envvar COIN_GLERROR_DEBUGGING=1 and re-run to get more information)
+FAIL reflectionmap invalid=13 predecessor=2: traversal issued no invalid GL commands
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) units=8 node=reflectionmap mode=above
+1089 checks, 12 failures
+</system-out>
+	</testcase>
+</testsuite>

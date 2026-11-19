@@ -1,0 +1,75 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 91: M07_04_repair
+1/2 Test #91: M07_04_repair ....................***Failed    0.03 sec
+FAIL overflowed products cancel to representable value component=0
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=1
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=2
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=0
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=1
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=2
+  got -nan want 3
+FAIL overflowed products cancel to representable value component=3
+  got -nan want 3
+FAIL overflowed addition of finite products has representable sum component=0
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=1
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=2
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=0
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=1
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=2
+  got inf want 2.55211755e+38
+FAIL overflowed addition of finite products has representable sum component=3
+  got inf want 2.55211755e+38
+FAIL underflowed products accumulate to nonzero subnormal component=0
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=1
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=2
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=0
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=1
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=2
+  got 0 want 1.40129846e-45
+FAIL underflowed products accumulate to nonzero subnormal component=3
+  got 0 want 1.40129846e-45
+FAIL exact zero Float sum lost representable residual component=0
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=1
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=2
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=0
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=1
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=2
+  got 0 want 1
+FAIL exact zero Float sum lost representable residual component=3
+  got 0 want 1
+40 checks, 28 failures
+
+    Start 92: M07_04_legacy
+2/2 Test #92: M07_04_legacy ....................   Passed    0.03 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Label Time Summary:
+texture-coordinates    =   0.05 sec*proc (2 tests)
+
+Total Test time (real) =   0.06 sec
+
+The following tests FAILED:
+	 91 - M07_04_repair (Failed)
+Errors while running CTest

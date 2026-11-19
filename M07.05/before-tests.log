@@ -1,0 +1,51 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 93: M07_05_repair
+1/2 Test #93: M07_05_repair ....................***Failed    0.03 sec
+FAIL transformed point zero lost unit residual component=0
+  got 0 want 1
+FAIL transformed point zero lost unit residual component=1
+  got 1 want 0
+FAIL point residual followed by camera rotation component=0
+  got 0 want 0.707106709
+FAIL point residual followed by camera rotation component=1
+  got 1 want -0.707106829
+FAIL transformed point zero lost unit residual component=0
+  got 0 want 1
+FAIL transformed point zero lost unit residual component=1
+  got 1 want 0
+FAIL point residual followed by camera rotation component=0
+  got 0 want 0.707106709
+FAIL point residual followed by camera rotation component=1
+  got 1 want -0.707106829
+FAIL transformed point zero lost unit residual component=0
+  got 0.5 want 0.853553414
+FAIL transformed point zero lost unit residual component=1
+  got 0.853553414 want 0.5
+FAIL point residual followed by camera rotation component=0
+  got 0.5 want 0.75
+FAIL point residual followed by camera rotation component=1
+  got 0.853553414 want 0.249999985
+FAIL transformed point zero lost unit residual component=0
+  got 0.5 want 0.853553414
+FAIL transformed point zero lost unit residual component=1
+  got 0.853553414 want 0.5
+FAIL point residual followed by camera rotation component=0
+  got 0.5 want 0.75
+FAIL point residual followed by camera rotation component=1
+  got 0.853553414 want 0.249999985
+40 checks, 16 failures
+
+    Start 94: M07_05_legacy
+2/2 Test #94: M07_05_legacy ....................   Passed    0.02 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Label Time Summary:
+texture-coordinates    =   0.05 sec*proc (2 tests)
+
+Total Test time (real) =   0.06 sec
+
+The following tests FAILED:
+	 93 - M07_05_repair (Failed)
+Errors while running CTest

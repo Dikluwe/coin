@@ -1,0 +1,41 @@
+Internal ctest changing into directory: /dev/shm/coin-tc-publish-20261119/candidate-build
+Test project /dev/shm/coin-tc-publish-20261119/candidate-build
+    Start 109: M09_triangle_repair
+1/2 Test #109: M09_triangle_repair ..............***Failed    0.01 sec
+FAIL zero cancellation and raw Q recovered component=0
+  got 0 want 0.25 (bits)
+FAIL zero cancellation and raw Q recovered component=3
+  got 0 want 0.25 (bits)
+FAIL all zero products recover positive minimum subnormal
+FAIL all zero products recover negative minimum subnormal
+FAIL zero products repair even when legacy sum is nonzero component=0
+  got 2.80259693e-45 want 4.20389539e-45 (bits)
+FAIL zero products repair even when legacy sum is nonzero component=1
+  got -2.80259693e-45 want -4.20389539e-45 (bits)
+FAIL zero products repair even when legacy sum is nonzero component=3
+  got 0 want 1.40129846e-45 (bits)
+FAIL large exponent gaps retain signed residuals and raw Q component=0
+  got 0 want -1.88079096e-37 (bits)
+FAIL large exponent gaps retain signed residuals and raw Q component=1
+  got 0 want 1.88079096e-37 (bits)
+FAIL component repairs are independent
+FAIL all six vertex orders recover the same residual
+FAIL all six vertex orders recover the same residual
+FAIL all six vertex orders recover the same residual
+FAIL all six vertex orders recover the same residual
+FAIL back face interpolation also repairs
+175 checks, 15 failures
+
+    Start 110: M09_triangle_legacy
+2/2 Test #110: M09_triangle_legacy ..............   Passed    0.02 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Label Time Summary:
+texture-coordinates    =   0.03 sec*proc (2 tests)
+
+Total Test time (real) =   0.04 sec
+
+The following tests FAILED:
+	109 - M09_triangle_repair (Failed)
+Errors while running CTest
