@@ -1,3 +1,11 @@
+# Current status after removing duplicate segment picking
+
+23 active texture themes; LIN #26 is closed in favor of upstream #871. [Corrected review index](PR-INDEX.md) · [Deduplication proof and explicit integration contracts](dedup-20261119/README.md).
+
+The initial capture record below belongs to the pre-retirement 24-theme snapshot. Its frames and pinned inputs are preserved; current heads and validation are in the links above.
+
+---
+
 # Coin texture-coordinate PR evidence
 
 [Published PR index: B01 upstream and 23 thematic drafts](PR-INDEX.md)

@@ -1,12 +1,14 @@
-# Published texture-coordinate PRs
+# Texture-coordinate PR review order — corrected
 
-B01 is open for review in coin3d/coin. The other 23 PRs are drafts in Dikluwe/coin, each targeting its immediate predecessor so that the diff remains thematic. They can be rebased and submitted upstream separately after prerequisites land. No merge or auto-merge has been performed.
+Active texture series: **23 themes / 52 commits**, composition `91be1a447e32f0fa93eef22b96db174ea8260182`.
 
-All published heads/bases were checked against the locally reviewed commits; every remote PR contains exactly its expected files and commits. The separate evidence branch contains native Coin rendering comparisons and test logs. No CoinRender was used.
+The duplicate [fork LIN #26](https://github.com/Dikluwe/coin/pull/26) is closed and removed from this stack. [Upstream #871](https://github.com/coin3d/coin/pull/871), including its #864 dependency, is the single segment-attribute correction. Its code/head is unchanged. CUBE now targets M09 directly; the four later themes were replayed and revalidated. The earlier B01–M09 heads are unchanged.
 
-Fresh focused regression runs: all 24 parents reproduce a failure, all 24 candidates pass, no skips. Scene captures: 30 comparisons, nine pixel changes, twenty identical frames, one baseline Debug abort before a frame; sixteen comparisons change the measured picking coordinates. Images in each PR distinguish graphical changes from CPU picking changes. Themes without a representative render rely on their numerical/state test evidence.
+[Native Coin proof of the double inversion and its removal](dedup-20261119/README.md). The standalone series passes 241/241 complete and 52/52 CPU tests. A disposable combined profile with #871/#864 passes 250/250 complete and 9/9 segment/normal tests; its three historical oracle adaptations are disclosed in the linked proof. No CoinRender, no skipped tests.
 
-| Order | Theme / PR | Repository / state | Base | Head |
+B01 is open in the upstream; the remaining 22 active themes are draft reviews in the fork, each against its immediate predecessor. No merge or auto-merge has been performed.
+
+| Order | Theme / PR | State | Base | Head |
 |---:|---|---|---|---|
 | 01 | [B01: Fix texture generator replacement on the selected GL unit](https://github.com/coin3d/coin/pull/873) | upstream / ready | `31a4ea1bbd1` | `2e931d057c5` |
 | 02 | [B02: Register SoTextureCoordinate3 VBOs as texture coordinates](https://github.com/Dikluwe/coin/pull/8) | fork / draft | `2e931d057c5` | `35e9c7fe967` |
@@ -27,12 +29,9 @@ Fresh focused regression runs: all 24 parents reproduce a failure, all 24 candid
 | 17 | [M08.03: Recover Cache texture coordinates for extreme finite boxes](https://github.com/Dikluwe/coin/pull/23) | fork / draft | `9baae78bb62` | `073b993d1c9` |
 | 18 | [M08.04: Recover range loss in picked texture coordinate transforms](https://github.com/Dikluwe/coin/pull/24) | fork / draft | `073b993d1c9` | `ddfb72c00ec` |
 | 19 | [M09: Recover lost triangle texture components during picking](https://github.com/Dikluwe/coin/pull/25) | fork / draft | `ddfb72c00ec` | `990fcdcc9ca` |
-| 20 | [LIN: Fix reversed texture interpolation weights in line picking](https://github.com/Dikluwe/coin/pull/26) | fork / draft | `990fcdcc9ca` | `9bd641686e2` |
-| 21 | [CUBE: Enable CPU coordinate generation for in-memory cube maps](https://github.com/Dikluwe/coin/pull/27) | fork / draft | `9bd641686e2` | `7f0e3dd83fc` |
-| 22 | [SPH: Honor texture functions in specialized SoSphere picking](https://github.com/Dikluwe/coin/pull/28) | fork / draft | `7f0e3dd83fc` | `37c190d8ef2` |
-| 23 | [ANA: Honor texture functions in Cube Cone Cylinder and VRMLSphere picking](https://github.com/Dikluwe/coin/pull/29) | fork / draft | `37c190d8ef2` | `0d266d37a8e` |
-| 24 | [VRML: Honor texture functions in VRML Box Cone and Cylinder picking](https://github.com/Dikluwe/coin/pull/30) | fork / draft | `0d266d37a8e` | `b9de21a5b6d` |
+| 20 | [CUBE: Enable CPU coordinate generation for in-memory cube maps](https://github.com/Dikluwe/coin/pull/27) | fork / draft | `990fcdcc9ca` | `cd0611402f6` |
+| 21 | [SPH: Honor texture functions in specialized SoSphere picking](https://github.com/Dikluwe/coin/pull/28) | fork / draft | `cd0611402f6` | `f4a09055de5` |
+| 22 | [ANA: Honor texture functions in Cube Cone Cylinder and VRMLSphere picking](https://github.com/Dikluwe/coin/pull/29) | fork / draft | `f4a09055de5` | `4a1c115202a` |
+| 23 | [VRML: Honor texture functions in VRML Box Cone and Cylinder picking](https://github.com/Dikluwe/coin/pull/30) | fork / draft | `4a1c115202a` | `91be1a447e3` |
 
-[Native Coin evidence and reproduction](README.md) · [Exact scene/test results](results.json) · [Verified remote PR metadata](remote-verification.json).
-
-The original screenshot URLs are pinned to evidence commit `6f2d260d1b7ac436de82a0163ec9d1f7195084ec`; later index updates do not change those frames.
+The initial 24-theme captures remain archived in the original results.json and images, with their original SHA labels. They are historical evidence, not captures of replayed heads. The deduplication proof is in dedup-20261119/validation.json and its original frames.

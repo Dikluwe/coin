@@ -1,0 +1,237 @@
+{
+  "master": "31a4ea1bbd1974616e6e25a9f3c2adf0de8bb642",
+  "composition": "91be1a447e32f0fa93eef22b96db174ea8260182",
+  "external_segment_pr": "https://github.com/coin3d/coin/pull/871",
+  "items": [
+    {
+      "order": 1,
+      "id": "B01",
+      "branch": "codex/pre-pr-tc-min-01-gl-transitions",
+      "base_branch": "master",
+      "base": "31a4ea1bbd1974616e6e25a9f3c2adf0de8bb642",
+      "head": "2e931d057c528f128f44e783cb528ff9359e92f7",
+      "regex": "^TextureCoordinateTransition_",
+      "target": "CoinTextureCoordinateTransitionTest"
+    },
+    {
+      "order": 2,
+      "id": "B02",
+      "branch": "codex/pre-pr-tc-min-02-coordinate3-vbo",
+      "base_branch": "codex/pre-pr-tc-min-01-gl-transitions",
+      "base": "2e931d057c528f128f44e783cb528ff9359e92f7",
+      "head": "35e9c7fe9678338d9205535ce7000ff095e1429c",
+      "regex": "^TextureCoordinate3VBO_",
+      "target": "CoinTextureCoordinate3VBOTest"
+    },
+    {
+      "order": 3,
+      "id": "B03",
+      "branch": "codex/pre-pr-tc-min-03-coordinate2-guards",
+      "base_branch": "codex/pre-pr-tc-min-02-coordinate3-vbo",
+      "base": "35e9c7fe9678338d9205535ce7000ff095e1429c",
+      "head": "38a43bf13a441f3967664c2a313ba9a042d98895",
+      "regex": "^TextureCoordinate2VBO_",
+      "target": "CoinTextureCoordinate2VBOTest"
+    },
+    {
+      "order": 4,
+      "id": "B04",
+      "branch": "codex/pre-pr-tc-min-04-generator-unit-guards",
+      "base_branch": "codex/pre-pr-tc-min-03-coordinate2-guards",
+      "base": "38a43bf13a441f3967664c2a313ba9a042d98895",
+      "head": "bb2471c198b467fd55308eab999b40f7345b5e6a",
+      "regex": "^TextureCoordinateGeneratorGuards_",
+      "target": "CoinTextureCoordinateGeneratorGuardsTest"
+    },
+    {
+      "order": 5,
+      "id": "B05",
+      "branch": "codex/pre-pr-tc-min-05-normalmap-cpu",
+      "base_branch": "codex/pre-pr-tc-min-04-generator-unit-guards",
+      "base": "bb2471c198b467fd55308eab999b40f7345b5e6a",
+      "head": "f87d02a4c4c3ced7671986c3d9e9b367f3bc9dd6",
+      "regex": "^TextureCoordinateNormalMap_",
+      "target": "CoinTextureCoordinateNormalMapTest"
+    },
+    {
+      "order": 6,
+      "id": "B06",
+      "branch": "codex/pre-pr-tc-min-06-environment-reflection-cpu",
+      "base_branch": "codex/pre-pr-tc-min-05-normalmap-cpu",
+      "base": "f87d02a4c4c3ced7671986c3d9e9b367f3bc9dd6",
+      "head": "431c984eb76141df258f5a5e60fb564c881366b2",
+      "regex": "^TextureCoordinateEnvironmentReflection_",
+      "target": "CoinTextureCoordinateEnvironmentReflectionTest"
+    },
+    {
+      "order": 7,
+      "id": "M07.01",
+      "branch": "codex/pre-pr-tc-m07-01-normal-range",
+      "base_branch": "codex/pre-pr-tc-min-06-environment-reflection-cpu",
+      "base": "431c984eb76141df258f5a5e60fb564c881366b2",
+      "head": "b78966a35941d18e546042ddbdacf9f94d78e16e",
+      "regex": "^M07_01_",
+      "target": "CoinTextureCoordinateRange01Test"
+    },
+    {
+      "order": 8,
+      "id": "M07.02",
+      "branch": "codex/pre-pr-tc-m07-02-sphere-radial-range",
+      "base_branch": "codex/pre-pr-tc-m07-01-normal-range",
+      "base": "b78966a35941d18e546042ddbdacf9f94d78e16e",
+      "head": "4506fa189519dd2f449fd78ffe7a960993de9e5d",
+      "regex": "^M07_02_",
+      "target": "CoinTextureCoordinateRange02Test"
+    },
+    {
+      "order": 9,
+      "id": "M07.03",
+      "branch": "codex/pre-pr-tc-m07-03-box-range",
+      "base_branch": "codex/pre-pr-tc-m07-02-sphere-radial-range",
+      "base": "4506fa189519dd2f449fd78ffe7a960993de9e5d",
+      "head": "589a8455cb7783c669344eb06474043b3ad66355",
+      "regex": "^M07_03_",
+      "target": "CoinTextureCoordinateRange03Test"
+    },
+    {
+      "order": 10,
+      "id": "M07.04",
+      "branch": "codex/pre-pr-tc-m07-04-dot-recovery",
+      "base_branch": "codex/pre-pr-tc-m07-03-box-range",
+      "base": "589a8455cb7783c669344eb06474043b3ad66355",
+      "head": "589e6acab20ff0b5d6d3903747958b22b15369a3",
+      "regex": "^M07_04_",
+      "target": "CoinTextureCoordinateRange04Test"
+    },
+    {
+      "order": 11,
+      "id": "M07.05",
+      "branch": "codex/pre-pr-tc-m07-05-point-cancellation",
+      "base_branch": "codex/pre-pr-tc-m07-04-dot-recovery",
+      "base": "589e6acab20ff0b5d6d3903747958b22b15369a3",
+      "head": "330953c66cc02a8d228fa1a04fbe5bdd86c781cf",
+      "regex": "^M07_05_",
+      "target": "CoinTextureCoordinateRange05Test"
+    },
+    {
+      "order": 12,
+      "id": "M07.06",
+      "branch": "codex/pre-pr-tc-m07-06-normal-cancellation",
+      "base_branch": "codex/pre-pr-tc-m07-05-point-cancellation",
+      "base": "330953c66cc02a8d228fa1a04fbe5bdd86c781cf",
+      "head": "35ecd383eb854b3fefe2c625b7e73cbce290ad18",
+      "regex": "^M07_06_",
+      "target": "CoinTextureCoordinateRange06Test"
+    },
+    {
+      "order": 13,
+      "id": "M07.07",
+      "branch": "codex/pre-pr-tc-m07-07-longitude-seam",
+      "base_branch": "codex/pre-pr-tc-m07-06-normal-cancellation",
+      "base": "35ecd383eb854b3fefe2c625b7e73cbce290ad18",
+      "head": "409d099087fd6937a067a24507324f3373af7297",
+      "regex": "^M07_07_",
+      "target": "CoinTextureCoordinateRange07Test"
+    },
+    {
+      "order": 14,
+      "id": "M07.08",
+      "branch": "codex/pre-pr-tc-m07-08-south-latitude",
+      "base_branch": "codex/pre-pr-tc-m07-07-longitude-seam",
+      "base": "409d099087fd6937a067a24507324f3373af7297",
+      "head": "69504ba0e62bf3da22010ac20c3a5c3509fccb9d",
+      "regex": "^M07_08_",
+      "target": "CoinTextureCoordinateRange08Test"
+    },
+    {
+      "order": 15,
+      "id": "M08.01",
+      "branch": "codex/pre-pr-tc-m08-01-get2",
+      "base_branch": "codex/pre-pr-tc-m07-08-south-latitude",
+      "base": "69504ba0e62bf3da22010ac20c3a5c3509fccb9d",
+      "head": "db4aa40b4f2db66bfb38a08007cccd225b9be12f",
+      "regex": "^M08_01_",
+      "target": "CoinTextureCoordinateM0801Test"
+    },
+    {
+      "order": 16,
+      "id": "M08.02",
+      "branch": "codex/pre-pr-tc-m08-02-bundle-range",
+      "base_branch": "codex/pre-pr-tc-m08-01-get2",
+      "base": "db4aa40b4f2db66bfb38a08007cccd225b9be12f",
+      "head": "9baae78bb62a03698bffc9a0f21d2e2a2ee1d79c",
+      "regex": "^M08_02_",
+      "target": "CoinTextureCoordinateM0802Test"
+    },
+    {
+      "order": 17,
+      "id": "M08.03",
+      "branch": "codex/pre-pr-tc-m08-03-cache-range",
+      "base_branch": "codex/pre-pr-tc-m08-02-bundle-range",
+      "base": "9baae78bb62a03698bffc9a0f21d2e2a2ee1d79c",
+      "head": "073b993d1c9a978a948fdf113b415cfdb219146b",
+      "regex": "^M08_03_",
+      "target": "CoinTextureCoordinateM0803Test"
+    },
+    {
+      "order": 18,
+      "id": "M08.04",
+      "branch": "codex/pre-pr-tc-m08-04-picked-point",
+      "base_branch": "codex/pre-pr-tc-m08-03-cache-range",
+      "base": "073b993d1c9a978a948fdf113b415cfdb219146b",
+      "head": "ddfb72c00ec3de277320ab3eb2c496b3855f984f",
+      "regex": "^M08_04_",
+      "target": "CoinTextureCoordinateM0804Test"
+    },
+    {
+      "order": 19,
+      "id": "M09",
+      "branch": "codex/pre-pr-tc-m09-triangle-interpolation",
+      "base_branch": "codex/pre-pr-tc-m08-04-picked-point",
+      "base": "ddfb72c00ec3de277320ab3eb2c496b3855f984f",
+      "head": "990fcdcc9ca332065dc2a2ee2731e0549f0da332",
+      "regex": "^M09_triangle_",
+      "target": "CoinTriangleTextureInterpolationTest"
+    },
+    {
+      "order": 20,
+      "id": "CUBE",
+      "branch": "codex/pre-pr-tc-cubemap-cpu-picking",
+      "base_branch": "codex/pre-pr-tc-m09-triangle-interpolation",
+      "base": "990fcdcc9ca332065dc2a2ee2731e0549f0da332",
+      "head": "cd0611402f682f97ba0dc4a98cc6c1aa791904d1",
+      "regex": "^TextureCubeMapCPU_",
+      "target": "CoinTextureCubeMapCPUTest"
+    },
+    {
+      "order": 21,
+      "id": "SPH",
+      "branch": "codex/pre-pr-tc-sphere-picking",
+      "base_branch": "codex/pre-pr-tc-cubemap-cpu-picking",
+      "base": "cd0611402f682f97ba0dc4a98cc6c1aa791904d1",
+      "head": "f4a09055de542b7eeb271fd4c97d18d1dee13329",
+      "regex": "^SoSphereTexturePick_",
+      "target": "CoinSoSphereTexturePickTest"
+    },
+    {
+      "order": 22,
+      "id": "ANA",
+      "branch": "codex/pre-pr-tc-analytic-shapes-picking",
+      "base_branch": "codex/pre-pr-tc-sphere-picking",
+      "base": "f4a09055de542b7eeb271fd4c97d18d1dee13329",
+      "head": "4a1c115202ace6b50f794d4724b4ac527fa8303c",
+      "regex": "^AnalyticShapeTexturePick_",
+      "target": "CoinAnalyticShapeTexturePickTest"
+    },
+    {
+      "order": 23,
+      "id": "VRML",
+      "branch": "codex/pre-pr-tc-vrml-shapes-picking",
+      "base_branch": "codex/pre-pr-tc-analytic-shapes-picking",
+      "base": "4a1c115202ace6b50f794d4724b4ac527fa8303c",
+      "head": "91be1a447e32f0fa93eef22b96db174ea8260182",
+      "regex": "^VRMLAnalyticTexturePick_",
+      "target": "CoinVRMLAnalyticTexturePickTest"
+    }
+  ]
+}

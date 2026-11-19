@@ -1,0 +1,50 @@
+--- a/testsuite/TriangleTextureInterpolationTest.cpp
++++ b/testsuite/TriangleTextureInterpolationTest.cpp
+@@ -82,9 +82,9 @@
+           p->v[1].getNormal()*p->weights[1]+p->v[2].getNormal()*p->weights[2];
+         for(int i=1;i<3;++i) if(p->weights[i]>p->weights[materialVertex]) materialVertex=i;
+       } else if(kind==1) {
+-        // This baseline's independent line callback reverses these weights.
+-        expectedNormal=p->v[0].getNormal()*.25f+p->v[1].getNormal()*.75f;
+-        materialVertex=1;
++        // Integration profile: #871 corrects all shared segment weights.
++        expectedNormal=p->v[0].getNormal()*.75f+p->v[1].getNormal()*.25f;
++        materialVertex=0;
+       } else expectedNormal=p->v[0].getNormal();
+       expectedNormal.normalize();
+       check(pp->getMaterialIndex()==p->v[materialVertex].getMaterialIndex(),"material follows legacy weights");
+@@ -180,10 +180,10 @@
+   // widened sum; ordinary Float arithmetic is an admissible preserved result.
+   const SbVec4f nonzeroProducts[]={SbVec4f(8*d,16*d,32*d,64*d),SbVec4f(8*d,16*d,32*d,64*d),SbVec4f(8*d,16*d,32*d,64*d)};
+   Result r=pick(nonzeroProducts); equal(r.tex,r.old,"nonzero subnormal products preserve Float result",true);
+-  // The independent line path still uses its legacy weights in this baseline.
++  // Integration profile: line attributes follow #871, outside M09.
+   const SbVec4f line[]={SbVec4f(2,4,6,8),SbVec4f(10,12,14,16),SbVec4f(0,0,0,0)};
+   r=pick(line,.25f,0,NULL,1);
+-  equal(r.tex,SbVec4f(8,10,12,14),"line legacy reversed texture weights",true);
++  equal(r.tex,SbVec4f(4,6,8,10),"#871 corrected line texture weights",true);
+   const SbVec4f point[]={SbVec4f(h,-0.0f,d,7),SbVec4f(0,0,0,0),SbVec4f(0,0,0,0)};
+   r=pick(point,0,0,NULL,2); equal(r.tex,point[0],"point texture unchanged",true);
+   functionalTest();
+--- a/testsuite/AnalyticShapeTexturePickTest.cpp
++++ b/testsuite/AnalyticShapeTexturePickTest.cpp
+@@ -226,7 +226,7 @@
+       for(int i=0;i<a.getPickedPointList().getLength() && i<count;++i) {
+         const SoPickedPoint * p=a.getPickedPoint(i); const Hit & h=c.hits[i];
+         near3(p->getObjectPoint(),h.p,"real analytic object point"); near3(p->getPoint(),t.world(h.p),"world intersection");
+-        near3(p->getObjectNormal(),h.n,"legacy object normal"); near3(p->getNormal(),t.vector(h.n),"legacy transformed normal");
++        near3(p->getObjectNormal(),h.n,"legacy object normal"); near3(p->getNormal(),t.normal(h.n),"#864 inverse-transpose normalized world normal");
+         check(p->getPath()->getTail()==node && p->isOnGeometry(),"actual shape path and geometry flag"); detail(p,c.kind,h);
+         if(functional) {
+           near4(p->getObjectTextureCoords(),value(h.p,h.n,11),"unit zero function uses real point and legacy normal, all four components");
+--- a/testsuite/VRMLAnalyticTexturePickTest.cpp
++++ b/testsuite/VRMLAnalyticTexturePickTest.cpp
+@@ -250,7 +250,7 @@
+       for(int i=0;i<a.getPickedPointList().getLength() && i<count;++i) {
+         const SoPickedPoint * p=a.getPickedPoint(i); const Hit & h=c.hits[i];
+         near3(p->getObjectPoint(),h.p,"real analytic object point"); near3(p->getPoint(),t.world(h.p),"world intersection");
+-        near3(p->getObjectNormal(),h.n,"legacy object normal"); near3(p->getNormal(),t.vector(h.n),"legacy transformed normal");
++        near3(p->getObjectNormal(),h.n,"legacy object normal"); near3(p->getNormal(),t.normal(h.n),"#864 inverse-transpose normalized world normal");
+         check(p->getPath()->getTail()==node && p->isOnGeometry(),"actual shape path and geometry flag"); detail(p,c.kind,h);
+         if(functional) {
+           near4(p->getObjectTextureCoords(),value(h.p,h.n,11),"unit zero function uses real point and legacy normal, all four components");

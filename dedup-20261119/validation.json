@@ -1,0 +1,164 @@
+{
+  "previous_composition": "b9de21a5b6d8fdef9455c19e65557740102c1f7f",
+  "composition": "91be1a447e32f0fa93eef22b96db174ea8260182",
+  "master": "31a4ea1bbd1974616e6e25a9f3c2adf0de8bb642",
+  "upstream_segment_pr": "https://github.com/coin3d/coin/pull/871",
+  "upstream_segment_head": "deccdcc8242997c0ff059e00754f6980f5882a9d",
+  "retired_fork_pr": "https://github.com/Dikluwe/coin/pull/26",
+  "retired_commits": [
+    "47e19ac1f856e15d53773f014f4311624a773910",
+    "3b69e3de995a5a19f86002ebe288bcc1b70c7b03",
+    "9bd641686e21f03717674d2e75871d85474162a6"
+  ],
+  "upstream_code_unchanged": true,
+  "active_themes": 23,
+  "active_commits": 52,
+  "delta_validation": [
+    {
+      "id": "CUBE",
+      "base": "990fcdcc9ca332065dc2a2ee2731e0549f0da332",
+      "head": "cd0611402f682f97ba0dc4a98cc6c1aa791904d1",
+      "baseline": {
+        "exit": 8,
+        "total": 6,
+        "failed": [
+          "TextureCubeMapCPU_callback_mesh",
+          "TextureCubeMapCPU_callback_state",
+          "TextureCubeMapCPU_callback_reuse",
+          "TextureCubeMapCPU_pick_mesh",
+          "TextureCubeMapCPU_pick_state",
+          "TextureCubeMapCPU_pick_reuse"
+        ],
+        "skipped": []
+      },
+      "candidate": {
+        "exit": 0,
+        "total": 6,
+        "failed": [],
+        "skipped": []
+      }
+    },
+    {
+      "id": "SPH",
+      "base": "cd0611402f682f97ba0dc4a98cc6c1aa791904d1",
+      "head": "f4a09055de542b7eeb271fd4c97d18d1dee13329",
+      "baseline": {
+        "exit": 8,
+        "total": 5,
+        "failed": [
+          "SoSphereTexturePick_functions",
+          "SoSphereTexturePick_generators",
+          "SoSphereTexturePick_clipping",
+          "SoSphereTexturePick_scopes"
+        ],
+        "skipped": []
+      },
+      "candidate": {
+        "exit": 0,
+        "total": 5,
+        "failed": [],
+        "skipped": []
+      }
+    },
+    {
+      "id": "ANA",
+      "base": "f4a09055de542b7eeb271fd4c97d18d1dee13329",
+      "head": "4a1c115202ace6b50f794d4724b4ac527fa8303c",
+      "baseline": {
+        "exit": 8,
+        "total": 6,
+        "failed": [
+          "AnalyticShapeTexturePick_functions",
+          "AnalyticShapeTexturePick_generators",
+          "AnalyticShapeTexturePick_boundaries",
+          "AnalyticShapeTexturePick_scopes"
+        ],
+        "skipped": []
+      },
+      "candidate": {
+        "exit": 0,
+        "total": 6,
+        "failed": [],
+        "skipped": []
+      }
+    },
+    {
+      "id": "VRML",
+      "base": "4a1c115202ace6b50f794d4724b4ac527fa8303c",
+      "head": "91be1a447e32f0fa93eef22b96db174ea8260182",
+      "baseline": {
+        "exit": 8,
+        "total": 5,
+        "failed": [
+          "VRMLAnalyticTexturePick_functions",
+          "VRMLAnalyticTexturePick_generators",
+          "VRMLAnalyticTexturePick_boundaries",
+          "VRMLAnalyticTexturePick_scopes"
+        ],
+        "skipped": []
+      },
+      "candidate": {
+        "exit": 0,
+        "total": 5,
+        "failed": [],
+        "skipped": []
+      }
+    }
+  ],
+  "standalone_full": {
+    "total": 241,
+    "failed": [],
+    "skipped": []
+  },
+  "standalone_cpu": {
+    "total": 52,
+    "failed": [],
+    "skipped": []
+  },
+  "duplicate_integration_baseline": {
+    "total": 9,
+    "failed": [
+      "SegmentPickWeights_texture"
+    ],
+    "skipped": []
+  },
+  "combined_validation": {
+    "combined-picked": {
+      "exit": 0,
+      "total": 9,
+      "failed": [],
+      "skipped": []
+    },
+    "combined-full": {
+      "exit": 0,
+      "total": 250,
+      "failed": [],
+      "skipped": []
+    }
+  },
+  "combined_oracle_note": "Only the disposable integration profile changes three historical test files to expect the explicit #864 normal and #871 segment contracts. No tests excluded; published thematic source tests unchanged.",
+  "combined_oracle_patch": "integration-test-oracles.patch",
+  "native_graphical_proof": {
+    "scene": "line-picking",
+    "different_pixels": 0,
+    "expected_first_S": 0.125,
+    "before_S": 0.875,
+    "after_S": 0.125,
+    "same_scene_bytes": true
+  },
+  "no_coinrender": true,
+  "branch_replay": {
+    "0d6d1e4531698eaedc7df5250c7e35c82051c687": "594016311fac4223f0941b414f6761f249e619d9",
+    "7f0e3dd83fceb4a121a07d5261955702aba8742a": "cd0611402f682f97ba0dc4a98cc6c1aa791904d1",
+    "7c666ccf7c138278432162bb3af65c00debba0fa": "e87ff855c86e41f050479d960d7e582295887bd3",
+    "37c190d8ef22acf99929c9a33c2467b36c73abe6": "f4a09055de542b7eeb271fd4c97d18d1dee13329",
+    "428f02e4ac9ac75402a580b3a98e467ead1d5c98": "aedbcd35b812d1dc00ce4051dbe22a7229e06c4b",
+    "0d266d37a8e77b876f36ec422d9e1d2947b041b4": "4a1c115202ace6b50f794d4724b4ac527fa8303c",
+    "d36d7ad4c259ab65f5db5392fced3643a1803fc4": "0e27091caf4a0e38e69552511255f8141df29516",
+    "e21f3e5dd01ee6bae60b3e5a8e3203153d784e0c": "442f55a0afa1e01b27f44f587a10a7f1630d5dcd",
+    "b9de21a5b6d8fdef9455c19e65557740102c1f7f": "91be1a447e32f0fa93eef22b96db174ea8260182"
+  },
+  "integration_exported_symbols_removed": 0,
+  "integration_exported_symbols_added": 0,
+  "standalone_segment_callback_matches_master": true
+}
