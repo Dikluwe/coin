@@ -348,3 +348,139 @@ if(COIN_BUILD_FUZZERS)
     DESTINATION "${COIN_XML_FUZZ_CORPUS}")
   add_executable(CoinXmlDomFuzzer fuzz/xml-dom-fuzzer.cpp)
   target_link_libraries(CoinXmlDomFuzzer
+    Coin ${COIN_TARGET_LINK_LIBRARIES})
+  target_include_directories(CoinXmlDomFuzzer PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/include
+    ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  target_compile_options(CoinXmlDomFuzzer PRIVATE -fsanitize=fuzzer)
+  set_property(TARGET CoinXmlDomFuzzer APPEND_STRING PROPERTY
+    LINK_FLAGS " -fsanitize=fuzzer,address,undefined")
+  add_test(NAME CoinXmlDomFuzzerSmoke
+    COMMAND CoinXmlDomFuzzer
+      -runs=100
+      -max_len=4096
+      -timeout=10
+      -rss_limit_mb=2048
+      -dict=${CMAKE_CURRENT_SOURCE_DIR}/fuzz/xml.dict
+      ${COIN_XML_FUZZ_CORPUS})
+  set_tests_properties(CoinXmlDomFuzzerSmoke PROPERTIES LABELS "fuzz")
+endif()
+
+add_test(NAME CoinConfigCompatibility
+  COMMAND ${CMAKE_COMMAND}
+    -DCOIN_CONFIG_TEMPLATE=${PROJECT_SOURCE_DIR}/src/coin-config.cmake.in
+    -DCOIN_COMPAT_TEST_DIR=${CMAKE_CURRENT_BINARY_DIR}/coin-config-compatibility
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/CoinConfigCompatibilityTest.cmake)
+
+add_test(NAME CoinTestsFilterExact
+  COMMAND CoinTests --run_test=SbList_TestSuite/truncate_zero_then_grow_past_default_size)
+set_tests_properties(CoinTestsFilterExact PROPERTIES
+  PASS_REGULAR_EXPRESSION "\\[OK\\] 1 tests")
+
+add_test(NAME CoinTestsFilterWildcard
+  COMMAND CoinTests -t SbList_TestSuite/truncate*)
+set_tests_properties(CoinTestsFilterWildcard PROPERTIES
+  PASS_REGULAR_EXPRESSION "\\[OK\\] 1 tests")
+
+add_test(NAME CoinTestsFilterSuite
+  COMMAND CoinTests --run_test=SbList_TestSuite)
+set_tests_properties(CoinTestsFilterSuite PROPERTIES
+  PASS_REGULAR_EXPRESSION "\\[OK\\] 21 tests")
+
+add_test(NAME CoinTestsFilterCombined
+  COMMAND CoinTests
+    --run_test=SoCallbackList_TestSuite/typed_callback_copies_preserve_dispatch_and_lifetime,mixed_callback_removal_preserves_indices_and_last_duplicate:SbList_TestSuite/truncate_zero_then_grow_past_default_size)
+set_tests_properties(CoinTestsFilterCombined PROPERTIES
+  PASS_REGULAR_EXPRESSION "\\[OK\\] 3 tests")
+
+add_test(NAME CoinTestsFilterRepeated
+  COMMAND CoinTests
+    --run_test=SbList_TestSuite/truncate_zero_then_grow_past_default_size
+    --run_test=SoCallbackList_TestSuite/callback_mutations_affect_only_later_invocations)
+set_tests_properties(CoinTestsFilterRepeated PROPERTIES
+  PASS_REGULAR_EXPRESSION "\\[OK\\] 2 tests")
+
+add_test(NAME CoinTestsFilterNoMatch
+  COMMAND CoinTests --run_test=CoinTest_NoSuchSuite/*)
+set_tests_properties(CoinTestsFilterNoMatch PROPERTIES WILL_FAIL TRUE)
+
+add_test(NAME CoinTestsFilterMissingValue COMMAND CoinTests --run_test)
+set_tests_properties(CoinTestsFilterMissingValue PROPERTIES WILL_FAIL TRUE)
+
+add_test(NAME CoinTestsFilterEmptyValue COMMAND CoinTests --run_test=)
+set_tests_properties(CoinTestsFilterEmptyValue PROPERTIES WILL_FAIL TRUE)
+
+if(NOT WIN32)
+  add_test(NAME CoinTestsFilterDirectSuite
+    COMMAND CoinTests --run_test=GLUWrapper_TestSuite/runtimeLoader)
+  set_tests_properties(CoinTestsFilterDirectSuite PROPERTIES
+    PASS_REGULAR_EXPRESSION "\\[OK\\] 1 tests")
+endif()
+
+# These public-API tests need fresh processes: CoinTests initializes SoDB
+# before running its inline cases, which is too late to test startup options.
+add_executable(CoinProfilerInitTest
+  reproducers/soprofiler-initclass-ordering/repro.cpp)
+target_link_libraries(CoinProfilerInitTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(CoinProfilerInitTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+  ${COIN_TARGET_INCLUDE_DIRECTORIES})
+foreach(profile_mode unset off 0 on 1 syncgl invalid)
+  add_test(NAME ProfilerInit_${profile_mode}
+    COMMAND ${CMAKE_COMMAND}
+      -DTEST_EXECUTABLE=$<TARGET_FILE:CoinProfilerInitTest>
+      -DPROFILE_MODE=${profile_mode}
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/reproducers/soprofiler-initclass-ordering/verify.cmake)
+endforeach()
+
+add_library(CoinCHeapHeaderCompileTest OBJECT CHeapHeaderCompileTest.c)
+target_link_libraries(CoinCHeapHeaderCompileTest PRIVATE Coin)
+
+include(RegressionTests.cmake)
+
+include(CheckCoreGLHeaders.cmake)
+
+# Many warnings are generated from test macros on macOS with Xcode.
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG(-Wtautological-compare DISABLE_WARNING_TAUTOLOGCOMPARE)
+if(DISABLE_WARNING_TAUTOLOGCOMPARE)
+	target_compile_options(CoinTests PUBLIC -Wno-tautological-compare)
+endif()
+
+# These cases inspect the global queues and disable realTime. Keep each in
+# its own process to avoid changing the shared CoinTests sensor state.
+add_executable(CoinSensorSchedulingTest SensorSchedulingTest.cpp)
+target_link_libraries(CoinSensorSchedulingTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(CoinSensorSchedulingTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+  ${COIN_TARGET_INCLUDE_DIRECTORIES})
+foreach(sensor_case alarm_cancel recurring_cancel alarm_reschedule
+                    timeout_change_cancel zero_repeat zero_nonidle nonzero_timeout
+                    node_detach delay_reentry delay_timeout_reentry timer_reentry
+                    delay_changed_exception timer_changed_exception
+                    delay_remove_reentry timer_remove_reentry
+                    timer_exception delay_exception timer_cancel_exception delay_deferred_exception
+                    absolute_deadline changed_during_dispatch immediate_notification)
+  add_test(NAME SensorScheduling_${sensor_case}
+    COMMAND CoinSensorSchedulingTest ${sensor_case})
+endforeach()
+
+# Linux executable interposition lets this test fail the fifth queue allocation.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_executable(CoinSensorQueueAllocationFailureTest
+    SensorQueueAllocationFailureTest.cpp)
+  target_link_libraries(CoinSensorQueueAllocationFailureTest
+    Coin ${COIN_TARGET_LINK_LIBRARIES})
+  target_include_directories(CoinSensorQueueAllocationFailureTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+    ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  foreach(sensor_case delay immediate timer recurring)
+    add_test(NAME SensorQueueAllocation_${sensor_case}
+      COMMAND CoinSensorQueueAllocationFailureTest ${sensor_case})
+    set_tests_properties(SensorQueueAllocation_${sensor_case}
+      PROPERTIES TIMEOUT 10)
+  endforeach()
+endif()
+
+include(AllocationHookContracts.cmake)
