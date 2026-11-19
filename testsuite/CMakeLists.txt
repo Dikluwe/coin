@@ -584,20 +584,22 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endforeach()
 endif()
 
-# Exercise the real GLRender path when a GLX context can be created at runtime.
-# The CPU callback/rayPick cases above remain available on every platform.
-if(COIN_BUILD_LEGACY_GL_RENDERER AND UNIX AND NOT APPLE)
+# These legacy GL traversal tests use Coin's compatibility context directly
+# and do not depend on the optional CoinRender library.
+if(COIN_BUILD_LEGACY_GL_RENDERER AND UNIX AND NOT APPLE AND HAVE_GLX)
   find_package(X11 QUIET)
-  if(X11_FOUND AND HAVE_GLX)
-    add_executable(CoinTexture2OverrideGLXTest Texture2OverrideGLXTest.cpp)
-    target_include_directories(CoinTexture2OverrideGLXTest PRIVATE
+  if(X11_FOUND)
+    add_executable(CoinTextureCoordinateTransitionTest TextureCoordinateTransitionTest.cpp)
+    target_include_directories(CoinTextureCoordinateTransitionTest PRIVATE
       ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
       ${COIN_TARGET_INCLUDE_DIRECTORIES} ${X11_INCLUDE_DIR})
-    target_link_libraries(CoinTexture2OverrideGLXTest
+    target_link_libraries(CoinTextureCoordinateTransitionTest
       Coin ${COIN_TARGET_LINK_LIBRARIES} ${X11_LIBRARIES})
-    add_test(NAME Texture2OverrideGLX COMMAND CoinTexture2OverrideGLXTest)
-    set_tests_properties(Texture2OverrideGLX PROPERTIES SKIP_RETURN_CODE 77)
-  else()
-    message(STATUS "Texture2 GLRender test unavailable: GLX or X11 development files missing")
+    foreach(texture_case cpu default cube cylinder sphere limit)
+      add_test(NAME TextureCoordinateTransition_${texture_case}
+        COMMAND CoinTextureCoordinateTransitionTest ${texture_case})
+      set_tests_properties(TextureCoordinateTransition_${texture_case}
+        PROPERTIES SKIP_RETURN_CODE 77 LABELS texture-coordinates)
+    endforeach()
   endif()
 endif()
