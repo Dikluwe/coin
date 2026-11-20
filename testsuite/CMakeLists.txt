@@ -525,4 +525,4 @@ endif()
 
 include(SoDepthBufferTests.cmake)
 
-include(SoAnnotationDepthTests.cmake)
+include(SoDepthBufferEngineTests.cmake)
