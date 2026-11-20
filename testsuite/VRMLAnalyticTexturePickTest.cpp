@@ -251,7 +251,7 @@ void analyticCases(bool functional) {
       for(int i=0;i<a.getPickedPointList().getLength() && i<count;++i) {
         const SoPickedPoint * p=a.getPickedPoint(i); const Hit & h=c.hits[i];
         near3(p->getObjectPoint(),h.p,"real analytic object point"); near3(p->getPoint(),t.world(h.p),"world intersection");
-        near3(p->getObjectNormal(),h.n,"legacy object normal"); near3(p->getNormal(),t.vector(h.n),"legacy transformed normal");
+        near3(p->getObjectNormal(),h.n,"legacy object normal"); near3(p->getNormal(),t.normal(h.n),"inverse-transpose world normal");
         check(p->getPath()->getTail()==node && p->isOnGeometry(),"actual shape path and geometry flag"); detail(p,c.kind,h);
         if(functional) {
           near4(p->getObjectTextureCoords(),value(h.p,h.n,11),"unit zero function uses real point and legacy normal, all four components");

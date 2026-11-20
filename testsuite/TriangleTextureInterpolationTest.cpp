@@ -82,15 +82,14 @@ Result pick(const SbVec4f (&tex)[3],float x=.25f,float y=.25f,
           p->v[1].getNormal()*p->weights[1]+p->v[2].getNormal()*p->weights[2];
         for(int i=1;i<3;++i) if(p->weights[i]>p->weights[materialVertex]) materialVertex=i;
       } else if(kind==1) {
-        // This baseline's independent line callback reverses these weights.
-        expectedNormal=p->v[0].getNormal()*.25f+p->v[1].getNormal()*.75f;
-        materialVertex=1;
+        // A hit one quarter of the way from v[0] retains that endpoint's influence.
+        expectedNormal=p->v[0].getNormal()*.75f+p->v[1].getNormal()*.25f;
       } else expectedNormal=p->v[0].getNormal();
       expectedNormal.normalize();
-      check(pp->getMaterialIndex()==p->v[materialVertex].getMaterialIndex(),"material follows legacy weights");
+      check(pp->getMaterialIndex()==p->v[materialVertex].getMaterialIndex(),"material follows primitive weights");
       const SbVec3f actualNormal=pp->getObjectNormal();
       check(same(actualNormal[0],expectedNormal[0]) && same(actualNormal[1],expectedNormal[1]) &&
-        same(actualNormal[2],expectedNormal[2]),"normal follows legacy Float weights and normalization");
+        same(actualNormal[2],expectedNormal[2]),"normal follows primitive Float weights and normalization");
       const SbVec3f point=pp->getObjectPoint();
       check(std::fabs(point[0]-x)<1e-6f && std::fabs(point[1]-y)<1e-6f && point[2]==0,"intersection retained");
       if(kind==0) {
@@ -180,10 +179,10 @@ void legacyTests() {
   // widened sum; ordinary Float arithmetic is an admissible preserved result.
   const SbVec4f nonzeroProducts[]={SbVec4f(8*d,16*d,32*d,64*d),SbVec4f(8*d,16*d,32*d,64*d),SbVec4f(8*d,16*d,32*d,64*d)};
   Result r=pick(nonzeroProducts); equal(r.tex,r.old,"nonzero subnormal products preserve Float result",true);
-  // The independent line path still uses its legacy weights in this baseline.
+  // The independent line path interpolates using distance from the first endpoint.
   const SbVec4f line[]={SbVec4f(2,4,6,8),SbVec4f(10,12,14,16),SbVec4f(0,0,0,0)};
   r=pick(line,.25f,0,NULL,1);
-  equal(r.tex,SbVec4f(8,10,12,14),"line legacy reversed texture weights",true);
+  equal(r.tex,SbVec4f(4,6,8,10),"line texture follows endpoint weights",true);
   const SbVec4f point[]={SbVec4f(h,-0.0f,d,7),SbVec4f(0,0,0,0),SbVec4f(0,0,0,0)};
   r=pick(point,0,0,NULL,2); equal(r.tex,point[0],"point texture unchanged",true);
   functionalTest();
