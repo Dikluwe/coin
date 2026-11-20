@@ -667,8 +667,12 @@ SoSceneTexture2::notify(SoNotList * list)
   else if (f == &this->transparencyFunction) {
     PRIVATE(this)->transparencyfunctiondirty = TRUE;
   }
-  else if (f == &this->model ||
-           f == &this->sceneTransparencyType) {
+  else if (f == &this->sceneTransparencyType) {
+    // The producer must redraw and may select a different backend.
+    PRIVATE(this)->buffervalid = FALSE;
+    PRIVATE(this)->glimagevalid = FALSE;
+  }
+  else if (f == &this->model) {
     // no need to render scene again, but update the texture object
     PRIVATE(this)->glimagevalid = FALSE;
   }
@@ -1027,7 +1031,6 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
       this->glaction->setViewportRegion(SbViewportRegion(this->glcontextsize));
     }
 
-    this->glaction->setTransparencyType(this->getTransparencyType(state));
     this->glaction->setCacheContext(this->contextid);
     this->glimagevalid = FALSE;
   }
@@ -1035,8 +1038,7 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
   if (!this->buffervalid) {
     assert(this->glaction != NULL);
     assert(this->glcontext != NULL);
-    this->glaction->setTransparencyType((SoGLRenderAction::TransparencyType)
-                                        SoShapeStyleElement::getTransparencyType(state));
+    this->glaction->setTransparencyType(this->getTransparencyType(state));
 
     cc_glglue_context_make_current(this->glcontext);
     glEnable(GL_DEPTH_TEST);
