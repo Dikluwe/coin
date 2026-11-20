@@ -1,0 +1,4660 @@
+{
+  "runs": [
+    {
+      "driver": "radeon",
+      "library": "base",
+      "repeat": 0,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.527,
+          "peak_mib": 33.332,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 107.971472,
+          "cpu_median_ms": 91.066,
+          "rss_mib": 117.469,
+          "peak_mib": 116.758,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            107.971472
+          ],
+          "samples_cpu_ms": [
+            91.066
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 23.189564,
+          "cpu_median_ms": 21.754,
+          "rss_mib": 117.484,
+          "peak_mib": 116.758,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            22.553062,
+            22.903242,
+            23.795359,
+            22.918581,
+            22.86469,
+            22.948256,
+            23.401187,
+            23.248784,
+            23.189564,
+            23.408901
+          ],
+          "samples_cpu_ms": [
+            21.31,
+            21.633,
+            21.799,
+            21.251,
+            21.884,
+            21.686,
+            21.523,
+            21.754,
+            22.009,
+            21.788
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.533078
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 32.147833,
+          "cpu_median_ms": 30.259,
+          "rss_mib": 117.664,
+          "peak_mib": 117.008,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            32.147833
+          ],
+          "samples_cpu_ms": [
+            30.259
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 23.437024,
+          "cpu_median_ms": 21.632,
+          "rss_mib": 117.727,
+          "peak_mib": 117.008,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            23.011403,
+            22.158629,
+            23.484391,
+            23.688911,
+            23.023386,
+            23.510249,
+            24.833487,
+            23.437024,
+            22.808496,
+            22.888454
+          ],
+          "samples_cpu_ms": [
+            21.241,
+            21.721,
+            22.293,
+            21.642,
+            21.435,
+            22.544,
+            21.425,
+            21.632,
+            21.591,
+            21.432
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 118.062,
+          "peak_mib": 117.383
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "before",
+      "repeat": 0,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.609,
+          "peak_mib": 33.039,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 96.296907,
+          "cpu_median_ms": 83.692,
+          "rss_mib": 130.707,
+          "peak_mib": 129.688,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            96.296907
+          ],
+          "samples_cpu_ms": [
+            83.692
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 3.836416,
+          "cpu_median_ms": 2.619,
+          "rss_mib": 130.719,
+          "peak_mib": 129.688,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            4.436521,
+            4.066413,
+            3.985332,
+            3.836416,
+            2.920104,
+            2.674738,
+            3.347759,
+            2.618033,
+            3.438627,
+            3.960767
+          ],
+          "samples_cpu_ms": [
+            2.832,
+            2.788,
+            2.746,
+            2.435,
+            2.67,
+            2.067,
+            2.354,
+            2.465,
+            2.041,
+            2.619
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.689188
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 16.015047,
+          "cpu_median_ms": 15.167,
+          "rss_mib": 130.879,
+          "peak_mib": 129.812,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            16.015047
+          ],
+          "samples_cpu_ms": [
+            15.167
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 3.93534,
+          "cpu_median_ms": 2.599,
+          "rss_mib": 130.883,
+          "peak_mib": 129.812,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            3.86047,
+            3.900866,
+            3.937924,
+            3.952763,
+            2.691299,
+            3.440581,
+            3.93534,
+            4.045765,
+            5.424536,
+            2.93424
+          ],
+          "samples_cpu_ms": [
+            2.904,
+            2.593,
+            2.599,
+            2.605,
+            2.721,
+            2.061,
+            2.585,
+            2.792,
+            2.551,
+            2.35
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.219,
+          "peak_mib": 130.188
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "fixed",
+      "repeat": 0,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.68,
+          "peak_mib": 33.379,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 96.3093,
+          "cpu_median_ms": 83.766,
+          "rss_mib": 130.77,
+          "peak_mib": 129.953,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            96.3093
+          ],
+          "samples_cpu_ms": [
+            83.766
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 3.916144,
+          "cpu_median_ms": 2.685,
+          "rss_mib": 130.785,
+          "peak_mib": 129.953,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            3.870138,
+            4.163634,
+            4.098824,
+            4.041166,
+            4.497644,
+            3.034387,
+            3.47247,
+            3.632317,
+            3.916144,
+            3.567977
+          ],
+          "samples_cpu_ms": [
+            2.511,
+            2.82,
+            2.768,
+            2.712,
+            2.615,
+            2.439,
+            2.133,
+            2.696,
+            2.685,
+            2.437
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.446076
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 16.127737,
+          "cpu_median_ms": 14.892,
+          "rss_mib": 130.961,
+          "peak_mib": 130.078,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            16.127737
+          ],
+          "samples_cpu_ms": [
+            14.892
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 4.006051,
+          "cpu_median_ms": 2.72,
+          "rss_mib": 130.961,
+          "peak_mib": 130.203,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            4.339812,
+            4.030076,
+            4.034824,
+            4.006051,
+            2.81582,
+            2.726074,
+            3.519868,
+            3.762468,
+            4.024886,
+            4.004879
+          ],
+          "samples_cpu_ms": [
+            2.789,
+            3.019,
+            2.835,
+            2.72,
+            2.762,
+            2.169,
+            2.319,
+            2.459,
+            2.72,
+            2.668
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.297,
+          "peak_mib": 130.578
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "base",
+      "repeat": 1,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.488,
+          "peak_mib": 33.176,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 106.103393,
+          "cpu_median_ms": 88.761,
+          "rss_mib": 117.621,
+          "peak_mib": 116.793,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            106.103393
+          ],
+          "samples_cpu_ms": [
+            88.761
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 22.980515,
+          "cpu_median_ms": 21.707,
+          "rss_mib": 117.621,
+          "peak_mib": 116.793,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            22.573429,
+            22.980515,
+            23.192609,
+            22.911217,
+            22.470528,
+            22.737203,
+            22.950801,
+            23.071905,
+            22.991035,
+            22.982579
+          ],
+          "samples_cpu_ms": [
+            21.295,
+            21.707,
+            21.655,
+            21.36,
+            21.833,
+            21.743,
+            21.712,
+            21.925,
+            21.54,
+            21.585
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.628374
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 27.708517,
+          "cpu_median_ms": 25.696,
+          "rss_mib": 117.801,
+          "peak_mib": 117.043,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            27.708517
+          ],
+          "samples_cpu_ms": [
+            25.696
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 23.075762,
+          "cpu_median_ms": 21.674,
+          "rss_mib": 117.863,
+          "peak_mib": 117.043,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            22.579912,
+            22.058673,
+            22.887292,
+            23.081192,
+            23.098474,
+            22.874548,
+            23.075762,
+            23.135894,
+            23.114303,
+            22.847057
+          ],
+          "samples_cpu_ms": [
+            21.671,
+            22.026,
+            21.642,
+            21.958,
+            21.997,
+            21.236,
+            21.674,
+            22.062,
+            21.591,
+            21.288
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 118.199,
+          "peak_mib": 117.418
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "fixed",
+      "repeat": 1,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.789,
+          "peak_mib": 33.797,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 91.144968,
+          "cpu_median_ms": 80.22,
+          "rss_mib": 130.816,
+          "peak_mib": 130.219,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            91.144968
+          ],
+          "samples_cpu_ms": [
+            80.22
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 3.715622,
+          "cpu_median_ms": 2.632,
+          "rss_mib": 130.828,
+          "peak_mib": 130.344,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            3.47227,
+            3.90352,
+            3.867013,
+            3.286595,
+            2.553233,
+            2.765858,
+            3.554793,
+            3.715622,
+            4.005811,
+            4.013856
+          ],
+          "samples_cpu_ms": [
+            2.504,
+            2.73,
+            2.528,
+            2.634,
+            2.193,
+            2.157,
+            2.107,
+            2.938,
+            2.632,
+            2.664
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.669761
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 17.23842,
+          "cpu_median_ms": 15.318,
+          "rss_mib": 130.988,
+          "peak_mib": 130.469,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            17.23842
+          ],
+          "samples_cpu_ms": [
+            15.318
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 4.013395,
+          "cpu_median_ms": 2.708,
+          "rss_mib": 130.988,
+          "peak_mib": 130.594,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            4.395003,
+            4.04804,
+            3.767818,
+            4.027912,
+            3.894975,
+            2.994261,
+            4.03248,
+            3.990382,
+            4.013395,
+            3.905464
+          ],
+          "samples_cpu_ms": [
+            2.912,
+            2.884,
+            2.351,
+            2.713,
+            2.653,
+            2.477,
+            2.708,
+            2.734,
+            2.691,
+            2.664
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.324,
+          "peak_mib": 130.969
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "before",
+      "repeat": 1,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.484,
+          "peak_mib": 33.305,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 86.562768,
+          "cpu_median_ms": 80.02,
+          "rss_mib": 130.66,
+          "peak_mib": 129.723,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            86.562768
+          ],
+          "samples_cpu_ms": [
+            80.02
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 3.565703,
+          "cpu_median_ms": 2.373,
+          "rss_mib": 130.676,
+          "peak_mib": 129.723,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            4.077373,
+            4.032741,
+            3.565703,
+            3.566555,
+            3.307143,
+            3.717496,
+            3.033034,
+            2.436445,
+            2.607022,
+            3.374728
+          ],
+          "samples_cpu_ms": [
+            2.567,
+            2.664,
+            2.27,
+            2.373,
+            3.002,
+            2.601,
+            2.349,
+            2.297,
+            2.028,
+            2.042
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.348455
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 17.584082,
+          "cpu_median_ms": 15.697,
+          "rss_mib": 130.84,
+          "peak_mib": 129.848,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            17.584082
+          ],
+          "samples_cpu_ms": [
+            15.697
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 3.691437,
+          "cpu_median_ms": 2.6,
+          "rss_mib": 130.84,
+          "peak_mib": 129.973,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            4.43082,
+            3.691437,
+            3.923488,
+            3.837899,
+            2.500735,
+            2.607914,
+            2.633702,
+            3.538282,
+            3.087775,
+            4.009457
+          ],
+          "samples_cpu_ms": [
+            2.859,
+            2.289,
+            2.6,
+            2.652,
+            2.511,
+            2.055,
+            2.046,
+            2.201,
+            2.686,
+            2.869
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.176,
+          "peak_mib": 130.348
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "before",
+      "repeat": 2,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.309,
+          "peak_mib": 33.188,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 87.748529,
+          "cpu_median_ms": 79.147,
+          "rss_mib": 130.5,
+          "peak_mib": 129.75,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            87.748529
+          ],
+          "samples_cpu_ms": [
+            79.147
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 3.651272,
+          "cpu_median_ms": 2.505,
+          "rss_mib": 130.512,
+          "peak_mib": 129.75,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            3.422958,
+            3.651272,
+            3.801281,
+            3.490584,
+            2.900748,
+            2.608225,
+            3.496134,
+            4.212274,
+            3.744114,
+            3.977518
+          ],
+          "samples_cpu_ms": [
+            2.505,
+            2.279,
+            2.571,
+            2.335,
+            2.619,
+            1.969,
+            2.023,
+            2.713,
+            2.338,
+            2.612
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.581337
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 16.182508,
+          "cpu_median_ms": 14.936,
+          "rss_mib": 130.684,
+          "peak_mib": 129.875,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            16.182508
+          ],
+          "samples_cpu_ms": [
+            14.936
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 3.889434,
+          "cpu_median_ms": 2.568,
+          "rss_mib": 130.688,
+          "peak_mib": 130.0,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            4.202166,
+            3.091392,
+            3.44044,
+            2.954108,
+            2.090122,
+            3.417258,
+            3.943906,
+            3.889434,
+            3.904483,
+            4.232331
+          ],
+          "samples_cpu_ms": [
+            2.83,
+            2.609,
+            2.126,
+            2.418,
+            2.052,
+            2.003,
+            2.568,
+            2.631,
+            2.601,
+            2.536
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.023,
+          "peak_mib": 130.375
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "base",
+      "repeat": 2,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.559,
+          "peak_mib": 33.316,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 95.008475,
+          "cpu_median_ms": 84.559,
+          "rss_mib": 117.562,
+          "peak_mib": 116.586,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            95.008475
+          ],
+          "samples_cpu_ms": [
+            84.559
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 23.059873,
+          "cpu_median_ms": 22.087,
+          "rss_mib": 117.562,
+          "peak_mib": 116.586,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            22.554474,
+            23.268901,
+            23.049774,
+            23.921253,
+            22.588838,
+            23.561023,
+            23.03702,
+            23.059873,
+            23.036239,
+            23.064641
+          ],
+          "samples_cpu_ms": [
+            21.009,
+            22.337,
+            22.101,
+            22.16,
+            22.087,
+            22.395,
+            21.765,
+            22.072,
+            21.764,
+            21.797
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.692092
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 27.916664,
+          "cpu_median_ms": 26.142,
+          "rss_mib": 117.738,
+          "peak_mib": 116.836,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            27.916664
+          ],
+          "samples_cpu_ms": [
+            26.142
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 23.111348,
+          "cpu_median_ms": 22.091,
+          "rss_mib": 117.801,
+          "peak_mib": 116.836,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            24.178731,
+            22.949619,
+            22.701568,
+            23.02052,
+            23.022714,
+            23.111348,
+            23.033284,
+            23.877993,
+            23.141966,
+            24.144288
+          ],
+          "samples_cpu_ms": [
+            22.091,
+            21.938,
+            21.697,
+            21.888,
+            22.138,
+            22.18,
+            21.874,
+            22.353,
+            21.978,
+            22.291
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 118.137,
+          "peak_mib": 117.211
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "fixed",
+      "repeat": 2,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.719,
+          "peak_mib": 33.613,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 90.617148,
+          "cpu_median_ms": 80.542,
+          "rss_mib": 130.758,
+          "peak_mib": 130.0,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            90.617148
+          ],
+          "samples_cpu_ms": [
+            80.542
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 3.603283,
+          "cpu_median_ms": 2.656,
+          "rss_mib": 130.773,
+          "peak_mib": 130.0,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            3.872644,
+            3.757268,
+            3.603283,
+            3.9299,
+            3.029137,
+            3.535848,
+            3.506063,
+            3.059292,
+            3.553951,
+            4.028102
+          ],
+          "samples_cpu_ms": [
+            2.567,
+            2.502,
+            2.57,
+            2.687,
+            2.768,
+            2.317,
+            2.656,
+            2.702,
+            2.177,
+            2.694
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.676845
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 16.342506,
+          "cpu_median_ms": 14.793,
+          "rss_mib": 130.949,
+          "peak_mib": 130.125,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            16.342506
+          ],
+          "samples_cpu_ms": [
+            14.793
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 3.749885,
+          "cpu_median_ms": 2.851,
+          "rss_mib": 130.949,
+          "peak_mib": 130.125,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            4.363916,
+            3.18731,
+            3.749885,
+            3.898501,
+            2.958986,
+            2.826059,
+            3.519948,
+            4.004459,
+            4.062987,
+            3.367966
+          ],
+          "samples_cpu_ms": [
+            3.029,
+            2.593,
+            2.419,
+            2.55,
+            2.981,
+            2.306,
+            2.281,
+            2.882,
+            2.851,
+            2.984
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.285,
+          "peak_mib": 130.5
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "before",
+      "repeat": 3,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.609,
+          "peak_mib": 33.555,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 97.581013,
+          "cpu_median_ms": 80.902,
+          "rss_mib": 130.707,
+          "peak_mib": 129.828,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            97.581013
+          ],
+          "samples_cpu_ms": [
+            80.902
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 4.024926,
+          "cpu_median_ms": 2.677,
+          "rss_mib": 130.719,
+          "peak_mib": 129.828,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            4.15086,
+            4.042809,
+            4.024926,
+            4.038842,
+            3.004351,
+            3.584358,
+            3.1441,
+            3.398342,
+            3.81213,
+            4.06477
+          ],
+          "samples_cpu_ms": [
+            2.573,
+            2.73,
+            2.677,
+            2.74,
+            2.744,
+            2.177,
+            2.583,
+            2.63,
+            2.432,
+            2.696
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.548887
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 16.203308,
+          "cpu_median_ms": 15.306,
+          "rss_mib": 130.883,
+          "peak_mib": 130.078,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            16.203308
+          ],
+          "samples_cpu_ms": [
+            15.306
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 3.990021,
+          "cpu_median_ms": 2.677,
+          "rss_mib": 130.887,
+          "peak_mib": 130.078,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            4.217374,
+            4.158123,
+            3.990021,
+            4.020368,
+            2.828364,
+            2.732676,
+            3.497516,
+            4.006653,
+            3.832048,
+            3.134462
+          ],
+          "samples_cpu_ms": [
+            2.695,
+            2.827,
+            2.672,
+            2.677,
+            2.73,
+            2.11,
+            2.117,
+            2.714,
+            2.428,
+            2.618
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.223,
+          "peak_mib": 130.453
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "fixed",
+      "repeat": 3,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.34,
+          "peak_mib": 33.348,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 93.091144,
+          "cpu_median_ms": 78.197,
+          "rss_mib": 130.508,
+          "peak_mib": 129.852,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            93.091144
+          ],
+          "samples_cpu_ms": [
+            78.197
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 2.9613,
+          "cpu_median_ms": 2.527,
+          "rss_mib": 130.52,
+          "peak_mib": 129.852,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            3.737412,
+            3.973631,
+            3.986225,
+            3.976797,
+            2.940933,
+            2.66449,
+            2.846697,
+            2.9613,
+            2.736774,
+            2.622571
+          ],
+          "samples_cpu_ms": [
+            2.527,
+            2.724,
+            2.626,
+            2.602,
+            2.65,
+            2.072,
+            2.333,
+            2.412,
+            2.171,
+            2.049
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.709335
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 17.124148,
+          "cpu_median_ms": 14.798,
+          "rss_mib": 130.68,
+          "peak_mib": 129.977,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            17.124148
+          ],
+          "samples_cpu_ms": [
+            14.798
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 3.648066,
+          "cpu_median_ms": 2.717,
+          "rss_mib": 130.684,
+          "peak_mib": 130.102,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            4.410502,
+            3.332731,
+            3.648066,
+            3.966989,
+            2.836829,
+            2.732435,
+            3.47751,
+            3.990201,
+            3.687419,
+            2.963474
+          ],
+          "samples_cpu_ms": [
+            2.886,
+            2.717,
+            2.345,
+            2.807,
+            2.783,
+            2.153,
+            2.114,
+            2.748,
+            2.306,
+            2.435
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.02,
+          "peak_mib": 130.477
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "base",
+      "repeat": 3,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.371,
+          "peak_mib": 33.277,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 92.860837,
+          "cpu_median_ms": 84.403,
+          "rss_mib": 117.496,
+          "peak_mib": 116.672,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            92.860837
+          ],
+          "samples_cpu_ms": [
+            84.403
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 22.775234,
+          "cpu_median_ms": 21.903,
+          "rss_mib": 117.496,
+          "peak_mib": 116.672,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            21.845207,
+            22.984533,
+            22.391933,
+            22.775234,
+            22.408653,
+            23.272158,
+            23.254534,
+            23.16076,
+            22.551278,
+            22.66481
+          ],
+          "samples_cpu_ms": [
+            20.988,
+            21.814,
+            21.911,
+            21.477,
+            21.772,
+            22.024,
+            21.86,
+            22.014,
+            22.145,
+            21.903
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.573893
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 28.456918,
+          "cpu_median_ms": 26.503,
+          "rss_mib": 117.672,
+          "peak_mib": 116.922,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            28.456918
+          ],
+          "samples_cpu_ms": [
+            26.503
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 23.130083,
+          "cpu_median_ms": 21.769,
+          "rss_mib": 117.734,
+          "peak_mib": 116.922,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            23.130083,
+            23.520448,
+            22.388185,
+            23.325707,
+            23.082565,
+            23.040477,
+            23.493358,
+            23.414752,
+            23.040517,
+            22.270587
+          ],
+          "samples_cpu_ms": [
+            21.708,
+            22.604,
+            21.866,
+            22.183,
+            22.023,
+            21.615,
+            21.271,
+            21.769,
+            21.494,
+            21.268
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 118.07,
+          "peak_mib": 117.297
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "fixed",
+      "repeat": 4,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.449,
+          "peak_mib": 33.266,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 94.228637,
+          "cpu_median_ms": 79.437,
+          "rss_mib": 130.688,
+          "peak_mib": 130.051,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            94.228637
+          ],
+          "samples_cpu_ms": [
+            79.437
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 3.540076,
+          "cpu_median_ms": 2.613,
+          "rss_mib": 130.699,
+          "peak_mib": 130.051,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            3.340394,
+            3.853628,
+            4.035957,
+            3.949376,
+            2.489815,
+            3.455108,
+            3.944307,
+            2.777078,
+            3.540076,
+            3.118332
+          ],
+          "samples_cpu_ms": [
+            2.742,
+            2.438,
+            2.696,
+            2.628,
+            2.152,
+            2.042,
+            2.613,
+            2.681,
+            2.176,
+            2.539
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.539269
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 16.95324,
+          "cpu_median_ms": 15.192,
+          "rss_mib": 130.848,
+          "peak_mib": 130.176,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            16.95324
+          ],
+          "samples_cpu_ms": [
+            15.192
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 3.923568,
+          "cpu_median_ms": 2.671,
+          "rss_mib": 130.848,
+          "peak_mib": 130.176,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            4.331716,
+            4.193559,
+            3.709942,
+            3.780943,
+            3.166632,
+            4.003016,
+            4.004378,
+            3.923568,
+            2.792948,
+            3.42913
+          ],
+          "samples_cpu_ms": [
+            2.805,
+            2.928,
+            2.615,
+            2.492,
+            2.596,
+            2.689,
+            2.671,
+            2.699,
+            2.208,
+            2.055
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.184,
+          "peak_mib": 130.551
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "base",
+      "repeat": 4,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.797,
+          "peak_mib": 33.805,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 104.488905,
+          "cpu_median_ms": 84.871,
+          "rss_mib": 117.805,
+          "peak_mib": 117.324,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            104.488905
+          ],
+          "samples_cpu_ms": [
+            84.871
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 23.033844,
+          "cpu_median_ms": 21.79,
+          "rss_mib": 117.82,
+          "peak_mib": 117.324,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            22.36883,
+            23.87658,
+            23.033844,
+            23.151694,
+            22.528957,
+            23.471969,
+            23.873324,
+            22.450902,
+            22.975506,
+            22.920424
+          ],
+          "samples_cpu_ms": [
+            21.256,
+            21.803,
+            21.507,
+            21.778,
+            21.797,
+            21.985,
+            21.899,
+            21.458,
+            21.79,
+            21.553
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.816193
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 27.526469,
+          "cpu_median_ms": 25.814,
+          "rss_mib": 117.984,
+          "peak_mib": 117.574,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            27.526469
+          ],
+          "samples_cpu_ms": [
+            25.814
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 23.018447,
+          "cpu_median_ms": 21.663,
+          "rss_mib": 118.047,
+          "peak_mib": 117.574,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            23.354581,
+            22.544515,
+            22.71872,
+            22.96142,
+            23.057259,
+            22.969124,
+            23.061456,
+            23.018447,
+            23.017495,
+            23.874356
+          ],
+          "samples_cpu_ms": [
+            21.86,
+            21.581,
+            21.712,
+            21.476,
+            21.877,
+            21.654,
+            21.663,
+            21.642,
+            21.472,
+            21.789
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 118.383,
+          "peak_mib": 117.949
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "before",
+      "repeat": 4,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.383,
+          "peak_mib": 33.094,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 93.095613,
+          "cpu_median_ms": 80.734,
+          "rss_mib": 130.539,
+          "peak_mib": 129.805,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            93.095613
+          ],
+          "samples_cpu_ms": [
+            80.734
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 3.197279,
+          "cpu_median_ms": 2.609,
+          "rss_mib": 130.551,
+          "peak_mib": 129.805,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            3.885748,
+            3.835243,
+            4.012463,
+            3.975033,
+            2.924202,
+            2.851877,
+            2.911668,
+            2.536301,
+            2.65975,
+            3.197279
+          ],
+          "samples_cpu_ms": [
+            2.807,
+            2.461,
+            2.609,
+            2.629,
+            2.669,
+            2.244,
+            2.255,
+            2.3,
+            2.105,
+            2.609
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.650075
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 16.187538,
+          "cpu_median_ms": 14.91,
+          "rss_mib": 130.719,
+          "peak_mib": 130.055,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            16.187538
+          ],
+          "samples_cpu_ms": [
+            14.91
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 3.583677,
+          "cpu_median_ms": 2.632,
+          "rss_mib": 130.723,
+          "peak_mib": 130.055,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            4.065652,
+            3.406708,
+            3.583677,
+            3.98368,
+            2.653759,
+            2.627741,
+            3.382202,
+            3.505842,
+            3.910143,
+            3.724768
+          ],
+          "samples_cpu_ms": [
+            2.727,
+            2.632,
+            2.219,
+            2.663,
+            2.672,
+            2.098,
+            2.04,
+            2.52,
+            2.646,
+            2.291
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.059,
+          "peak_mib": 130.43
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "fixed",
+      "repeat": 5,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.516,
+          "peak_mib": 33.148,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 88.973606,
+          "cpu_median_ms": 79.08,
+          "rss_mib": 130.625,
+          "peak_mib": 129.711,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            88.973606
+          ],
+          "samples_cpu_ms": [
+            79.08
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 3.518345,
+          "cpu_median_ms": 2.613,
+          "rss_mib": 130.637,
+          "peak_mib": 129.711,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            3.349181,
+            3.775102,
+            3.970625,
+            3.957861,
+            2.933469,
+            2.609868,
+            3.518345,
+            2.758795,
+            3.477119,
+            4.039393
+          ],
+          "samples_cpu_ms": [
+            2.658,
+            2.42,
+            2.655,
+            2.582,
+            2.663,
+            2.026,
+            2.031,
+            2.613,
+            2.031,
+            2.66
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.681894
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 16.756155,
+          "cpu_median_ms": 14.908,
+          "rss_mib": 130.789,
+          "peak_mib": 129.836,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            16.756155
+          ],
+          "samples_cpu_ms": [
+            14.908
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 3.608142,
+          "cpu_median_ms": 2.602,
+          "rss_mib": 130.789,
+          "peak_mib": 129.836,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            3.608142,
+            3.893001,
+            3.722104,
+            2.892533,
+            2.73473,
+            3.484111,
+            3.926643,
+            2.775214,
+            3.410565,
+            3.972819
+          ],
+          "samples_cpu_ms": [
+            2.706,
+            2.66,
+            2.435,
+            2.467,
+            2.728,
+            2.107,
+            2.621,
+            2.223,
+            2.025,
+            2.602
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.125,
+          "peak_mib": 130.211
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "before",
+      "repeat": 5,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.488,
+          "peak_mib": 33.242,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 92.715347,
+          "cpu_median_ms": 83.333,
+          "rss_mib": 130.66,
+          "peak_mib": 129.902,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            92.715347
+          ],
+          "samples_cpu_ms": [
+            83.333
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 3.396158,
+          "cpu_median_ms": 2.41,
+          "rss_mib": 130.672,
+          "peak_mib": 129.902,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            3.418089,
+            3.955538,
+            3.325116,
+            3.474654,
+            2.915936,
+            2.615929,
+            3.396158,
+            2.723459,
+            3.378225,
+            3.950247
+          ],
+          "samples_cpu_ms": [
+            2.41,
+            2.853,
+            2.396,
+            2.045,
+            2.641,
+            1.973,
+            1.978,
+            2.583,
+            1.975,
+            2.604
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.793321
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 17.008844,
+          "cpu_median_ms": 15.127,
+          "rss_mib": 130.84,
+          "peak_mib": 130.027,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            17.008844
+          ],
+          "samples_cpu_ms": [
+            15.127
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 3.883864,
+          "cpu_median_ms": 2.612,
+          "rss_mib": 130.84,
+          "peak_mib": 130.027,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            4.309805,
+            3.993247,
+            2.759596,
+            3.092104,
+            2.457655,
+            3.858357,
+            3.998728,
+            3.883864,
+            3.904082,
+            3.836877
+          ],
+          "samples_cpu_ms": [
+            2.849,
+            2.707,
+            2.2,
+            2.612,
+            2.318,
+            2.257,
+            2.648,
+            2.623,
+            2.584,
+            2.578
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 131.176,
+          "peak_mib": 130.402
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "radeon",
+      "library": "base",
+      "repeat": 5,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.73,
+          "peak_mib": 33.672,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 97.463347,
+          "cpu_median_ms": 85.758,
+          "rss_mib": 117.723,
+          "peak_mib": 116.941,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            97.463347
+          ],
+          "samples_cpu_ms": [
+            85.758
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 22.940973,
+          "cpu_median_ms": 22.112,
+          "rss_mib": 117.746,
+          "peak_mib": 116.941,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            22.62738,
+            24.34474,
+            22.714843,
+            22.985956,
+            23.448686,
+            23.568659,
+            22.940973,
+            22.852037,
+            22.607653,
+            22.872495
+          ],
+          "samples_cpu_ms": [
+            21.795,
+            22.475,
+            21.798,
+            21.913,
+            22.542,
+            22.196,
+            21.503,
+            22.387,
+            22.112,
+            21.967
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.591365
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 27.561455,
+          "cpu_median_ms": 26.076,
+          "rss_mib": 117.902,
+          "peak_mib": 117.191,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            27.561455
+          ],
+          "samples_cpu_ms": [
+            26.076
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 23.164307,
+          "cpu_median_ms": 21.928,
+          "rss_mib": 117.965,
+          "peak_mib": 117.191,
+          "hash": "bd2978f63f730e95",
+          "nonzero_bytes": 23889,
+          "missing": 0,
+          "samples_ms": [
+            23.127188,
+            21.822375,
+            23.164307,
+            23.110968,
+            22.576315,
+            23.507274,
+            22.970276,
+            24.26403,
+            25.572881,
+            23.27366
+          ],
+          "samples_cpu_ms": [
+            21.928,
+            21.803,
+            21.738,
+            21.824,
+            22.115,
+            22.174,
+            21.662,
+            23.152,
+            23.246,
+            21.772
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 118.301,
+          "peak_mib": 117.566
+        }
+      ],
+      "renderer": "GL_RENDERER=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)\nGL_VERSION=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "base",
+      "repeat": 0,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.797,
+          "peak_mib": 33.543,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 190.966778,
+          "cpu_median_ms": 211.329,
+          "rss_mib": 231.703,
+          "peak_mib": 231.098,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            190.966778
+          ],
+          "samples_cpu_ms": [
+            211.329
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 69.388718,
+          "cpu_median_ms": 91.949,
+          "rss_mib": 232.297,
+          "peak_mib": 233.293,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            70.398815,
+            69.557381,
+            69.126261,
+            69.382838,
+            73.292169,
+            71.946389,
+            69.388718,
+            69.234652,
+            69.202363,
+            69.027898
+          ],
+          "samples_cpu_ms": [
+            93.041,
+            91.56,
+            91.949,
+            90.609,
+            95.613,
+            93.996,
+            91.737,
+            91.698,
+            91.992,
+            90.679
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.608137
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 79.194843,
+          "cpu_median_ms": 102.394,
+          "rss_mib": 252.055,
+          "peak_mib": 251.543,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            79.194843
+          ],
+          "samples_cpu_ms": [
+            102.394
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 68.428295,
+          "cpu_median_ms": 91.242,
+          "rss_mib": 252.055,
+          "peak_mib": 251.543,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            68.415642,
+            68.268638,
+            68.51178,
+            67.979981,
+            68.82969,
+            68.790347,
+            68.045373,
+            68.428295,
+            68.478258,
+            68.303964
+          ],
+          "samples_cpu_ms": [
+            91.407,
+            91.876,
+            91.087,
+            90.096,
+            91.838,
+            90.714,
+            90.681,
+            91.225,
+            91.242,
+            91.287
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 235.68,
+          "peak_mib": 251.543
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "before",
+      "repeat": 0,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.438,
+          "peak_mib": 33.188,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 191.306279,
+          "cpu_median_ms": 215.083,
+          "rss_mib": 251.0,
+          "peak_mib": 250.559,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            191.306279
+          ],
+          "samples_cpu_ms": [
+            215.083
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 57.611964,
+          "cpu_median_ms": 82.894,
+          "rss_mib": 252.125,
+          "peak_mib": 257.566,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            57.887947,
+            57.438361,
+            57.528348,
+            57.881434,
+            57.64242,
+            57.203014,
+            57.258617,
+            57.342824,
+            57.646118,
+            57.611964
+          ],
+          "samples_cpu_ms": [
+            83.83,
+            83.465,
+            82.182,
+            81.59,
+            83.331,
+            82.309,
+            82.693,
+            82.894,
+            84.996,
+            82.466
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.858562
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 75.860481,
+          "cpu_median_ms": 101.674,
+          "rss_mib": 280.238,
+          "peak_mib": 279.691,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            75.860481
+          ],
+          "samples_cpu_ms": [
+            101.674
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 52.80747,
+          "cpu_median_ms": 75.356,
+          "rss_mib": 281.066,
+          "peak_mib": 282.008,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            53.74456,
+            52.761724,
+            52.747137,
+            52.889482,
+            52.944664,
+            52.626343,
+            52.80747,
+            53.07108,
+            52.477096,
+            52.689481
+          ],
+          "samples_cpu_ms": [
+            78.63,
+            75.356,
+            74.848,
+            75.667,
+            75.561,
+            75.036,
+            74.416,
+            76.286,
+            74.382,
+            74.343
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 265.742,
+          "peak_mib": 282.008
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "fixed",
+      "repeat": 0,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.34,
+          "peak_mib": 32.844,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 189.802758,
+          "cpu_median_ms": 212.812,
+          "rss_mib": 250.891,
+          "peak_mib": 250.109,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            189.802758
+          ],
+          "samples_cpu_ms": [
+            212.812
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 56.635119,
+          "cpu_median_ms": 79.717,
+          "rss_mib": 251.953,
+          "peak_mib": 257.121,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            57.327556,
+            60.048129,
+            56.515838,
+            56.37715,
+            57.139225,
+            56.635119,
+            56.747288,
+            56.381859,
+            56.457439,
+            56.423987
+          ],
+          "samples_cpu_ms": [
+            81.577,
+            82.194,
+            77.61,
+            78.024,
+            79.717,
+            79.198,
+            79.777,
+            80.353,
+            78.194,
+            78.18
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.476232
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 76.642454,
+          "cpu_median_ms": 100.794,
+          "rss_mib": 280.113,
+          "peak_mib": 279.371,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            76.642454
+          ],
+          "samples_cpu_ms": [
+            100.794
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 52.613429,
+          "cpu_median_ms": 74.968,
+          "rss_mib": 280.941,
+          "peak_mib": 281.871,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            52.853205,
+            52.527559,
+            52.460134,
+            52.795758,
+            52.613429,
+            52.412917,
+            52.339901,
+            52.406334,
+            53.972584,
+            52.891305
+          ],
+          "samples_cpu_ms": [
+            75.139,
+            74.968,
+            74.273,
+            74.519,
+            75.295,
+            74.616,
+            74.193,
+            74.194,
+            75.867,
+            75.26
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 266.07,
+          "peak_mib": 281.871
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "base",
+      "repeat": 1,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.477,
+          "peak_mib": 33.102,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 189.401353,
+          "cpu_median_ms": 211.227,
+          "rss_mib": 231.555,
+          "peak_mib": 230.852,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            189.401353
+          ],
+          "samples_cpu_ms": [
+            211.227
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 69.362391,
+          "cpu_median_ms": 90.594,
+          "rss_mib": 232.18,
+          "peak_mib": 233.059,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            72.409581,
+            69.57691,
+            69.556602,
+            69.096207,
+            69.126082,
+            70.09984,
+            69.139347,
+            68.927734,
+            69.119079,
+            69.362391
+          ],
+          "samples_cpu_ms": [
+            92.95,
+            90.172,
+            90.455,
+            90.191,
+            90.875,
+            90.684,
+            90.154,
+            90.594,
+            90.822,
+            90.061
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.591496
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 81.274458,
+          "cpu_median_ms": 102.849,
+          "rss_mib": 252.0,
+          "peak_mib": 251.309,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            81.274458
+          ],
+          "samples_cpu_ms": [
+            102.849
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 69.181084,
+          "cpu_median_ms": 90.491,
+          "rss_mib": 252.0,
+          "peak_mib": 251.309,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            69.765429,
+            69.181084,
+            69.226919,
+            68.422134,
+            69.762063,
+            69.366819,
+            68.186186,
+            68.297583,
+            69.015998,
+            68.961827
+          ],
+          "samples_cpu_ms": [
+            91.337,
+            91.436,
+            90.491,
+            88.898,
+            91.2,
+            90.024,
+            89.387,
+            88.857,
+            90.867,
+            89.617
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 250.801,
+          "peak_mib": 251.309
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "fixed",
+      "repeat": 1,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.488,
+          "peak_mib": 33.242,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 193.741106,
+          "cpu_median_ms": 217.489,
+          "rss_mib": 250.727,
+          "peak_mib": 250.281,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            193.741106
+          ],
+          "samples_cpu_ms": [
+            217.489
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 57.737298,
+          "cpu_median_ms": 83.863,
+          "rss_mib": 251.852,
+          "peak_mib": 257.297,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            58.324027,
+            59.043123,
+            60.273819,
+            57.422523,
+            57.513532,
+            57.685151,
+            57.529532,
+            58.060609,
+            57.737298,
+            57.325983
+          ],
+          "samples_cpu_ms": [
+            84.114,
+            83.863,
+            84.548,
+            82.542,
+            85.39,
+            82.972,
+            82.144,
+            82.905,
+            85.689,
+            82.64
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.517369
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 75.820789,
+          "cpu_median_ms": 100.288,
+          "rss_mib": 280.25,
+          "peak_mib": 279.797,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            75.820789
+          ],
+          "samples_cpu_ms": [
+            100.288
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 52.955716,
+          "cpu_median_ms": 76.932,
+          "rss_mib": 280.824,
+          "peak_mib": 281.961,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            53.91047,
+            52.872561,
+            52.955716,
+            52.976134,
+            52.223466,
+            52.786051,
+            52.491874,
+            53.383912,
+            53.36144,
+            52.576431
+          ],
+          "samples_cpu_ms": [
+            78.281,
+            76.633,
+            77.541,
+            76.808,
+            75.436,
+            76.932,
+            75.96,
+            78.123,
+            75.699,
+            76.965
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 273.887,
+          "peak_mib": 281.961
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "before",
+      "repeat": 1,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.727,
+          "peak_mib": 33.613,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 188.070705,
+          "cpu_median_ms": 213.655,
+          "rss_mib": 251.094,
+          "peak_mib": 250.762,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            188.070705
+          ],
+          "samples_cpu_ms": [
+            213.655
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 57.659764,
+          "cpu_median_ms": 83.583,
+          "rss_mib": 252.094,
+          "peak_mib": 257.797,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            57.329039,
+            58.500736,
+            58.935775,
+            57.649265,
+            57.467627,
+            57.659764,
+            58.649843,
+            57.600494,
+            57.852031,
+            57.648874
+          ],
+          "samples_cpu_ms": [
+            82.566,
+            83.488,
+            85.044,
+            83.811,
+            83.619,
+            81.472,
+            83.976,
+            83.583,
+            82.905,
+            81.868
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.675262
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 76.049313,
+          "cpu_median_ms": 101.908,
+          "rss_mib": 280.441,
+          "peak_mib": 280.109,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            76.049313
+          ],
+          "samples_cpu_ms": [
+            101.908
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 52.86069,
+          "cpu_median_ms": 76.897,
+          "rss_mib": 281.457,
+          "peak_mib": 282.734,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            53.742628,
+            52.86069,
+            53.193758,
+            52.887139,
+            52.829432,
+            52.573326,
+            52.490722,
+            52.949885,
+            52.834811,
+            52.510339
+          ],
+          "samples_cpu_ms": [
+            77.455,
+            76.835,
+            77.653,
+            76.36,
+            76.897,
+            76.974,
+            76.203,
+            76.816,
+            75.829,
+            77.211
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 249.895,
+          "peak_mib": 282.734
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "before",
+      "repeat": 2,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.625,
+          "peak_mib": 33.312,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 190.266714,
+          "cpu_median_ms": 214.167,
+          "rss_mib": 251.164,
+          "peak_mib": 250.633,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            190.266714
+          ],
+          "samples_cpu_ms": [
+            214.167
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 58.067682,
+          "cpu_median_ms": 82.874,
+          "rss_mib": 252.289,
+          "peak_mib": 257.668,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            58.099401,
+            57.569516,
+            57.772603,
+            57.912954,
+            57.964851,
+            58.739921,
+            58.511256,
+            58.107927,
+            57.967846,
+            58.067682
+          ],
+          "samples_cpu_ms": [
+            83.054,
+            82.529,
+            83.201,
+            81.98,
+            82.874,
+            82.569,
+            82.617,
+            84.384,
+            82.61,
+            83.416
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.632253
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 76.477199,
+          "cpu_median_ms": 101.768,
+          "rss_mib": 280.543,
+          "peak_mib": 280.043,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            76.477199
+          ],
+          "samples_cpu_ms": [
+            101.768
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 53.121785,
+          "cpu_median_ms": 77.566,
+          "rss_mib": 280.934,
+          "peak_mib": 282.168,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            53.408878,
+            53.037669,
+            52.553119,
+            54.63223,
+            53.549069,
+            52.653415,
+            53.011009,
+            54.097257,
+            53.121785,
+            53.000419
+          ],
+          "samples_cpu_ms": [
+            77.923,
+            77.494,
+            75.981,
+            78.77,
+            77.566,
+            76.237,
+            77.563,
+            78.08,
+            77.115,
+            78.062
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 263.23,
+          "peak_mib": 282.168
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "base",
+      "repeat": 2,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.793,
+          "peak_mib": 33.801,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 186.017142,
+          "cpu_median_ms": 209.438,
+          "rss_mib": 231.262,
+          "peak_mib": 231.066,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            186.017142
+          ],
+          "samples_cpu_ms": [
+            209.438
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 69.545152,
+          "cpu_median_ms": 91.859,
+          "rss_mib": 231.887,
+          "peak_mib": 233.23,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            70.100363,
+            69.790218,
+            69.412105,
+            69.545152,
+            69.475472,
+            70.956955,
+            69.349037,
+            69.607388,
+            69.437401,
+            69.424478
+          ],
+          "samples_cpu_ms": [
+            92.349,
+            91.981,
+            91.859,
+            91.93,
+            91.64,
+            93.811,
+            91.853,
+            91.778,
+            91.05,
+            91.231
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.699227
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 79.495145,
+          "cpu_median_ms": 102.358,
+          "rss_mib": 251.504,
+          "peak_mib": 251.355,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            79.495145
+          ],
+          "samples_cpu_ms": [
+            102.358
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 68.579027,
+          "cpu_median_ms": 91.437,
+          "rss_mib": 251.504,
+          "peak_mib": 251.355,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            68.733986,
+            68.349381,
+            68.491124,
+            68.313284,
+            68.766136,
+            68.75244,
+            68.346486,
+            67.693423,
+            68.939618,
+            68.579027
+          ],
+          "samples_cpu_ms": [
+            91.445,
+            91.731,
+            92.321,
+            91.943,
+            91.288,
+            91.175,
+            90.166,
+            89.714,
+            91.206,
+            91.437
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 250.305,
+          "peak_mib": 251.355
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "fixed",
+      "repeat": 2,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.727,
+          "peak_mib": 33.547,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 187.379414,
+          "cpu_median_ms": 211.959,
+          "rss_mib": 250.867,
+          "peak_mib": 250.43,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            187.379414
+          ],
+          "samples_cpu_ms": [
+            211.959
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 58.145929,
+          "cpu_median_ms": 83.355,
+          "rss_mib": 252.055,
+          "peak_mib": 257.68,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            60.031901,
+            58.145929,
+            58.391204,
+            56.462942,
+            56.127058,
+            56.577755,
+            59.559334,
+            58.621732,
+            56.834893,
+            57.866509
+          ],
+          "samples_cpu_ms": [
+            84.27,
+            84.812,
+            83.597,
+            83.355,
+            80.025,
+            81.629,
+            82.997,
+            83.321,
+            82.494,
+            83.743
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.574034
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 74.765529,
+          "cpu_median_ms": 99.609,
+          "rss_mib": 280.109,
+          "peak_mib": 279.77,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            74.765529
+          ],
+          "samples_cpu_ms": [
+            99.609
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 52.611579,
+          "cpu_median_ms": 76.639,
+          "rss_mib": 281.125,
+          "peak_mib": 282.215,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            53.114182,
+            52.611579,
+            52.80624,
+            52.293587,
+            52.60753,
+            53.098252,
+            52.367324,
+            52.174446,
+            53.611906,
+            52.290962
+          ],
+          "samples_cpu_ms": [
+            76.648,
+            76.639,
+            76.851,
+            76.227,
+            76.479,
+            77.213,
+            75.913,
+            76.103,
+            78.334,
+            76.137
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 267.832,
+          "peak_mib": 282.215
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "before",
+      "repeat": 3,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.438,
+          "peak_mib": 33.316,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 186.599015,
+          "cpu_median_ms": 211.056,
+          "rss_mib": 250.688,
+          "peak_mib": 250.371,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            186.599015
+          ],
+          "samples_cpu_ms": [
+            211.056
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 58.365306,
+          "cpu_median_ms": 84.162,
+          "rss_mib": 251.688,
+          "peak_mib": 257.422,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            58.754398,
+            57.940907,
+            58.122234,
+            59.373699,
+            58.978555,
+            58.165876,
+            58.365306,
+            58.417533,
+            57.702715,
+            58.332595
+          ],
+          "samples_cpu_ms": [
+            84.537,
+            84.915,
+            82.556,
+            83.895,
+            84.485,
+            82.982,
+            83.848,
+            84.162,
+            82.894,
+            84.802
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.686533
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 75.769676,
+          "cpu_median_ms": 99.85,
+          "rss_mib": 280.414,
+          "peak_mib": 280.047,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            75.769676
+          ],
+          "samples_cpu_ms": [
+            99.85
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 53.411384,
+          "cpu_median_ms": 77.198,
+          "rss_mib": 280.867,
+          "peak_mib": 282.297,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            53.588292,
+            53.455245,
+            53.050133,
+            53.431441,
+            53.094124,
+            53.160969,
+            52.951129,
+            53.773417,
+            53.411384,
+            52.879527
+          ],
+          "samples_cpu_ms": [
+            78.439,
+            76.338,
+            76.367,
+            77.198,
+            76.771,
+            77.556,
+            75.953,
+            78.804,
+            79.184,
+            75.918
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 267.965,
+          "peak_mib": 282.297
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "fixed",
+      "repeat": 3,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.621,
+          "peak_mib": 33.379,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 185.652167,
+          "cpu_median_ms": 210.427,
+          "rss_mib": 251.203,
+          "peak_mib": 250.727,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            185.652167
+          ],
+          "samples_cpu_ms": [
+            210.427
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 58.100585,
+          "cpu_median_ms": 82.645,
+          "rss_mib": 252.266,
+          "peak_mib": 257.91,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            58.730114,
+            58.100585,
+            59.172095,
+            58.698015,
+            58.674822,
+            57.461929,
+            56.982919,
+            57.226631,
+            56.80606,
+            57.2421
+          ],
+          "samples_cpu_ms": [
+            84.974,
+            82.085,
+            82.645,
+            83.613,
+            82.879,
+            82.14,
+            83.261,
+            81.886,
+            81.421,
+            82.166
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.628565
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 76.404816,
+          "cpu_median_ms": 100.978,
+          "rss_mib": 280.586,
+          "peak_mib": 280.156,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            76.404816
+          ],
+          "samples_cpu_ms": [
+            100.978
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 53.32301,
+          "cpu_median_ms": 75.533,
+          "rss_mib": 281.227,
+          "peak_mib": 282.242,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            53.32301,
+            54.176826,
+            53.667249,
+            52.808134,
+            53.043401,
+            53.107059,
+            53.332337,
+            53.328561,
+            53.136504,
+            53.041297
+          ],
+          "samples_cpu_ms": [
+            76.53,
+            76.156,
+            75.739,
+            74.377,
+            75.1,
+            75.442,
+            75.533,
+            75.415,
+            76.421,
+            75.016
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 268.73,
+          "peak_mib": 282.242
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "base",
+      "repeat": 3,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.555,
+          "peak_mib": 33.34,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 187.450689,
+          "cpu_median_ms": 211.929,
+          "rss_mib": 231.148,
+          "peak_mib": 230.609,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            187.450689
+          ],
+          "samples_cpu_ms": [
+            211.929
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 69.912016,
+          "cpu_median_ms": 91.147,
+          "rss_mib": 231.586,
+          "peak_mib": 232.652,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            69.774329,
+            71.038778,
+            69.025849,
+            69.030688,
+            70.294386,
+            69.126496,
+            69.172462,
+            70.443142,
+            70.240937,
+            69.912016
+          ],
+          "samples_cpu_ms": [
+            90.03,
+            91.886,
+            90.93,
+            90.759,
+            93.971,
+            89.188,
+            90.104,
+            91.393,
+            92.588,
+            91.147
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.731136
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 80.281447,
+          "cpu_median_ms": 103.053,
+          "rss_mib": 251.238,
+          "peak_mib": 250.777,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            80.281447
+          ],
+          "samples_cpu_ms": [
+            103.053
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 68.645472,
+          "cpu_median_ms": 90.526,
+          "rss_mib": 251.238,
+          "peak_mib": 250.777,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            68.468635,
+            68.017226,
+            67.8635,
+            68.898172,
+            68.694764,
+            68.966048,
+            68.083679,
+            67.187344,
+            68.645472,
+            69.226081
+          ],
+          "samples_cpu_ms": [
+            89.821,
+            89.492,
+            89.769,
+            89.284,
+            90.208,
+            90.824,
+            90.526,
+            90.905,
+            92.276,
+            90.956
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 250.039,
+          "peak_mib": 250.777
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "fixed",
+      "repeat": 4,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.73,
+          "peak_mib": 33.469,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 188.97395,
+          "cpu_median_ms": 216.287,
+          "rss_mib": 250.867,
+          "peak_mib": 250.359,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            188.97395
+          ],
+          "samples_cpu_ms": [
+            216.287
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 57.144689,
+          "cpu_median_ms": 79.226,
+          "rss_mib": 251.867,
+          "peak_mib": 257.234,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            57.144689,
+            56.808525,
+            56.776515,
+            56.864328,
+            57.071664,
+            59.349075,
+            57.091662,
+            57.417507,
+            57.512382,
+            57.184283
+          ],
+          "samples_cpu_ms": [
+            78.432,
+            77.78,
+            78.256,
+            79.226,
+            78.89,
+            81.213,
+            77.981,
+            80.209,
+            79.414,
+            79.944
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.596646
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 77.131025,
+          "cpu_median_ms": 101.857,
+          "rss_mib": 280.184,
+          "peak_mib": 279.609,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            77.131025
+          ],
+          "samples_cpu_ms": [
+            101.857
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 52.954326,
+          "cpu_median_ms": 75.48,
+          "rss_mib": 281.012,
+          "peak_mib": 281.879,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            53.809054,
+            53.27418,
+            52.937495,
+            53.043952,
+            52.954326,
+            52.739086,
+            52.911476,
+            52.90774,
+            52.947574,
+            52.991785
+          ],
+          "samples_cpu_ms": [
+            75.656,
+            75.97,
+            75.027,
+            75.404,
+            75.832,
+            74.375,
+            76.549,
+            75.48,
+            74.606,
+            74.396
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 261.117,
+          "peak_mib": 281.879
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "base",
+      "repeat": 4,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.473,
+          "peak_mib": 33.355,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 196.833901,
+          "cpu_median_ms": 221.657,
+          "rss_mib": 231.414,
+          "peak_mib": 231.273,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            196.833901
+          ],
+          "samples_cpu_ms": [
+            221.657
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 72.388968,
+          "cpu_median_ms": 93.545,
+          "rss_mib": 232.039,
+          "peak_mib": 233.426,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            74.442362,
+            72.047453,
+            70.848836,
+            72.388968,
+            72.421167,
+            72.76731,
+            73.155621,
+            72.237546,
+            70.755022,
+            70.390445
+          ],
+          "samples_cpu_ms": [
+            95.368,
+            94.657,
+            90.888,
+            93.196,
+            93.371,
+            94.285,
+            94.996,
+            93.545,
+            91.164,
+            90.775
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.708985
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 81.424641,
+          "cpu_median_ms": 103.434,
+          "rss_mib": 251.734,
+          "peak_mib": 251.551,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            81.424641
+          ],
+          "samples_cpu_ms": [
+            103.434
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 70.01044,
+          "cpu_median_ms": 91.955,
+          "rss_mib": 251.734,
+          "peak_mib": 251.551,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            69.942172,
+            71.465723,
+            70.832166,
+            69.685857,
+            70.058829,
+            70.737019,
+            70.01044,
+            69.010041,
+            69.453595,
+            69.422477
+          ],
+          "samples_cpu_ms": [
+            93.328,
+            92.581,
+            92.564,
+            90.828,
+            91.397,
+            92.962,
+            91.955,
+            89.856,
+            90.458,
+            90.967
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 250.535,
+          "peak_mib": 251.551
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "before",
+      "repeat": 4,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.438,
+          "peak_mib": 33.32,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 186.186495,
+          "cpu_median_ms": 209.168,
+          "rss_mib": 250.922,
+          "peak_mib": 250.289,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            186.186495
+          ],
+          "samples_cpu_ms": [
+            209.168
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 57.57517,
+          "cpu_median_ms": 83.359,
+          "rss_mib": 251.863,
+          "peak_mib": 257.383,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            57.182,
+            58.395183,
+            57.495652,
+            57.639139,
+            59.134988,
+            57.285602,
+            57.57517,
+            56.951391,
+            56.725822,
+            57.627768
+          ],
+          "samples_cpu_ms": [
+            82.86,
+            83.38,
+            80.853,
+            85.311,
+            84.364,
+            83.395,
+            82.346,
+            83.359,
+            82.403,
+            83.11
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.540281
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 75.885523,
+          "cpu_median_ms": 101.59,
+          "rss_mib": 280.211,
+          "peak_mib": 279.574,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            75.885523
+          ],
+          "samples_cpu_ms": [
+            101.59
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 52.987829,
+          "cpu_median_ms": 76.856,
+          "rss_mib": 280.852,
+          "peak_mib": 281.871,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            52.657315,
+            52.386512,
+            53.36528,
+            52.214673,
+            52.987829,
+            53.764492,
+            55.935996,
+            52.466871,
+            53.691567,
+            52.931074
+          ],
+          "samples_cpu_ms": [
+            76.194,
+            75.293,
+            75.901,
+            75.67,
+            78.618,
+            78.155,
+            79.883,
+            76.856,
+            76.856,
+            76.718
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 273.863,
+          "peak_mib": 281.871
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "fixed",
+      "repeat": 5,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.453,
+          "peak_mib": 33.461,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 189.888743,
+          "cpu_median_ms": 214.872,
+          "rss_mib": 251.215,
+          "peak_mib": 251.062,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            189.888743
+          ],
+          "samples_cpu_ms": [
+            214.872
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 58.776593,
+          "cpu_median_ms": 83.969,
+          "rss_mib": 252.277,
+          "peak_mib": 258.16,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            60.636246,
+            58.717733,
+            61.000032,
+            59.614508,
+            59.434594,
+            58.776593,
+            58.126014,
+            58.151511,
+            58.334611,
+            58.508354
+          ],
+          "samples_cpu_ms": [
+            86.57,
+            82.976,
+            85.125,
+            83.389,
+            85.166,
+            83.969,
+            82.334,
+            83.676,
+            86.034,
+            83.872
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.611153
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 76.011217,
+          "cpu_median_ms": 101.185,
+          "rss_mib": 280.691,
+          "peak_mib": 280.535,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            76.011217
+          ],
+          "samples_cpu_ms": [
+            101.185
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 53.94123,
+          "cpu_median_ms": 77.673,
+          "rss_mib": 281.332,
+          "peak_mib": 282.785,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            54.669753,
+            53.94123,
+            54.128838,
+            53.475865,
+            53.739205,
+            53.932504,
+            53.739405,
+            53.65574,
+            53.960876,
+            54.869885
+          ],
+          "samples_cpu_ms": [
+            78.387,
+            77.673,
+            78.699,
+            77.988,
+            77.568,
+            78.753,
+            76.708,
+            76.42,
+            76.929,
+            77.363
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 280.133,
+          "peak_mib": 282.785
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "before",
+      "repeat": 5,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.574,
+          "peak_mib": 33.523,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 186.036228,
+          "cpu_median_ms": 209.904,
+          "rss_mib": 251.039,
+          "peak_mib": 250.867,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            186.036228
+          ],
+          "samples_cpu_ms": [
+            209.904
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 57.512855,
+          "cpu_median_ms": 81.233,
+          "rss_mib": 251.977,
+          "peak_mib": 257.805,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            57.512855,
+            59.65281,
+            58.933173,
+            58.943653,
+            57.441723,
+            57.335105,
+            60.362608,
+            57.180027,
+            57.046729,
+            56.279534
+          ],
+          "samples_cpu_ms": [
+            80.309,
+            82.683,
+            81.578,
+            81.233,
+            81.599,
+            81.171,
+            83.126,
+            80.311,
+            79.471,
+            78.32
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.773905
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 75.848475,
+          "cpu_median_ms": 100.068,
+          "rss_mib": 280.34,
+          "peak_mib": 279.992,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            75.848475
+          ],
+          "samples_cpu_ms": [
+            100.068
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 53.303867,
+          "cpu_median_ms": 77.804,
+          "rss_mib": 281.355,
+          "peak_mib": 282.496,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            55.702753,
+            56.637098,
+            54.001242,
+            53.254044,
+            52.829275,
+            53.303867,
+            52.506135,
+            52.673506,
+            52.776256,
+            53.422457
+          ],
+          "samples_cpu_ms": [
+            81.852,
+            84.073,
+            77.972,
+            78.216,
+            75.925,
+            77.804,
+            76.571,
+            76.334,
+            76.629,
+            77.224
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 268.16,
+          "peak_mib": 282.496
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "base",
+      "repeat": 5,
+      "phases": [
+        {
+          "phase": "scene",
+          "rss_mib": 33.316,
+          "peak_mib": 33.133,
+          "points_per_source": 4096,
+          "vertices_per_shape": 4096,
+          "shapes": 400
+        },
+        {
+          "phase": "first",
+          "median_ms": 196.220588,
+          "cpu_median_ms": 215.801,
+          "rss_mib": 230.848,
+          "peak_mib": 230.305,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            196.220588
+          ],
+          "samples_cpu_ms": [
+            215.801
+          ]
+        },
+        {
+          "phase": "static",
+          "median_ms": 69.924381,
+          "cpu_median_ms": 91.708,
+          "rss_mib": 231.441,
+          "peak_mib": 232.617,
+          "hash": "af1f04429f08ee1b",
+          "nonzero_bytes": 23763,
+          "missing": 0,
+          "samples_ms": [
+            69.662865,
+            69.743786,
+            70.032502,
+            70.843779,
+            69.455159,
+            69.834504,
+            69.31535,
+            69.924381,
+            70.665027,
+            71.171307
+          ],
+          "samples_cpu_ms": [
+            91.358,
+            91.506,
+            93.023,
+            93.244,
+            91.708,
+            92.855,
+            90.392,
+            91.831,
+            91.52,
+            91.281
+          ]
+        },
+        {
+          "phase": "edit",
+          "edit_ms": 5.669732
+        },
+        {
+          "phase": "invalidated",
+          "median_ms": 81.308337,
+          "cpu_median_ms": 102.437,
+          "rss_mib": 250.559,
+          "peak_mib": 250.117,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            81.308337
+          ],
+          "samples_cpu_ms": [
+            102.437
+          ]
+        },
+        {
+          "phase": "restabilized",
+          "median_ms": 69.351487,
+          "cpu_median_ms": 91.143,
+          "rss_mib": 250.559,
+          "peak_mib": 250.117,
+          "hash": "876b53bcb8d5b6e9",
+          "nonzero_bytes": 23862,
+          "missing": 0,
+          "samples_ms": [
+            69.738846,
+            70.908379,
+            69.526051,
+            70.204922,
+            68.751652,
+            69.351487,
+            69.185087,
+            68.862699,
+            69.289001,
+            68.754108
+          ],
+          "samples_cpu_ms": [
+            91.306,
+            92.632,
+            90.245,
+            91.143,
+            89.494,
+            90.402,
+            92.757,
+            89.762,
+            91.196,
+            89.657
+          ]
+        },
+        {
+          "phase": "released",
+          "rss_mib": 249.359,
+          "peak_mib": 250.117
+        }
+      ],
+      "renderer": "GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits)\nGL_VERSION=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.5\n"
+    }
+  ],
+  "summary": [
+    {
+      "driver": "radeon",
+      "library": "base",
+      "phase": "static",
+      "median_ms": 23.0071795,
+      "cpu_median_ms": 21.8465,
+      "rss_mib": 117.5915
+    },
+    {
+      "driver": "radeon",
+      "library": "base",
+      "phase": "invalidated",
+      "median_ms": 27.8125905,
+      "cpu_median_ms": 26.109,
+      "rss_mib": 117.7695
+    },
+    {
+      "driver": "radeon",
+      "library": "base",
+      "phase": "restabilized",
+      "median_ms": 23.1207155,
+      "cpu_median_ms": 21.7215,
+      "rss_mib": 117.832
+    },
+    {
+      "driver": "radeon",
+      "library": "before",
+      "phase": "static",
+      "median_ms": 3.6084875,
+      "cpu_median_ms": 2.557,
+      "rss_mib": 130.67399999999998
+    },
+    {
+      "driver": "radeon",
+      "library": "before",
+      "phase": "invalidated",
+      "median_ms": 16.195422999999998,
+      "cpu_median_ms": 15.147,
+      "rss_mib": 130.84
+    },
+    {
+      "driver": "radeon",
+      "library": "before",
+      "phase": "restabilized",
+      "median_ms": 3.8866490000000002,
+      "cpu_median_ms": 2.606,
+      "rss_mib": 130.84
+    },
+    {
+      "driver": "radeon",
+      "library": "fixed",
+      "phase": "static",
+      "median_ms": 3.5716795,
+      "cpu_median_ms": 2.6225,
+      "rss_mib": 130.736
+    },
+    {
+      "driver": "radeon",
+      "library": "fixed",
+      "phase": "invalidated",
+      "median_ms": 16.8546975,
+      "cpu_median_ms": 14.899999999999999,
+      "rss_mib": 130.8985
+    },
+    {
+      "driver": "radeon",
+      "library": "fixed",
+      "phase": "restabilized",
+      "median_ms": 3.8367265,
+      "cpu_median_ms": 2.7125000000000004,
+      "rss_mib": 130.8985
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "base",
+      "phase": "static",
+      "median_ms": 69.728584,
+      "cpu_median_ms": 91.7835,
+      "rss_mib": 231.963
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "base",
+      "phase": "invalidated",
+      "median_ms": 80.7779525,
+      "cpu_median_ms": 102.643,
+      "rss_mib": 251.619
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "base",
+      "phase": "restabilized",
+      "median_ms": 68.91327799999999,
+      "cpu_median_ms": 91.1925,
+      "rss_mib": 251.619
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "before",
+      "phase": "static",
+      "median_ms": 57.635864,
+      "cpu_median_ms": 83.1265,
+      "rss_mib": 252.0355
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "before",
+      "phase": "invalidated",
+      "median_ms": 75.873002,
+      "cpu_median_ms": 101.632,
+      "rss_mib": 280.37699999999995
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "before",
+      "phase": "restabilized",
+      "median_ms": 53.054807,
+      "cpu_median_ms": 77.0475,
+      "rss_mib": 281.0
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "fixed",
+      "phase": "static",
+      "median_ms": 57.9189415,
+      "cpu_median_ms": 83.0,
+      "rss_mib": 252.00400000000002
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "fixed",
+      "phase": "invalidated",
+      "median_ms": 76.2080165,
+      "cpu_median_ms": 100.886,
+      "rss_mib": 280.217
+    },
+    {
+      "driver": "llvmpipe",
+      "library": "fixed",
+      "phase": "restabilized",
+      "median_ms": 52.955021,
+      "cpu_median_ms": 76.086,
+      "rss_mib": 281.0685
+    }
+  ],
+  "load_before": [
+    1.013671875,
+    1.78076171875,
+    1.8193359375
+  ],
+  "load_after": [
+    1.4287109375,
+    1.8037109375,
+    1.8251953125
+  ]
+}

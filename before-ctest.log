@@ -1,0 +1,26 @@
+Internal ctest changing into directory: /dev/shm/coin-cache-shutdown-20261119/release
+Test project /dev/shm/coin-cache-shutdown-20261119/release
+    Start 6: CacheAncestorDependencies
+1/2 Test #6: CacheAncestorDependencies .................***Failed    0.01 sec
+top=0 middle=0 before=1 unchanged=1 inner_invalid=1 outer_invalid=1 valid=1
+top=1 middle=0 before=1 unchanged=1 inner_invalid=0 outer_invalid=0 valid=0
+top=0 middle=1 before=1 unchanged=1 inner_invalid=1 outer_invalid=0 valid=0
+top=2 middle=2 before=1 unchanged=1 inner_invalid=0 outer_invalid=0 valid=0
+
+    Start 7: DefaultTextureCacheAncestorDependencies
+2/2 Test #7: DefaultTextureCacheAncestorDependencies ...***Failed    0.18 sec
+context=3 cached_bbox=1 before=1 unchanged=1 after=1 compiled=0.25,0.75 fresh=0.375,0.25 valid=0
+context=4 cached_bbox=1 before=1 unchanged=1 after=1 compiled=0.25,0.75 fresh=0.375,0.25 valid=0
+
+
+0% tests passed, 2 tests failed out of 2
+
+Label Time Summary:
+cache    =   0.19 sec*proc (2 tests)
+
+Total Test time (real) =   0.19 sec
+
+The following tests FAILED:
+	  6 - CacheAncestorDependencies (Failed)
+	  7 - DefaultTextureCacheAncestorDependencies (Failed)
+Errors while running CTest

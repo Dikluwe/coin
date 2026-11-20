@@ -1,0 +1,276 @@
+Internal ctest changing into directory: /tmp/coin-cache-prepr-20261119/candidate-build
+Test project /dev/shm/coin-cache-invalidation-20261120/debug
+        Start   1: GLGlueLifetime
+  1/133 Test   #1: GLGlueLifetime ...................................   Passed    0.08 sec
+        Start   2: GLGlueLifetimeNoCallbacks
+  2/133 Test   #2: GLGlueLifetimeNoCallbacks ........................   Passed    0.08 sec
+        Start   3: ActionApplyExceptions
+  3/133 Test   #3: ActionApplyExceptions ............................   Passed    0.02 sec
+        Start   4: GLRenderExceptions
+  4/133 Test   #4: GLRenderExceptions ...............................   Passed    0.15 sec
+        Start   5: SbSmallMapFailure
+  5/133 Test   #5: SbSmallMapFailure ................................   Passed    2.94 sec
+        Start   6: CacheAncestorDependencies
+  6/133 Test   #6: CacheAncestorDependencies ........................   Passed    0.01 sec
+        Start   7: DefaultTextureCacheAncestorDependencies
+  7/133 Test   #7: DefaultTextureCacheAncestorDependencies ..........   Passed    0.17 sec
+        Start   8: LegacyExportedSymbols
+  8/133 Test   #8: LegacyExportedSymbols ............................   Passed    0.14 sec
+        Start   9: TextureCoordinateArrayBudget
+  9/133 Test   #9: TextureCoordinateArrayBudget .....................   Passed    0.00 sec
+        Start  10: BumpProgramFailuresAndLifetime
+ 10/133 Test  #10: BumpProgramFailuresAndLifetime ...................   Passed    0.03 sec
+        Start  11: BumpProgramGLX
+ 11/133 Test  #11: BumpProgramGLX ...................................   Passed    0.16 sec
+        Start  12: DefaultTextureBufferReuse
+ 12/133 Test  #12: DefaultTextureBufferReuse ........................   Passed    0.20 sec
+        Start  13: TextureCoordinateArrayRendering
+ 13/133 Test  #13: TextureCoordinateArrayRendering ..................   Passed   19.21 sec
+        Start  14: DefaultTextureCoordinateCache
+ 14/133 Test  #14: DefaultTextureCoordinateCache ....................   Passed    7.60 sec
+        Start  15: DefaultTextureCacheLifecycle_late-cleanup_vbo0
+ 15/133 Test  #15: DefaultTextureCacheLifecycle_late-cleanup_vbo0 ...   Passed    0.21 sec
+        Start  16: DefaultTextureCacheLifecycle_late-cleanup_vbo1
+ 16/133 Test  #16: DefaultTextureCacheLifecycle_late-cleanup_vbo1 ...   Passed    0.21 sec
+        Start  17: DefaultTextureCacheLifecycle_cycles_vbo0
+ 17/133 Test  #17: DefaultTextureCacheLifecycle_cycles_vbo0 .........   Passed    0.43 sec
+        Start  18: DefaultTextureCacheLifecycle_cycles_vbo1
+ 18/133 Test  #18: DefaultTextureCacheLifecycle_cycles_vbo1 .........   Passed    0.43 sec
+        Start  19: CoinTests
+ 19/133 Test  #19: CoinTests ........................................   Passed    0.94 sec
+        Start  20: SoTempPathReplaceTail_valid_sentinel
+ 20/133 Test  #20: SoTempPathReplaceTail_valid_sentinel .............   Passed    0.01 sec
+        Start  21: SoTempPathReplaceTail_valid_replacement
+ 21/133 Test  #21: SoTempPathReplaceTail_valid_replacement ..........   Passed    0.01 sec
+        Start  22: SoTempPathReplaceTail_empty_noop
+ 22/133 Test  #22: SoTempPathReplaceTail_empty_noop .................   Passed    0.01 sec
+        Start  23: XmlLoadFileTest
+ 23/133 Test  #23: XmlLoadFileTest ..................................   Passed    0.00 sec
+        Start  24: SoPathRange
+ 24/133 Test  #24: SoPathRange ......................................   Passed    0.01 sec
+        Start  25: CoinAtexit
+ 25/133 Test  #25: CoinAtexit .......................................   Passed    0.44 sec
+        Start  26: SoPathLegacyAccessorBounds_node
+ 26/133 Test  #26: SoPathLegacyAccessorBounds_node ..................   Passed    0.01 sec
+        Start  27: SoPathLegacyAccessorBounds_node-tail
+ 27/133 Test  #27: SoPathLegacyAccessorBounds_node-tail .............   Passed    0.01 sec
+        Start  28: SoPathLegacyAccessorBounds_index
+ 28/133 Test  #28: SoPathLegacyAccessorBounds_index .................   Passed    0.01 sec
+        Start  29: SoPathLegacyAccessorBounds_index-tail
+ 29/133 Test  #29: SoPathLegacyAccessorBounds_index-tail ............   Passed    0.01 sec
+        Start  30: SoPathLegacyAccessorBounds_valid
+ 30/133 Test  #30: SoPathLegacyAccessorBounds_valid .................   Passed    0.01 sec
+        Start  31: SoPathLegacyAccessorBounds_visibility
+ 31/133 Test  #31: SoPathLegacyAccessorBounds_visibility ............   Passed    0.01 sec
+        Start  32: SoPathAssignmentAuditor_reassign
+ 32/133 Test  #32: SoPathAssignmentAuditor_reassign .................   Passed    0.01 sec
+        Start  33: SoPathAssignmentAuditor_self-assign
+ 33/133 Test  #33: SoPathAssignmentAuditor_self-assign ..............   Passed    0.01 sec
+        Start  34: SoPathAssignmentAuditor_copy-construct
+ 34/133 Test  #34: SoPathAssignmentAuditor_copy-construct ...........   Passed    0.01 sec
+        Start  35: SoPathAuditorCallback_empty
+ 35/133 Test  #35: SoPathAuditorCallback_empty ......................   Passed    0.01 sec
+        Start  36: SoPathAuditorCallback_foreign-parent
+ 36/133 Test  #36: SoPathAuditorCallback_foreign-parent .............   Passed    0.01 sec
+        Start  37: SoPathAuditorCallback_negative-index
+ 37/133 Test  #37: SoPathAuditorCallback_negative-index .............   Passed    0.01 sec
+        Start  38: SoPathAuditorCallback_null-replacement
+ 38/133 Test  #38: SoPathAuditorCallback_null-replacement ...........   Passed    0.01 sec
+        Start  39: SoPathAuditorCallback_valid-callbacks
+ 39/133 Test  #39: SoPathAuditorCallback_valid-callbacks ............   Passed    0.01 sec
+        Start  40: SbPListGrowthFailure
+ 40/133 Test  #40: SbPListGrowthFailure .............................   Passed    0.01 sec
+        Start  41: SoPathAssignmentAllocationFailure
+ 41/133 Test  #41: SoPathAssignmentAllocationFailure ................   Passed    0.01 sec
+        Start  42: SoPathChildAppend
+ 42/133 Test  #42: SoPathChildAppend ................................   Passed    0.01 sec
+        Start  43: CoinXmlTransactionalRead
+ 43/133 Test  #43: CoinXmlTransactionalRead .........................   Passed    0.01 sec
+        Start  44: CoinConfigCompatibility
+ 44/133 Test  #44: CoinConfigCompatibility ..........................   Passed    0.36 sec
+        Start  45: CoinTestsFilterExact
+ 45/133 Test  #45: CoinTestsFilterExact .............................   Passed    0.01 sec
+        Start  46: CoinTestsFilterWildcard
+ 46/133 Test  #46: CoinTestsFilterWildcard ..........................   Passed    0.02 sec
+        Start  47: CoinTestsFilterSuite
+ 47/133 Test  #47: CoinTestsFilterSuite .............................   Passed    0.02 sec
+        Start  48: CoinTestsFilterCombined
+ 48/133 Test  #48: CoinTestsFilterCombined ..........................   Passed    0.02 sec
+        Start  49: CoinTestsFilterRepeated
+ 49/133 Test  #49: CoinTestsFilterRepeated ..........................   Passed    0.02 sec
+        Start  50: CoinTestsFilterNoMatch
+ 50/133 Test  #50: CoinTestsFilterNoMatch ...........................   Passed    0.01 sec
+        Start  51: CoinTestsFilterMissingValue
+ 51/133 Test  #51: CoinTestsFilterMissingValue ......................   Passed    0.01 sec
+        Start  52: CoinTestsFilterEmptyValue
+ 52/133 Test  #52: CoinTestsFilterEmptyValue ........................   Passed    0.01 sec
+        Start  53: CoinTestsFilterDirectSuite
+ 53/133 Test  #53: CoinTestsFilterDirectSuite .......................   Passed    0.02 sec
+        Start  54: ProfilerInit_unset
+ 54/133 Test  #54: ProfilerInit_unset ...............................   Passed    0.03 sec
+        Start  55: ProfilerInit_off
+ 55/133 Test  #55: ProfilerInit_off .................................   Passed    0.03 sec
+        Start  56: ProfilerInit_0
+ 56/133 Test  #56: ProfilerInit_0 ...................................   Passed    0.03 sec
+        Start  57: ProfilerInit_on
+ 57/133 Test  #57: ProfilerInit_on ..................................   Passed    0.02 sec
+        Start  58: ProfilerInit_1
+ 58/133 Test  #58: ProfilerInit_1 ...................................   Passed    0.03 sec
+        Start  59: ProfilerInit_syncgl
+ 59/133 Test  #59: ProfilerInit_syncgl ..............................   Passed    0.03 sec
+        Start  60: ProfilerInit_invalid
+ 60/133 Test  #60: ProfilerInit_invalid .............................   Passed    0.03 sec
+        Start  61: CcDictConsumerConstructors
+ 61/133 Test  #61: CcDictConsumerConstructors .......................   Passed    0.01 sec
+        Start  62: CcDictHeapEntryFailure
+ 62/133 Test  #62: CcDictHeapEntryFailure ...........................   Passed    0.01 sec
+        Start  63: CcDictHeapRebuild
+ 63/133 Test  #63: CcDictHeapRebuild ................................   Passed    0.01 sec
+        Start  64: CcDictStorageFailure
+ 64/133 Test  #64: CcDictStorageFailure .............................   Passed    0.01 sec
+        Start  65: CcDictSchedulerFailure
+ 65/133 Test  #65: CcDictSchedulerFailure ...........................   Passed    0.01 sec
+        Start  66: CcDictSchedulerIdWrap
+ 66/133 Test  #66: CcDictSchedulerIdWrap ............................   Passed    0.01 sec
+        Start  67: CcDictResizeRelink
+ 67/133 Test  #67: CcDictResizeRelink ...............................   Passed    0.01 sec
+        Start  68: CcDictResizeAllocationFailure
+ 68/133 Test  #68: CcDictResizeAllocationFailure ....................   Passed    0.01 sec
+        Start  69: CcDictNumericLoadfactor
+ 69/133 Test  #69: CcDictNumericLoadfactor ..........................   Passed    0.01 sec
+        Start  70: CcDictAllocationFailures
+ 70/133 Test  #70: CcDictAllocationFailures .........................   Passed    0.01 sec
+        Start  71: CcDictApplyRemoveCurrent
+ 71/133 Test  #71: CcDictApplyRemoveCurrent .........................   Passed    0.01 sec
+        Start  72: CcDictElementLimit
+ 72/133 Test  #72: CcDictElementLimit ...............................   Passed    0.01 sec
+        Start  73: CcDictHashException
+ 73/133 Test  #73: CcDictHashException ..............................   Passed    0.01 sec
+        Start  74: CcDictCapacityBoundary
+ 74/133 Test  #74: CcDictCapacityBoundary ...........................   Passed    0.01 sec
+        Start  75: CcDictHashRebuildAllocationFailure
+ 75/133 Test  #75: CcDictHashRebuildAllocationFailure ...............   Passed    0.01 sec
+        Start  76: CcHashApi
+ 76/133 Test  #76: CcHashApi ........................................   Passed    0.02 sec
+        Start  77: CcHashCppExceptions
+ 77/133 Test  #77: CcHashCppExceptions ..............................   Passed    0.01 sec
+        Start  78: CcMemallocFailure
+ 78/133 Test  #78: CcMemallocFailure ................................   Passed    0.01 sec
+        Start  79: CcListOom
+ 79/133 Test  #79: CcListOom ........................................   Passed    0.00 sec
+        Start  80: CcWpoolOom
+ 80/133 Test  #80: CcWpoolOom .......................................   Passed    0.01 sec
+        Start  81: CcSyncOom
+ 81/133 Test  #81: CcSyncOom ........................................   Passed    0.58 sec
+        Start  82: CcHashOom
+ 82/133 Test  #82: CcHashOom ........................................   Passed    1.10 sec
+        Start  83: CcWorkerOom
+ 83/133 Test  #83: CcWorkerOom ......................................   Passed    0.01 sec
+        Start  84: CcSbHashOom
+ 84/133 Test  #84: CcSbHashOom ......................................   Passed    0.73 sec
+        Start  85: SbHashFailure
+ 85/133 Test  #85: SbHashFailure ....................................   Passed    0.12 sec
+        Start  86: SoCallbackListAddAtomic
+ 86/133 Test  #86: SoCallbackListAddAtomic ..........................   Passed    1.54 sec
+        Start  87: LevelOfDetailBoundingBox
+ 87/133 Test  #87: LevelOfDetailBoundingBox .........................   Passed    0.01 sec
+        Start  88: SoNodeKitPathBehavior
+ 88/133 Test  #88: SoNodeKitPathBehavior ............................   Passed    0.01 sec
+        Start  89: SoManipNestedKit
+ 89/133 Test  #89: SoManipNestedKit .................................   Passed    0.02 sec
+        Start  90: SoTempPathPolicy_nonempty_destination
+ 90/133 Test  #90: SoTempPathPolicy_nonempty_destination ............   Passed    0.01 sec
+        Start  91: SoTempPathPolicy_empty_destination
+ 91/133 Test  #91: SoTempPathPolicy_empty_destination ...............   Passed    0.01 sec
+        Start  92: SoTempPathPolicy_ordinary_empty_destination
+ 92/133 Test  #92: SoTempPathPolicy_ordinary_empty_destination ......   Passed    0.01 sec
+        Start  93: SoTempPathPolicy_temporary_source
+ 93/133 Test  #93: SoTempPathPolicy_temporary_source ................   Passed    0.01 sec
+        Start  94: SoTempPathPolicyAllocationFailure
+ 94/133 Test  #94: SoTempPathPolicyAllocationFailure ................   Passed    0.01 sec
+        Start  95: SensorScheduling_alarm_cancel
+ 95/133 Test  #95: SensorScheduling_alarm_cancel ....................   Passed    0.01 sec
+        Start  96: SensorScheduling_recurring_cancel
+ 96/133 Test  #96: SensorScheduling_recurring_cancel ................   Passed    0.01 sec
+        Start  97: SensorScheduling_alarm_reschedule
+ 97/133 Test  #97: SensorScheduling_alarm_reschedule ................   Passed    0.01 sec
+        Start  98: SensorScheduling_timeout_change_cancel
+ 98/133 Test  #98: SensorScheduling_timeout_change_cancel ...........   Passed    0.01 sec
+        Start  99: SensorScheduling_zero_repeat
+ 99/133 Test  #99: SensorScheduling_zero_repeat .....................   Passed    0.01 sec
+        Start 100: SensorScheduling_zero_nonidle
+100/133 Test #100: SensorScheduling_zero_nonidle ....................   Passed    0.01 sec
+        Start 101: SensorScheduling_nonzero_timeout
+101/133 Test #101: SensorScheduling_nonzero_timeout .................   Passed    0.01 sec
+        Start 102: SensorScheduling_node_detach
+102/133 Test #102: SensorScheduling_node_detach .....................   Passed    0.01 sec
+        Start 103: SensorScheduling_delay_reentry
+103/133 Test #103: SensorScheduling_delay_reentry ...................   Passed    0.01 sec
+        Start 104: SensorScheduling_delay_timeout_reentry
+104/133 Test #104: SensorScheduling_delay_timeout_reentry ...........   Passed    0.01 sec
+        Start 105: SensorScheduling_timer_reentry
+105/133 Test #105: SensorScheduling_timer_reentry ...................   Passed    0.01 sec
+        Start 106: SensorScheduling_delay_changed_exception
+106/133 Test #106: SensorScheduling_delay_changed_exception .........   Passed    0.01 sec
+        Start 107: SensorScheduling_timer_changed_exception
+107/133 Test #107: SensorScheduling_timer_changed_exception .........   Passed    0.01 sec
+        Start 108: SensorScheduling_delay_remove_reentry
+108/133 Test #108: SensorScheduling_delay_remove_reentry ............   Passed    0.01 sec
+        Start 109: SensorScheduling_timer_remove_reentry
+109/133 Test #109: SensorScheduling_timer_remove_reentry ............   Passed    0.01 sec
+        Start 110: SensorScheduling_timer_exception
+110/133 Test #110: SensorScheduling_timer_exception .................   Passed    0.01 sec
+        Start 111: SensorScheduling_delay_exception
+111/133 Test #111: SensorScheduling_delay_exception .................   Passed    0.01 sec
+        Start 112: SensorScheduling_timer_cancel_exception
+112/133 Test #112: SensorScheduling_timer_cancel_exception ..........   Passed    0.01 sec
+        Start 113: SensorScheduling_delay_deferred_exception
+113/133 Test #113: SensorScheduling_delay_deferred_exception ........   Passed    0.02 sec
+        Start 114: SensorScheduling_absolute_deadline
+114/133 Test #114: SensorScheduling_absolute_deadline ...............   Passed    0.01 sec
+        Start 115: SensorScheduling_changed_during_dispatch
+115/133 Test #115: SensorScheduling_changed_during_dispatch .........   Passed    0.01 sec
+        Start 116: SensorScheduling_immediate_notification
+116/133 Test #116: SensorScheduling_immediate_notification ..........   Passed    0.01 sec
+        Start 117: SensorQueueAllocation_delay
+117/133 Test #117: SensorQueueAllocation_delay ......................   Passed    0.01 sec
+        Start 118: SensorQueueAllocation_immediate
+118/133 Test #118: SensorQueueAllocation_immediate ..................   Passed    0.01 sec
+        Start 119: SensorQueueAllocation_timer
+119/133 Test #119: SensorQueueAllocation_timer ......................   Passed    0.02 sec
+        Start 120: SensorQueueAllocation_recurring
+120/133 Test #120: SensorQueueAllocation_recurring ..................   Passed    0.01 sec
+        Start 121: XmlCHeaderAttributeTest
+121/133 Test #121: XmlCHeaderAttributeTest ..........................   Passed    0.00 sec
+        Start 122: XmlCHeaderDocumentTest
+122/133 Test #122: XmlCHeaderDocumentTest ...........................   Passed    0.00 sec
+        Start 123: XmlCHeaderElementTest
+123/133 Test #123: XmlCHeaderElementTest ............................   Passed    0.00 sec
+        Start 124: XmlCHeaderEntityTest
+124/133 Test #124: XmlCHeaderEntityTest .............................   Passed    0.00 sec
+        Start 125: XmlCHeaderParserTest
+125/133 Test #125: XmlCHeaderParserTest .............................   Passed    0.00 sec
+        Start 126: XmlCHeaderPathTest
+126/133 Test #126: XmlCHeaderPathTest ...............................   Passed    0.00 sec
+        Start 127: XmlCHeaderTypesTest
+127/133 Test #127: XmlCHeaderTypesTest ..............................   Passed    0.00 sec
+        Start 128: XmlCHeaderWorldTest
+128/133 Test #128: XmlCHeaderWorldTest ..............................   Passed    0.00 sec
+        Start 129: XmlCHeadersAggregateTest
+129/133 Test #129: XmlCHeadersAggregateTest .........................   Passed    0.00 sec
+        Start 130: XmlCApiTest
+130/133 Test #130: XmlCApiTest ......................................   Passed    0.01 sec
+        Start 131: XmlLegacyPathDocumentCxxAbiTest
+131/133 Test #131: XmlLegacyPathDocumentCxxAbiTest ..................   Passed    0.01 sec
+        Start 132: XmlEntityCApiTest
+132/133 Test #132: XmlEntityCApiTest ................................   Passed    0.01 sec
+        Start 133: XmlEntityLegacyCxxAbiTest
+133/133 Test #133: XmlEntityLegacyCxxAbiTest ........................   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 133
+
+Label Time Summary:
+cache                     =   0.19 sec*proc (2 tests)
+sopath-legacy-accessor    =   0.07 sec*proc (6 tests)
+
+Total Test time (real) =  39.15 sec
