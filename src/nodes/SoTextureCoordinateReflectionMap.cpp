@@ -36,9 +36,12 @@
 
   \ingroup coin_nodes
 
-  This node is usually used along with a SoCubeMapTexture node...
-  
-  FIXME: more doc.
+  This node is usually used along with a SoTextureCubeMap node. The
+  coordinates are the eye-space reflection direction, as in
+  GL_REFLECTION_MAP, with a homogeneous coordinate of 1. The incident
+  direction runs from the eye to the surface point; normals use the inverse
+  transpose of the model-view transformation. For zero normals or a point
+  at the eye, CPU generation retains the historical normal-based calculation.
 
   <b>FILE FORMAT/DEFAULTS:</b>
   \code
@@ -51,9 +54,6 @@
 
 #include <Inventor/nodes/SoTextureCoordinateReflectionMap.h>
 #include "coindefs.h"
-
-#include <cstdlib>
-#include <cfloat>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -69,8 +69,9 @@
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/system/gl.h>
 
-#include "nodes/SoSubNodeP.h"
 #include "tidbitsp.h"
+#include "nodes/SoSubNodeP.h"
+#include "nodes/SoTextureCoordinateReflectionP.h"
 
 // *************************************************************************
 
@@ -122,29 +123,19 @@ SoTextureCoordinateReflectionMap::initClass(void)
 
 // generates texture coordinates for GLRender, callback and pick actions
 const SbVec4f &
-SoTextureCoordinateReflectionMap::generate(void *userdata,
-                                         const SbVec3f & /* p */,
-                                         const SbVec3f &n)
+SoTextureCoordinateReflectionMap::generate(void * userdata,
+                                         const SbVec3f & p,
+                                         const SbVec3f & n)
 {
-  SoState *state = (SoState*)userdata;
-  SbVec3f wn; // normal in world (eye) coordinates
-  SoModelMatrixElement::get(state).multDirMatrix(n, wn);
-  SbVec3f u = n;
+  double reflection[3];
+  coin_texture_reflection(static_cast<SoState *>(userdata), p, n, reflection);
 
-  u.normalize();
-  wn.normalize();
-
-  // reflection vector
-  SbVec3f r = u - SbVec3f(2.0f*wn[0]*wn[0]*u[0],
-                          2.0f*wn[1]*wn[1]*u[1],
-                          2.0f*wn[2]*wn[2]*u[2]);
-  r.normalize();
-
-  (*SoTextureCoordinateReflectionMapP::dummy_texcoords)[0] = r[0];
-  (*SoTextureCoordinateReflectionMapP::dummy_texcoords)[1] = r[1];
-  (*SoTextureCoordinateReflectionMapP::dummy_texcoords)[2] = r[2];
-  (*SoTextureCoordinateReflectionMapP::dummy_texcoords)[3] = 1.0f;
-  return *SoTextureCoordinateReflectionMapP::dummy_texcoords;
+  // The element API returns a reference. Keep result storage local to each
+  // traversal thread without changing the public node's layout.
+  static thread_local SbVec4f texcoords;
+  texcoords.setValue(float(reflection[0]), float(reflection[1]),
+                     float(reflection[2]), 1.0f);
+  return texcoords;
 }
 
 // doc from parent
