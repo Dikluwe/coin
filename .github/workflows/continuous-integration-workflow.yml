@@ -1,89 +1,100 @@
-name: Continuous Integration Build
-
+name: Validate issue 464 on Windows
 on:
-  workflow_dispatch:  # Allow manual triggers
-  pull_request:
-    branches: [ master ]
-  #push:
-  #  branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
 
 jobs:
-  ubuntu-build:
-    name: Ubuntu · legacy renderer ${{ matrix.legacy_renderer.label }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        legacy_renderer:
-          - value: 'ON'
-            label: enabled
-          - value: 'OFF'
-            label: disabled
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          submodules: recursive
-      - name: Install dependencies
-        run: |
-          sudo apt-get -y update
-          sudo apt-get -y install freeglut3-dev
-      - name: Build and test
-        run: .github/scripts/build-and-test.sh "${{ matrix.legacy_renderer.value }}"
-      - name: Create Artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: Ubuntu-Artifacts-LegacyGL-${{ matrix.legacy_renderer.value }}
-          path: cmake_install_dir/
-        if: always()
-
-  windows-build:
-    name: Windows · legacy renderer ${{ matrix.legacy_renderer.label }}
+  installed-consumer:
     runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
-        legacy_renderer:
-          - value: 'ON'
-            label: enabled
-          - value: 'OFF'
-            label: disabled
+        package: [published-925, release-4.0.1]
+    env:
+      COIN_VALIDATION_PACKAGE: ${{ matrix.package }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
-          submodules: recursive
-      - name: Build and test
+          fetch-depth: 2
+      - name: Test the standalone example with an installed Coin package
         shell: pwsh
-        run: .github/scripts/build-and-test.ps1 -LegacyRenderer "${{ matrix.legacy_renderer.value }}"
-      - name: Create Artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: Windows-Artifacts-LegacyGL-${{ matrix.legacy_renderer.value }}
-          path: cmake_install_dir/
-        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          function Invoke-CMake {
+            & cmake @args
+            if ($LASTEXITCODE -ne 0) { throw "CMake failed ($LASTEXITCODE): $args" }
+          }
 
-  macos-build:
-    name: macOS · legacy renderer ${{ matrix.legacy_renderer.label }}
-    runs-on: macos-15
-    strategy:
-      fail-fast: false
-      matrix:
-        legacy_renderer:
-          - value: 'ON'
-            label: enabled
-          - value: 'OFF'
-            label: disabled
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          submodules: recursive
-      - name: Build and test
-        run: .github/scripts/build-and-test.sh "${{ matrix.legacy_renderer.value }}"
-      - name: Create Artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: MacOS-Artifacts-LegacyGL-${{ matrix.legacy_renderer.value }}
-          path: cmake_install_dir/
-        if: always()
+          $prHead = (git rev-parse HEAD^).Trim()
+          if ($LASTEXITCODE -ne 0 -or $prHead -ne '2a29735154563305f5b46027deef466d927cfc48') {
+            throw "Expected the example from PR #925, got parent $prHead"
+          }
+          $prefix = Join-Path $env:RUNNER_TEMP 'Coin install'
+          $source = Join-Path $env:RUNNER_TEMP 'standalone consumer'
+          Copy-Item examples/cmake-consumer $source -Recurse
+          $generator = @('-G', 'Visual Studio 17 2022', '-A', 'x64')
+          $expected = '4.0.10'
+
+          if ($env:COIN_VALIDATION_PACKAGE -eq 'release-4.0.1') {
+            $expected = '4.0.1'
+            $asset = 'coin-4.0.1-msvc17-x64.zip'
+            $url = "https://github.com/coin3d/coin/releases/download/v4.0.1/$asset"
+            $zip = Join-Path $env:RUNNER_TEMP $asset
+            Invoke-WebRequest -Uri $url -OutFile $zip
+            $hashFile = "$zip.sha256"
+            Invoke-WebRequest -Uri "$url.sha256" -OutFile $hashFile
+            $expectedHash = [regex]::Match((Get-Content -Raw $hashFile), '\b[0-9a-fA-F]{64}\b').Value
+            $actual = (Get-FileHash $zip -Algorithm SHA256).Hash
+            if (!$expectedHash -or $expectedHash -ne $actual) { throw 'Release checksum mismatch' }
+            Expand-Archive -LiteralPath $zip -DestinationPath $prefix
+          } else {
+            gh run download 44841018027 --repo coin3d/coin --name Windows-Artifacts-LegacyGL-ON --dir "$prefix"
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host 'The upstream artifact is unavailable to this token. Building from the exact published source.'
+              $library = Join-Path $env:RUNNER_TEMP 'coin library build'
+              Invoke-CMake -S . -B $library @generator "-DCMAKE_INSTALL_PREFIX=$prefix" -DCOIN_BUILD_TESTS=OFF
+              Invoke-CMake --build $library --config Release --target INSTALL --parallel 4
+            }
+          }
+
+          $files = @(Get-ChildItem -Path $prefix -Recurse -Filter coin-config.cmake)
+          if ($files.Count -ne 1) { throw "Expected one installed coin-config.cmake. Found $($files.Count)." }
+          $packageDir = $files[0].Directory.FullName
+          $install = (Resolve-Path (Join-Path $packageDir '..\..\..')).Path
+          $env:PATH = "$(Join-Path $install 'bin');$env:PATH"
+          Write-Host "PR source: $prHead"
+          Write-Host "Using installed package: $packageDir"
+
+          foreach ($mode in @('prefix', 'package-dir')) {
+            $build = Join-Path $env:RUNNER_TEMP "consumer build $mode"
+            $option = if ($mode -eq 'prefix') { "-DCMAKE_PREFIX_PATH=$install" } else { "-DCoin_DIR=$packageDir" }
+            Invoke-CMake -S $source -B $build @generator $option
+            Invoke-CMake --build $build --config Release
+            $resolved = Select-String -Path (Join-Path $build 'CMakeCache.txt') -Pattern '^Coin_DIR:[^=]+=(.*)$'
+            if (!$resolved -or ((Resolve-Path $resolved.Matches[0].Groups[1].Value).Path -ne $packageDir)) {
+              throw "Consumer did not use the intended package: $resolved"
+            }
+            $program = Join-Path $build 'Release/coin-version.exe'
+            $version = & $program
+            if ($LASTEXITCODE -ne 0 -or "$version" -notmatch "Coin.*$([regex]::Escape($expected))") {
+              throw "Unexpected program result ($LASTEXITCODE): $version"
+            }
+            Write-Host "PASS $mode - $version"
+          }
+
+          if ($env:COIN_VALIDATION_PACKAGE -eq 'release-4.0.1') {
+            $negative = Join-Path $env:RUNNER_TEMP 'old linkage'
+            Copy-Item $source $negative -Recurse
+            $cmakeFile = Join-Path $negative 'CMakeLists.txt'
+            (Get-Content -Raw $cmakeFile).Replace('Coin::Coin', '${Coin_LIBRARIES}') | Set-Content $cmakeFile
+            $build = Join-Path $env:RUNNER_TEMP 'old linkage build'
+            & cmake -S $negative -B $build @generator "-DCoin_DIR=$packageDir"
+            if ($LASTEXITCODE -eq 0) { & cmake --build $build --config Release }
+            Write-Host "Original Coin_LIBRARIES linkage with Coin_DIR exit: $LASTEXITCODE"
+          }
