@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 2
+          fetch-depth: 3
       - name: Test the standalone example with an installed Coin package
         shell: pwsh
         env:
@@ -31,7 +31,7 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "CMake failed ($LASTEXITCODE): $args" }
           }
 
-          $prHead = (git rev-parse HEAD^).Trim()
+          $prHead = (git rev-parse HEAD~2).Trim()
           if ($LASTEXITCODE -ne 0 -or $prHead -ne '2a29735154563305f5b46027deef466d927cfc48') {
             throw "Expected the example from PR #925, got parent $prHead"
           }
@@ -94,7 +94,13 @@ jobs:
             $cmakeFile = Join-Path $negative 'CMakeLists.txt'
             (Get-Content -Raw $cmakeFile).Replace('Coin::Coin', '${Coin_LIBRARIES}') | Set-Content $cmakeFile
             $build = Join-Path $env:RUNNER_TEMP 'old linkage build'
-            & cmake -S $negative -B $build @generator "-DCoin_DIR=$packageDir"
-            if ($LASTEXITCODE -eq 0) { & cmake --build $build --config Release }
-            Write-Host "Original Coin_LIBRARIES linkage with Coin_DIR exit: $LASTEXITCODE"
+            Invoke-CMake -S $negative -B $build @generator "-DCoin_DIR=$packageDir"
+            $output = & cmake --build $build --config Release 2>&1
+            $controlExit = $LASTEXITCODE
+            $output | ForEach-Object { Write-Host $_ }
+            if ($controlExit -eq 0 -or ($output -join [Environment]::NewLine) -notmatch 'error C1083.*Inventor/SoDB.h') {
+              throw "Expected the original Coin_LIBRARIES consumer to fail with a missing Coin header."
+            }
+            Write-Host 'PASS negative control - the original linkage failed with MSVC C1083.'
           }
+          exit 0
