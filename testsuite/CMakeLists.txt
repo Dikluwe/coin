@@ -10,6 +10,12 @@ include(gl-render-exceptions/Tests.cmake)
 include(scene-texture-scene-policy/Tests.cmake)
 include(SbSmallMapTests.cmake)
 
+add_executable(CoinRayPickChildBVHStateTest RayPickChildBVHStateTest.cpp)
+target_include_directories(CoinRayPickChildBVHStateTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+target_link_libraries(CoinRayPickChildBVHStateTest Coin)
+add_test(NAME RayPickChildBVHState COMMAND CoinRayPickChildBVHStateTest)
+
 if(COIN_BUILD_LEGACY_GL_RENDERER)
   find_package(Threads REQUIRED)
   add_executable(CoinBumpProgramTest bumprender/FailureTest.cpp)
